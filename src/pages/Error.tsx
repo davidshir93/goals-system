@@ -1,7 +1,5 @@
-type Props = {}
-
-export default function Error({ }: Props) {
+export default function Error() {
     return (
-        <div>Error</div>
+        <h1>Error</h1>
     )
 }

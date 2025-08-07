@@ -1,15 +1,7 @@
-import type { YearlyGoal } from "@/types/GoalTypes"
-
-type YearProps = {
-    yearlyGoals: YearlyGoal[]
-}
-
-export default function Year({ yearlyGoals }: YearProps) {
+export default function Year() {
     return (
         <>
-            <div>Year</div>
-            {yearlyGoals.length > 0 && 'All Yearly Goals'}
-            {yearlyGoals[0]}
+            <h1>Year</h1>
         </>
     )
 }

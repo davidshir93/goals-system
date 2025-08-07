@@ -1,13 +1,43 @@
-import { ReactNode, createContext, useContext, useEffect, useState } from "react"
-import { User, onAuthStateChanged } from "firebase/auth"
+import type { ReactNode } from "react"
+import type { User } from "firebase/auth"
+import { createContext, useContext, useEffect, useState } from "react"
+import { GoogleAuthProvider, createUserWithEmailAndPassword, onAuthStateChanged, signInWithEmailAndPassword, signInWithPopup, signOut } from "firebase/auth"
 import { auth } from "../firebase"
 
 type AuthContextType = {
     user: User | null
     loading: boolean
+    logIn: typeof logIn
+    signUp: typeof signUp
+    logOut: typeof logOut
+    googleSignIn: typeof googleSignIn
 }
 
-const AuthContext = createContext<AuthContextType | undefined>(undefined)
+const logIn = (email: string, password: string) => {
+    return signInWithEmailAndPassword(auth, email, password)
+}
+
+const signUp = (email: string, password: string) => {
+    return createUserWithEmailAndPassword(auth, email, password)
+}
+
+const logOut = () => {
+    signOut(auth)
+}
+
+const googleSignIn = () => {
+    const googleAuthProvider = new GoogleAuthProvider();
+    return signInWithPopup(auth, googleAuthProvider)
+}
+
+const AuthContext = createContext<AuthContextType | undefined>({
+    user: null,
+    loading: false,
+    logIn,
+    signUp,
+    logOut,
+    googleSignIn
+})
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [user, setUser] = useState<User | null>(null)
@@ -22,7 +52,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, [])
 
     return (
-        <AuthContext.Provider value={{ user, loading }}>
+        <AuthContext.Provider value={{ user, loading, logIn, logOut, signUp, googleSignIn }}>
             {children}
         </AuthContext.Provider>
     )

@@ -1,7 +1,5 @@
-type Props = {}
-
-export default function Quarter({ }: Props) {
+export default function Quarter() {
     return (
-        <div>Quarter</div>
+        <h1>Quarter</h1>
     )
 }

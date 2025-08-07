@@ -1,9 +1,5 @@
-import React from 'react'
-
-type Props = {}
-
-const Week = (props: Props) => {
+export default function Week() {
     return (
-        <div>Week</div>
+        <h1>Week</h1>
     )
 }
