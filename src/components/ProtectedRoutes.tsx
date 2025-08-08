@@ -5,5 +5,7 @@ export default function ProtectedRoutes() {
     const { user } = useAuth()
     const location = useLocation();
 
-    return user !== null ? <Outlet /> : <Navigate to="/login" state={{ from: location }} />
+    return user !== null ?
+        <Outlet />
+        : <Navigate to="/login" state={{ from: location }} />
 }

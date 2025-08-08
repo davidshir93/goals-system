@@ -1,19 +1,19 @@
 import { NavBar } from "@/components/NavBar"
-import { AuthProvider } from "@/context/AuthContext"
-import { Outlet, ScrollRestoration, useNavigation } from "react-router"
+import { useAuth } from "@/context/AuthContext"
+import { Outlet, ScrollRestoration } from "react-router"
 
 export function RootLayout() {
-    const { state } = useNavigation()
-    const isLoading = state === "loading"
+    const { loading } = useAuth()
 
+    if (loading) return <div className="loading-spinner" />
     return (
-        <AuthProvider>
+        <>
             <NavBar />
             <ScrollRestoration />
-            {isLoading && <div className="loading-spinner" />}
-            <div className={`container mx-auto mb-6 p-6 ${isLoading ? "loading" : ""}`}>
-                <Outlet />
+            {/* TODO: Handle data loading state UI */}
+            <div className={`container mx-auto mb-6 p-6 ${loading ? "loading" : ""}`}>
+                {!loading && <Outlet />}
             </div>
-        </AuthProvider>
+        </>
     )
 }

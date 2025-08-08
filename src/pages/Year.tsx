@@ -1,7 +1,15 @@
+import { useGoals } from "@/context/GoalsContext"
+
 export default function Year() {
+    const { goals } = useGoals();
+
+    const yearGoals = goals.filter(goal => goal.type === 'year');
     return (
         <>
-            <h1>Year</h1>
+            <ul>
+                {yearGoals.map(goal => <li>{JSON.stringify(goal)}</li>)}
+            </ul>
         </>
+
     )
 }
