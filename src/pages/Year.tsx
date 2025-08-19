@@ -1,14 +1,31 @@
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext"
+import { useYearlyGoals } from "@/data/queries";
+import { useNavigate } from "react-router-dom";
 
 export default function Year() {
-    const { goals } = useGoals();
+    const { user } = useAuth()
 
-    const yearGoals = goals.filter(goal => goal.type === 'year');
+    const { selectedYear } = useGoals();
+
+    const { data: yearlyGoals, isLoading: yearlyGoalsLoading, error: yearlyGoalsErr } = useYearlyGoals(user?.uid || '', selectedYear);
+
+    const navigate = useNavigate();
+
+    const newClick = () => {
+        navigate("new")
+    }
+
+    if (yearlyGoalsLoading || yearlyGoalsErr) return "Waittttt"
+
     return (
         <>
             <ul>
-                {yearGoals.map(goal => <li>{JSON.stringify(goal)}</li>)}
+                {yearlyGoals?.map(goal => <li key={goal.id}>{JSON.stringify(goal)}</li>)}
+                <li><Button onClick={newClick}>Add yearly goal</Button></li>
             </ul>
+
         </>
 
     )

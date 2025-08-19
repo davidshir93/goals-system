@@ -11,7 +11,7 @@ export function RootLayout() {
             <NavBar />
             <ScrollRestoration />
             {/* TODO: Handle data loading state UI */}
-            <div className={`container mx-auto mb-6 p-6 ${loading ? "loading" : ""}`}>
+            <div className={`container mx-auto max-w-md mb-6 p-6 ${loading ? "loading" : ""}`}>
                 {!loading && <Outlet />}
             </div>
         </>

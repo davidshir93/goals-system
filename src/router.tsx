@@ -7,6 +7,7 @@ import Year from './pages/Year'
 import Quarter from './pages/Quarter'
 import Week from './pages/Week'
 import ProtectedRoutes from './components/ProtectedRoutes'
+import GoalForm from './components/GoalForm'
 
 export const router = createBrowserRouter([
     {
@@ -33,15 +34,42 @@ export const router = createBrowserRouter([
                         children: [
                             {
                                 path: 'year',
-                                element: <Year />
+                                children: [
+                                    {
+                                        index: true,
+                                        element: <Year />
+                                    },
+                                    {
+                                        path: 'new',
+                                        element: <GoalForm type='year' />
+                                    }
+                                ]
                             },
                             {
                                 path: 'quarter',
-                                element: <Quarter />
+                                children: [
+                                    {
+                                        index: true,
+                                        element: <Quarter />
+                                    },
+                                    {
+                                        path: 'new',
+                                        element: <GoalForm type='quarter' />
+                                    }
+                                ]
                             },
                             {
                                 path: 'week',
-                                element: <Week />
+                                children: [
+                                    {
+                                        index: true,
+                                        element: <Week />
+                                    },
+                                    {
+                                        path: 'new',
+                                        element: <GoalForm type='week' />
+                                    }
+                                ]
                             }
                         ]
                     },

@@ -1,14 +1,31 @@
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext"
+import { useQuarterlyGoals } from "@/data/queries";
+import { useNavigate } from "react-router-dom";
 
 export default function Quarter() {
-    const { goals } = useGoals();
+    const { user } = useAuth()
 
-    const quarterGoals = goals.filter(goal => goal.type === 'quarter');
+    const { selectedYear, selectedQuarter } = useGoals();
+
+    const { data: quarterlyGoals, isLoading: quarterlyGoalsLoading, error: quarterlyGoalsErr } = useQuarterlyGoals(user?.uid || '', selectedYear, selectedQuarter);
+
+    const navigate = useNavigate();
+
+    const newClick = () => {
+        navigate("new")
+    }
+
+    if (quarterlyGoalsLoading || quarterlyGoalsErr) return "Waittttt"
+
     return (
         <>
             <ul>
-                {quarterGoals.map(goal => <li>{JSON.stringify(goal)}</li>)}
+                {quarterlyGoals?.map(goal => <li key={goal.id}>{JSON.stringify(goal)}</li>)}
+                <li><Button onClick={newClick}>Add quarterly goal</Button></li>
             </ul>
+
         </>
 
     )

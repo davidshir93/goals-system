@@ -1,20 +1,30 @@
 
-import type { Period } from "@/types/GoalTypes"
-import { Select, SelectContent, SelectGroup, SelectItem, SelectLabel, SelectTrigger, SelectValue } from "./ui/select"
+import type { ID, Period } from "@/types/GoalTypes"
+import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from "./ui/select"
 
-type Props = { periods: Period[], width?: number }
+type Props = {
+    isLoading?: boolean,
+    selectedPeriod: ID,
+    periods: Period[],
+    onChange: (value: ID) => void
+    width?: number
+}
 
-export default function PeriodSelector({ periods, width = 80 }: Props) {
-    if (periods.length < 1) return null
+export default function PeriodSelector({ isLoading, periods, selectedPeriod, onChange, width = 80 }: Props) {
+    if (periods?.length < 1 || isLoading) return null
+
     return (
-        <Select >
+        <Select
+            value={selectedPeriod}
+            onValueChange={(val) => onChange(val)}
+        >
             <SelectTrigger className={`w-[${width}px]`}>
                 <SelectValue />
             </SelectTrigger>
             <SelectContent>
                 <SelectGroup>
-                    <SelectLabel>{periods[0].type}</SelectLabel>
-                    {periods.map(period => <SelectItem key={period.id} value={period.value.toString()}>{period.value.toString()}</SelectItem>)}
+                    {isLoading ? <SelectItem key="loading" value="loading">Loading...</SelectItem>
+                        : periods.map(period => <SelectItem key={period.id} value={period.id}>{period.name}</SelectItem>)}
                 </SelectGroup>
             </SelectContent>
         </Select>

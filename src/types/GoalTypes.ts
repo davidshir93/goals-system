@@ -1,9 +1,10 @@
+export type ID = string;
+
 type GoalType = "year" | "quarter" | "week";
 
 type BaseGoal = {
-  id: string;
+  id: ID;
   type: GoalType;
-  userId: string;
   periodId: string;
   wish: string;
   outcome?: string; // required for year goals
@@ -17,8 +18,8 @@ type BaseGoal = {
 
 export type YearGoal = Omit<BaseGoal, "outcome" | "obstacle" | "plan"> & {
   type: "year";
-  categoryId: string;
-  identityId: string;
+  categoryId: ID;
+  identityId: ID;
   outcome: string;
   obstacle: string;
   plan: string;
@@ -26,12 +27,12 @@ export type YearGoal = Omit<BaseGoal, "outcome" | "obstacle" | "plan"> & {
 
 export type QuarterGoal = BaseGoal & {
   type: "quarter";
-  parentYearId: string;
+  parentYearGoalId: ID;
 };
 
 export type WeekGoal = BaseGoal & {
   type: "week";
-  parentQuarterId: string;
+  parentQuarterGoalId: ID;
   planned: number;
   done: number;
 };
@@ -39,19 +40,19 @@ export type WeekGoal = BaseGoal & {
 export type Goal = YearGoal | QuarterGoal | WeekGoal;
 
 export type Category = {
-  id: string;
+  id: ID;
   name: string;
   color: string;
 };
 
 export type Identity = {
-  id: string;
+  id: ID;
   name: string;
   color: string;
 };
 
 export type Period = {
-  id: string;
+  id: ID;
+  name: string;
   type: "year" | "quarter" | "week";
-  value: number; // year -> 2025, quarter -> 1..4, week -> 1..52
 };
