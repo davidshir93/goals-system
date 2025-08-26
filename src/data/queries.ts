@@ -84,9 +84,26 @@ export function useAddYear() {
   return useMutation({
     mutationFn: ({ uid, newYearId, newYearData }: NewYearPayload) =>
       YearsRepo.addYear(uid, newYearId, newYearData),
+
     onSuccess: (uid) => {
-      // invalidate the list for this year so UI refreshes
       qc.invalidateQueries({ queryKey: qk.years(uid) });
+    },
+
+    onMutate: async ({ uid, newYearId, newYearData }: NewYearPayload) => {
+      await qc.cancelQueries({ queryKey: qk.years(uid) });
+      const prevYears: Period[] = qc.getQueryData(qk.years(uid)) || [];
+
+      qc.setQueryData(qk.years(uid), (prevYears: Period[]) => {
+        console.log([...prevYears, { ...newYearData, id: newYearId }]);
+        return [...prevYears, { ...newYearData, id: newYearId }];
+      });
+
+      return { prevYears };
+    },
+
+    onError(error, { uid }, context) {
+      qc.setQueryData(qk.years(uid), context?.prevYears);
+      console.log(error);
     },
   });
 }
@@ -134,9 +151,39 @@ export function useAddQuarter() {
       newQuarterData,
     }: NewQuarterPayload) =>
       QuartersRepo.addQuarter(uid, selectedYear, newQuarterId, newQuarterData),
+
     onSuccess: ({ uid, selectedYear }) => {
       // invalidate the list for this year so UI refreshes
       qc.invalidateQueries({ queryKey: qk.quarters(uid, selectedYear) });
+    },
+
+    onMutate: async ({
+      uid,
+      selectedYear,
+      newQuarterId,
+      newQuarterData,
+    }: NewQuarterPayload) => {
+      await qc.cancelQueries({ queryKey: qk.quarters(uid, selectedYear) });
+      const prevQuarters: Period[] =
+        qc.getQueryData(qk.quarters(uid, selectedYear)) || [];
+
+      qc.setQueryData(
+        qk.quarters(uid, selectedYear),
+        (prevQuarters: Period[]) => {
+          console.log([
+            ...prevQuarters,
+            { ...newQuarterData, id: newQuarterId },
+          ]);
+          return [...prevQuarters, { ...newQuarterData, id: newQuarterId }];
+        }
+      );
+
+      return { prevQuarters };
+    },
+
+    onError(error, { uid, selectedYear }, context) {
+      qc.setQueryData(qk.quarters(uid, selectedYear), context?.prevQuarters);
+      console.log(error);
     },
   });
 }
@@ -197,11 +244,44 @@ export function useAddWeek() {
         newWeekId,
         newWeekData
       ),
+
     onSuccess: ({ uid, selectedYear, selectedQuarter }) => {
       // invalidate the list for this year so UI refreshes
       qc.invalidateQueries({
         queryKey: qk.weeks(uid, selectedYear, selectedQuarter),
       });
+    },
+
+    onMutate: async ({
+      uid,
+      selectedYear,
+      selectedQuarter,
+      newWeekId,
+      newWeekData,
+    }: NewWeekPayload) => {
+      await qc.cancelQueries({
+        queryKey: qk.weeks(uid, selectedYear, selectedQuarter),
+      });
+      const prevWeeks: Period[] =
+        qc.getQueryData(qk.weeks(uid, selectedYear, selectedQuarter)) || [];
+
+      qc.setQueryData(
+        qk.weeks(uid, selectedYear, selectedQuarter),
+        (prevWeeks: Period[]) => {
+          console.log([...prevWeeks, { ...newWeekData, id: newWeekId }]);
+          return [...prevWeeks, { ...newWeekData, id: newWeekId }];
+        }
+      );
+
+      return { prevWeeks };
+    },
+
+    onError(error, { uid, selectedYear, selectedQuarter }, context) {
+      qc.setQueryData(
+        qk.weeks(uid, selectedYear, selectedQuarter),
+        context?.prevWeeks
+      );
+      console.log(error);
     },
   });
 }

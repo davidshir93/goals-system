@@ -17,6 +17,8 @@ export function RootLayout() {
         if (years?.length && years[years?.length - 1]) {
             // TODO: support saving the last selected period in localStorage too
             setSelectedYear(years[years?.length - 1].id)
+        } else {
+            setSelectedYear("")
         }
     }, [years, setSelectedYear])
 
@@ -24,6 +26,8 @@ export function RootLayout() {
         if (quarters?.length && quarters[quarters?.length - 1]) {
             // TODO: support saving the last selected period in localStorage too
             setSelectedQuarter(quarters[quarters?.length - 1].id)
+        } else {
+            setSelectedQuarter("")
         }
     }, [quarters, setSelectedQuarter])
 
@@ -31,6 +35,8 @@ export function RootLayout() {
         if (weeks?.length && weeks[weeks?.length - 1]) {
             // TODO: support saving the last selected period in localStorage too
             setSelectedWeek(weeks[weeks?.length - 1].id)
+        } else {
+            setSelectedWeek("")
         }
     }, [weeks, setSelectedWeek])
 

@@ -40,7 +40,7 @@ export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFor
 
     const WeeklyPeriodFormSchema = z.object({
         type: z.literal('week'),
-        name: IntFromInput.refine((n) => n >= 1 && n < 13, "Week must be between 1 and 13")
+        name: IntFromInput.refine((n) => n >= 1 && n <= 13, "Week must be between 1 and 13")
             .refine((n) => !existPeriods.find(week => week.name == 'W' + n.toString()), "Week already exist"),
     });
 
