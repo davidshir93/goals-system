@@ -25,6 +25,7 @@ export const GoalsProvider = ({ children }: { children: ReactNode }) => {
     )
 }
 
+// eslint-disable-next-line react-refresh/only-export-components
 export const useGoals = () => {
     const context = useContext(GoalsContext)
     if (!context) {

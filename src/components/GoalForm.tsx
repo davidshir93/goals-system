@@ -27,7 +27,7 @@ type GoalFormProps = {
 
 const AllGoalsFormSchema = z.object({
     type: z.union([z.literal('year'), z.literal('quarter'), z.literal('week')]),
-    wish: z.string().min(10, "Min 10 chars").max(120, "Max 120 chars"),
+    wish: z.string().min(10, "The first step to achieving a goal is to write a wish!").max(120, "Max 120 chars"),
     outcome: z.string().trim().optional().default(""),
     obstacles: z.string().trim().optional().default(""),
     plan: z.string().trim().optional().default(""),
@@ -36,8 +36,8 @@ const AllGoalsFormSchema = z.object({
 
 const YearlyGoalFormSchema = z.object({
     type: z.literal('year'),
-    categoryId: Id.min(1),
-    identityId: Id.min(1),
+    categoryId: Id.min(1, "A yearly goal must include a category."),
+    identityId: Id.min(1, "A yearly goal must include an identity."),
     // The following fields are only required in yearlyGoals
     outcome: z.string().trim().min(10, "Min 10 chars").max(4000).default(""),
     obstacles: z.string().trim().min(10, "Min 10 chars").max(4000).default(""),
@@ -46,12 +46,12 @@ const YearlyGoalFormSchema = z.object({
 
 const QuarterlyGoalFormSchema = z.object({
     type: z.literal('quarter'),
-    parentYearGoalId: z.string().trim().min(1)
+    parentYearGoalId: z.string().trim().min(1, "A quarterly goal must derive from a yearly goal.")
 })
 
 const WeeklyGoalFormSchema = z.object({
     type: z.literal('week'),
-    parentQuarterGoalId: z.string().trim().min(1),
+    parentQuarterGoalId: z.string().trim().min(1, "A weekly goal must derive from a quarterly goal."),
     planned: IntFromInput.refine((n) => n >= 1, "Planned must be ≥ 1").default(1),
 })
 
@@ -81,7 +81,6 @@ export default function GoalForm({ type }: GoalFormProps) {
     })
 
     const { user } = useAuth()
-
     const { data: categories, isLoading: catLoading, error: catErr } = useCategories(user?.uid || '');
     const { data: identities, isLoading: idLoading, error: idErr } = useIdentities(user?.uid || '');
     const { selectedYear, selectedQuarter, selectedWeek } = useGoals();
@@ -148,7 +147,7 @@ export default function GoalForm({ type }: GoalFormProps) {
     return (
         <>
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit)} className='mt-4 grid grid-cols-1 gap-4'>
+                <form onSubmit={form.handleSubmit(handleSubmit, (err) => console.error('Validation errors:', err))} className='mt-4 grid grid-cols-1 gap-4'>
 
                     {/* Category */}
                     {type === 'year' && categories &&
@@ -195,7 +194,7 @@ export default function GoalForm({ type }: GoalFormProps) {
                                         onValueChange={field.onChange}
                                     >
                                         <SelectTrigger className="w-full" style={{ backgroundColor: `${identities.find(cat => cat.id === field.value)?.color}` }}>
-                                            <SelectValue placeholder="Select a identity" />
+                                            <SelectValue placeholder="Select an identity" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectGroup>
@@ -257,7 +256,7 @@ export default function GoalForm({ type }: GoalFormProps) {
                                         onValueChange={field.onChange}
                                     >
                                         <SelectTrigger className="w-full" style={{ backgroundColor: `${findYearlyGoalCategoryColor(field.value)}` }}>
-                                            <SelectValue placeholder="Select a parent quarterly goal" />
+                                            <SelectValue placeholder="Select a parent yearly goal." />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectGroup>
@@ -300,7 +299,7 @@ export default function GoalForm({ type }: GoalFormProps) {
                             <FormItem>
                                 <FormLabel>Outcome</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="What will be the result of achiving this wish?" {...field} />
+                                    <Textarea placeholder="What will be the result of achieving this wish?" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -316,7 +315,7 @@ export default function GoalForm({ type }: GoalFormProps) {
                             <FormItem>
                                 <FormLabel>Obstacles</FormLabel>
                                 <FormControl>
-                                    <Textarea placeholder="What will be the obstacles you'll probably be facing trying to achive that goal?" {...field} />
+                                    <Textarea placeholder="What will be the obstacles you'll probably be facing trying to achieve that goal?" {...field} />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
@@ -349,7 +348,7 @@ export default function GoalForm({ type }: GoalFormProps) {
                                 <FormItem>
                                     <FormLabel>Planned</FormLabel>
                                     <FormControl>
-                                        <Input type='number' defaultValue={1} min={1} max={20} {...field} />
+                                        <Input type='number' {...field} />
                                     </FormControl>
                                     <FormMessage />
                                 </FormItem>

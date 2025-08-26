@@ -6,6 +6,8 @@ import {
   type DocumentData,
   addDoc,
   getDoc,
+  doc,
+  setDoc,
 } from "firebase/firestore";
 import { paths } from "../lib/paths";
 import { db } from "@/firebase";
@@ -30,9 +32,17 @@ export const CategoriesRepo = {
       orderBy("name", "asc")
     );
     const snap = await getDocs(q);
-    console.log("found categories!");
-    console.log(snap.docs.map(mapDoc<Category>));
     return snap.docs.map(mapDoc<Category>);
+  },
+
+  async addCategory(uid: ID, newCategoryData: Category): Promise<Category> {
+    const docRef = await addDoc(
+      collection(db, paths.categories(uid)),
+      newCategoryData
+    );
+
+    const docSnap = await getDoc(docRef);
+    return mapDoc<Category>(docSnap);
   },
 };
 
@@ -45,6 +55,16 @@ export const IdentitiesRepo = {
     const snap = await getDocs(q);
     return snap.docs.map(mapDoc<Identity>);
   },
+
+  async addIdentity(uid: ID, newIdentityData: Identity): Promise<Identity> {
+    const docRef = await addDoc(
+      collection(db, paths.identities(uid)),
+      newIdentityData
+    );
+
+    const docSnap = await getDoc(docRef);
+    return mapDoc<Identity>(docSnap);
+  },
 };
 
 export const YearsRepo = {
@@ -52,9 +72,16 @@ export const YearsRepo = {
     const q = query(collection(db, paths.years(uid)));
     const snap = await getDocs(q);
 
-    console.log("found years!");
-    console.log(snap.docs.map(mapDoc<Period>));
     return snap.docs.map(mapDoc<Period>);
+  },
+
+  async addYear(uid: ID, newYearId: ID, newYearData: Period): Promise<ID> {
+    const docRef = doc(db, paths.years(uid), newYearId);
+    await setDoc(docRef, newYearData);
+
+    // const docSnap = await getDoc(docRef);
+    // return mapDoc<Period>(docSnap);
+    return uid;
   },
 };
 
@@ -63,10 +90,9 @@ export const YearlyGoals = {
     const q = query(collection(db, paths.yearlyGoals(uid, yearId)));
     const snap = await getDocs(q);
 
-    console.log("found yearly goals!");
-    console.log(snap.docs.map(mapDoc<YearGoal>));
     return snap.docs.map(mapDoc<YearGoal>);
   },
+
   async addYearlyGoal(
     uid: ID,
     yearId: ID,
@@ -78,22 +104,28 @@ export const YearlyGoals = {
     );
 
     const docSnap = await getDoc(docRef);
-    console.log("Created new yearly goal");
-    console.log(mapDoc<YearGoal>(docSnap));
     return mapDoc<YearGoal>(docSnap);
   },
 };
 
 export const QuartersRepo = {
   async listAll(uid: ID, yearId: ID): Promise<Period[]> {
-    console.log("got to quarters repo");
-    console.log(uid, yearId);
     const q = query(collection(db, paths.quarters(uid, yearId)));
     const snap = await getDocs(q);
 
-    console.log("found quarters!");
-    console.log(snap.docs.map(mapDoc<Period>));
     return snap.docs.map(mapDoc<Period>);
+  },
+
+  async addQuarter(
+    uid: ID,
+    selectedYear: ID,
+    newQuarterId: ID,
+    newQuarterData: Period
+  ): Promise<{ uid: ID; selectedYear: ID }> {
+    const docRef = doc(db, paths.quarters(uid, selectedYear), newQuarterId);
+    await setDoc(docRef, newQuarterData);
+
+    return { uid, selectedYear };
   },
 };
 
@@ -104,8 +136,6 @@ export const QuarterlyGoals = {
     );
     const snap = await getDocs(q);
 
-    console.log("found quarterly goals!");
-    console.log(snap.docs.map(mapDoc<QuarterGoal>));
     return snap.docs.map(mapDoc<QuarterGoal>);
   },
   async addQuarterlyGoal(
@@ -120,22 +150,35 @@ export const QuarterlyGoals = {
     );
 
     const docSnap = await getDoc(docRef);
-    console.log("Created new quarterly goal");
-    console.log(mapDoc<QuarterGoal>(docSnap));
+
     return mapDoc<QuarterGoal>(docSnap);
   },
 };
 
 export const WeeksRepo = {
   async listAll(uid: ID, yearId: ID, quarterId: ID): Promise<Period[]> {
-    console.log("got to weeks repo");
-    console.log(uid, yearId, quarterId);
     const q = query(collection(db, paths.weeks(uid, yearId, quarterId)));
     const snap = await getDocs(q);
 
-    console.log("found weeks!");
-    console.log(snap.docs.map(mapDoc<Period>));
     return snap.docs.map(mapDoc<Period>);
+  },
+
+  async addWeek(
+    uid: ID,
+    selectedYear: ID,
+    selectedQuarter: ID,
+    newWeekId: ID,
+    newWeekData: Period
+  ): Promise<{ uid: ID; selectedYear: ID; selectedQuarter: ID }> {
+    const docRef = doc(
+      db,
+      paths.weeks(uid, selectedYear, selectedQuarter),
+      newWeekId
+    );
+
+    await setDoc(docRef, newWeekData);
+
+    return { uid, selectedYear, selectedQuarter };
   },
 };
 
@@ -151,8 +194,6 @@ export const WeeklyGoals = {
     );
     const snap = await getDocs(q);
 
-    console.log("found weekly goals!");
-    console.log(snap.docs.map(mapDoc<WeekGoal>));
     return snap.docs.map(mapDoc<WeekGoal>);
   },
   async addWeeklyGoal(
@@ -168,8 +209,7 @@ export const WeeklyGoals = {
     );
 
     const docSnap = await getDoc(docRef);
-    console.log("Created new weekly goal");
-    console.log(mapDoc<WeekGoal>(docSnap));
+
     return mapDoc<WeekGoal>(docSnap);
   },
 };
