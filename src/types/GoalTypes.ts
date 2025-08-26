@@ -5,7 +5,6 @@ type GoalType = "year" | "quarter" | "week";
 type BaseGoal = {
   id: ID;
   type: GoalType;
-  periodId: string;
   wish: string;
   outcome?: string; // required for year goals
   obstacle?: string; // required for year goals
