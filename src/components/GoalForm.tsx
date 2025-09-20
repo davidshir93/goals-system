@@ -20,6 +20,9 @@ import { QuarterlyGoals, WeeklyGoals, YearlyGoals } from '@/data/repos'
 import { useNavigate } from 'react-router-dom'
 import { useGoals } from '@/context/GoalsContext'
 import type { ID } from '@/types/GoalTypes'
+import { Modal } from './Modal'
+import ItemsListForm from './ItemsListForm'
+import { useState } from 'react'
 
 type GoalFormProps = {
     type: 'year' | 'quarter' | 'week'
@@ -67,6 +70,10 @@ export type GoalFormType = z.infer<typeof GoalFormSchema>;
 type GoalFormOutput = z.output<typeof GoalFormSchema>;
 
 export default function GoalForm({ type }: GoalFormProps) {
+
+    const [editCategoriesModalOpen, setEditCategoriesModalOpen] = useState(false)
+    const [editIdentitiesModalOpen, setEditIdentitiesModalOpen] = useState(false)
+
 
     const defaultValues: GoalFormType =
         type === 'year'
@@ -151,27 +158,79 @@ export default function GoalForm({ type }: GoalFormProps) {
 
                     {/* Category */}
                     {type === 'year' && categories &&
-                        (<FormField
-                            name="categoryId"
+                        (<>
+                            <FormField
+                                name="categoryId"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Category</FormLabel>
+                                        <FormControl>
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={(val) => {
+                                                    if (val === 'edit') {
+                                                        setEditCategoriesModalOpen(true)
+                                                    } else {
+                                                        field.onChange(val)
+                                                    }
+                                                }}
+                                            >
+                                                <SelectTrigger className="w-full" style={{ backgroundColor: `${categories.find(cat => cat.id === field.value)?.color}` }}>
+                                                    <SelectValue placeholder="Select a category" />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        {categories.map(category => (
+                                                            <SelectItem key={category.id} value={category.id} style={{ backgroundColor: `${category.color}` }} className='my-2'>
+                                                                {category.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                        <SelectItem key='edit' value='edit'>Edit Categories</SelectItem>
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
+                            <Modal isOpen={editCategoriesModalOpen} onClose={() => setEditCategoriesModalOpen(false)}>
+                                <ItemsListForm type='category' currentItems={categories} closeModal={() => setEditCategoriesModalOpen(false)} />
+                            </Modal>
+                        </>)}
+
+                    {/* Identity */}
+                    {type === 'year' && identities && (<>
+                        <FormField
+                            name="identityId"
                             control={form.control}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Category</FormLabel>
+                                    <FormLabel>Identity</FormLabel>
                                     <FormControl>
                                         <Select
                                             value={field.value}
-                                            onValueChange={field.onChange}
+                                            onValueChange={(val) => {
+                                                if (val === 'edit') {
+                                                    setEditIdentitiesModalOpen(true)
+                                                } else {
+                                                    console.log(field);
+                                                    field.onChange(val)
+                                                }
+                                            }}
                                         >
-                                            <SelectTrigger className="w-full" style={{ backgroundColor: `${categories.find(cat => cat.id === field.value)?.color}` }}>
-                                                <SelectValue placeholder="Select a category" />
+                                            <SelectTrigger className="w-full" style={{ backgroundColor: `${identities.find(cat => cat.id === field.value)?.color}` }}>
+                                                <SelectValue placeholder="Select an identity" />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
-                                                    {categories.map(category => (
-                                                        <SelectItem key={category.id} value={category.id} style={{ backgroundColor: `${category.color}` }} className='my-2'>
-                                                            {category.name}
+                                                    {identities.map(identity => (
+                                                        <SelectItem key={identity.id} value={identity.id} style={{ backgroundColor: `${identity.color}` }} className='my-2'>
+                                                            {identity.name}
                                                         </SelectItem>
                                                     ))}
+                                                    <SelectItem key='edit' value='edit'>Edit Identities</SelectItem>
                                                 </SelectGroup>
                                             </SelectContent>
                                         </Select>
@@ -179,38 +238,11 @@ export default function GoalForm({ type }: GoalFormProps) {
                                     <FormMessage />
                                 </FormItem>
                             )}
-                        />)}
-
-                    {/* Identity */}
-                    {type === 'year' && identities && (<FormField
-                        name="identityId"
-                        control={form.control}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Identity</FormLabel>
-                                <FormControl>
-                                    <Select
-                                        value={field.value}
-                                        onValueChange={field.onChange}
-                                    >
-                                        <SelectTrigger className="w-full" style={{ backgroundColor: `${identities.find(cat => cat.id === field.value)?.color}` }}>
-                                            <SelectValue placeholder="Select an identity" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                {identities.map(identity => (
-                                                    <SelectItem key={identity.id} value={identity.id} style={{ backgroundColor: `${identity.color}` }} className='my-2'>
-                                                        {identity.name}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />)}
+                        />
+                        <Modal isOpen={editIdentitiesModalOpen} onClose={() => setEditIdentitiesModalOpen(false)}>
+                            <ItemsListForm type='identity' currentItems={identities} closeModal={() => setEditIdentitiesModalOpen(false)} />
+                        </Modal>
+                    </>)}
 
                     {/* Parent quarter goal */}
                     {type === 'week' && quarterlyGoals && (<FormField

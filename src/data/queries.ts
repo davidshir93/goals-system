@@ -50,6 +50,39 @@ export function useCategories(uid: ID): UseQueryResult<Category[]> {
   });
 }
 
+type NewCategoriesPayload = {
+  uid: ID;
+  items: Category[];
+};
+
+export function useAddCategories() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ uid, items }: NewCategoriesPayload) =>
+      CategoriesRepo.addCategories(uid, items),
+
+    onSuccess: (uid) => {
+      qc.invalidateQueries({ queryKey: qk.categories(uid) });
+    },
+
+    onMutate: async ({ uid, items }: NewCategoriesPayload) => {
+      await qc.cancelQueries({ queryKey: qk.categories(uid) });
+      const prevCategories: Category[] =
+        qc.getQueryData(qk.categories(uid)) || [];
+
+      qc.setQueryData(qk.categories(uid), items);
+
+      return { prevCategories };
+    },
+
+    onError(error, { uid }, context) {
+      qc.setQueryData(qk.categories(uid), context?.prevCategories);
+      console.log(error);
+    },
+  });
+}
+
 export function useIdentities(uid: ID): UseQueryResult<Identity[]> {
   const enabled = Boolean(uid);
 
@@ -58,6 +91,39 @@ export function useIdentities(uid: ID): UseQueryResult<Identity[]> {
     queryFn: () => IdentitiesRepo.listAll(uid),
     staleTime: 60_000,
     enabled,
+  });
+}
+
+type NewIdentitiesPayload = {
+  uid: ID;
+  items: Identity[];
+};
+
+export function useAddIdentities() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ uid, items }: NewIdentitiesPayload) =>
+      IdentitiesRepo.addIdentities(uid, items),
+
+    onSuccess: (uid) => {
+      qc.invalidateQueries({ queryKey: qk.identities(uid) });
+    },
+
+    onMutate: async ({ uid, items }: NewIdentitiesPayload) => {
+      await qc.cancelQueries({ queryKey: qk.identities(uid) });
+      const prevIdentities: Category[] =
+        qc.getQueryData(qk.identities(uid)) || [];
+
+      qc.setQueryData(qk.identities(uid), items);
+
+      return { prevIdentities };
+    },
+
+    onError(error, { uid }, context) {
+      qc.setQueryData(qk.identities(uid), context?.prevIdentities);
+      console.log(error);
+    },
   });
 }
 

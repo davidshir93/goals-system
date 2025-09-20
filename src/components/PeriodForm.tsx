@@ -142,6 +142,7 @@ export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFor
                     />
 
                     <Button type='button' onClick={form.handleSubmit(handleSubmit, (err) => console.error('Validation errors:', err))}>Add</Button>
+                    <Button type='button' onClick={closeModal} variant="outline">Cancel</Button>
                 </form>
             </Form >
         </>

@@ -46,7 +46,7 @@ export function RootLayout() {
 
     const appError = yearsErr || quartersErr || weeksErr;
 
-    if (appError) throw new Error('Error in fetching data')
+    if (appError) throw new Error('Error in fetching data' + JSON.stringify(yearsErr) + JSON.stringify(quartersErr) + JSON.stringify(weeksErr))
 
     return (
         <>
