@@ -42,12 +42,9 @@ export default function Week() {
     return (
         <>
             <div className="flex gap-4 p-4">
-
-                {/* <Input type="checkbox" className='text-sm' checked={showParentsGoals} onChange={() => setShowParentGoals(prev => !prev)} /> */}
                 <input type="checkbox" className='text-sm' checked={showParentsGoals} onChange={() => setShowParentGoals(prev => !prev)} />
                 <Label>Show Parents Goals</Label>
             </div>
-            <label></label>
             <ul>
                 {weeklyGoals?.map((goal) => (
                     <GoalCard
