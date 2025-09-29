@@ -9,6 +9,7 @@ import {
   doc,
   setDoc,
   writeBatch,
+  updateDoc,
 } from "firebase/firestore";
 import { paths } from "../lib/paths";
 import { db } from "@/firebase";
@@ -175,7 +176,7 @@ export const YearlyGoals = {
   async addYearlyGoal(
     uid: ID,
     yearId: ID,
-    yearlyGoalData: YearGoal
+    yearlyGoalData: Omit<YearGoal, "id">
   ): Promise<YearGoal> {
     const docRef = await addDoc(
       collection(db, paths.yearlyGoals(uid, yearId)),
@@ -221,7 +222,7 @@ export const QuarterlyGoals = {
     uid: ID,
     yearId: ID,
     quarterId: ID,
-    quarterlyGoalData: QuarterGoal
+    quarterlyGoalData: Omit<QuarterGoal, "id">
   ): Promise<QuarterGoal> {
     const docRef = await addDoc(
       collection(db, paths.quarterlyGoals(uid, yearId, quarterId)),
@@ -275,12 +276,13 @@ export const WeeklyGoals = {
 
     return snap.docs.map(mapDoc<WeekGoal>);
   },
+
   async addWeeklyGoal(
     uid: ID,
     yearId: ID,
     quarterId: ID,
     weekId: ID,
-    weeklyGoalData: WeekGoal
+    weeklyGoalData: Omit<WeekGoal, "id">
   ): Promise<WeekGoal> {
     const docRef = await addDoc(
       collection(db, paths.weeklyGoals(uid, yearId, quarterId, weekId)),
@@ -290,5 +292,27 @@ export const WeeklyGoals = {
     const docSnap = await getDoc(docRef);
 
     return mapDoc<WeekGoal>(docSnap);
+  },
+
+  async editWeeklyGoal(
+    uid: ID,
+    yearId: ID,
+    quarterId: ID,
+    weekId: ID,
+    goalId: ID,
+    updatedFields: Partial<WeekGoal>
+  ): Promise<ID> {
+    const documentRef = doc(
+      db,
+      paths.weeklyGoals(uid, yearId, quarterId, weekId),
+      goalId
+    );
+
+    await updateDoc(documentRef, updatedFields);
+
+    // const docSnap = await getDoc(documentRef);
+    // const data = mapDoc<WeekGoal>(docSnap);
+
+    return goalId;
   },
 };

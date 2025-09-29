@@ -75,7 +75,6 @@ export default function ItemsListForm({
             <Form {...form}>
                 <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
                     {fields.map((field, index) => {
-                        console.log(field);
                         return (
                             <div
                                 className="flex items-center items-start gap-2"

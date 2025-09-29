@@ -74,7 +74,6 @@ export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFor
     const addWeek = useAddWeek();
 
     const handleSubmit = async (data: PeriodFormType) => {
-        console.log('>>>>> ENTERED handleSubmit');
 
         if (!user || (type === 'quarter' && !selectedYear) || (type === 'week' && (!selectedYear || !selectedQuarter))) return
 
@@ -82,7 +81,6 @@ export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFor
 
         switch (type) {
             case 'year':
-                console.log(data);
                 id = data.name.toString();
                 dataToSend = {
                     id,
@@ -93,7 +91,6 @@ export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFor
                 break;
 
             case 'quarter':
-                console.log(data);
                 id = selectedYear + '-' + data.name.toString();
                 dataToSend = {
                     type,
@@ -104,7 +101,6 @@ export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFor
                 break;
 
             case 'week':
-                console.log(data);
                 id = selectedQuarter + '-' + data.name.toString();
                 dataToSend = {
                     type,

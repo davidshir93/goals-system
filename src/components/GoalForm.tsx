@@ -19,7 +19,7 @@ import { useAuth } from '@/context/AuthContext'
 import { QuarterlyGoals, WeeklyGoals, YearlyGoals } from '@/data/repos'
 import { useNavigate } from 'react-router-dom'
 import { useGoals } from '@/context/GoalsContext'
-import type { ID } from '@/types/GoalTypes'
+import type { Goal, ID } from '@/types/GoalTypes'
 import { Modal } from './Modal'
 import ItemsListForm from './ItemsListForm'
 import { useState } from 'react'
@@ -97,34 +97,25 @@ export default function GoalForm({ type }: GoalFormProps) {
     const navigate = useNavigate()
 
     const handleSubmit = async (data: GoalFormType) => {
-        let newGoal;
-        console.log('>>>>> ENTERED handleSubmit');
+        let newGoal: Goal;
         if (!user) return
-        switch (type) {
-            case 'year':
-                console.log(data);
-                newGoal = await YearlyGoals.addYearlyGoal(user.uid, selectedYear, { ...data, type: "year" })
-                console.log('new yearly goal added from handle submit');
-                console.log(newGoal);
-                break;
 
-            case 'quarter':
-                console.log(data);
-                newGoal = await QuarterlyGoals.addQuarterlyGoal(user.uid, selectedYear, selectedQuarter, { ...data, type: 'quarter' })
-                console.log('new quarterly goal added from handle submit');
-                console.log(newGoal);
-                break;
+        if (data.type === 'year') {
+            newGoal = await YearlyGoals.addYearlyGoal(user.uid, selectedYear, { ...data, type: "year", yearId: selectedYear })
+            console.log('new yearly goal added from handle submit');
+            console.log(newGoal);
+        }
 
-            case 'week':
-                console.log(data);
-                newGoal = await WeeklyGoals.addWeeklyGoal(user.uid, selectedYear, selectedQuarter, selectedWeek, { ...data, type: 'week' })
-                console.log('new weekly goal added from handle submit');
-                console.log(newGoal);
-                break;
+        if (data.type === 'quarter') {
+            newGoal = await QuarterlyGoals.addQuarterlyGoal(user.uid, selectedYear, selectedQuarter, { ...data, type: 'quarter', yearId: selectedYear, quarterId: selectedQuarter })
+            console.log('new quarterly goal added from handle submit');
+            console.log(newGoal);
+        }
 
-            default:
-                console.log('No type passed!!!');
-
+        if (data.type === 'week') {
+            newGoal = await WeeklyGoals.addWeeklyGoal(user.uid, selectedYear, selectedQuarter, selectedWeek, { ...data, type: 'week', yearId: selectedYear, quarterId: selectedQuarter, weekId: selectedWeek, done: 0 })
+            console.log('new weekly goal added from handle submit');
+            console.log(newGoal);
         }
 
         navigate("..")
@@ -389,6 +380,9 @@ export default function GoalForm({ type }: GoalFormProps) {
                     }
 
                     <Button type='submit'>Submit</Button>
+                    <Button type="button" variant="outline" onClick={() => navigate("..")}>
+                        Cancel
+                    </Button>
                 </form>
             </Form>
         </>
