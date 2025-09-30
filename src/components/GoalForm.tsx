@@ -14,12 +14,11 @@ import { Textarea } from './ui/textarea'
 import { Button } from './ui/button'
 import { Id, IntFromInput } from '@/schemas/common'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { useCategories, useIdentities, useQuarterlyGoals, useYearlyGoals } from '@/data/queries'
+import { useAddQuarterlyGoal, useAddWeeklyGoal, useAddYearlyGoal, useCategories, useIdentities, useQuarterlyGoals, useYearlyGoals } from '@/data/queries'
 import { useAuth } from '@/context/AuthContext'
-import { QuarterlyGoals, WeeklyGoals, YearlyGoals } from '@/data/repos'
 import { useNavigate } from 'react-router-dom'
 import { useGoals } from '@/context/GoalsContext'
-import type { Goal, ID } from '@/types/GoalTypes'
+import type { ID } from '@/types/GoalTypes'
 import { Modal } from './Modal'
 import ItemsListForm from './ItemsListForm'
 import { useState } from 'react'
@@ -96,26 +95,38 @@ export default function GoalForm({ type }: GoalFormProps) {
 
     const navigate = useNavigate()
 
+    const addYearlyGoal = useAddYearlyGoal();
+    const addQuarterlyGoal = useAddQuarterlyGoal()
+    const addWeeklyGoal = useAddWeeklyGoal()
+
     const handleSubmit = async (data: GoalFormType) => {
-        let newGoal: Goal;
         if (!user) return
 
         if (data.type === 'year') {
-            newGoal = await YearlyGoals.addYearlyGoal(user.uid, selectedYear, { ...data, type: "year", yearId: selectedYear })
-            console.log('new yearly goal added from handle submit');
-            console.log(newGoal);
+            await addYearlyGoal.mutateAsync({
+                uid: user.uid,
+                yearId: selectedYear,
+                yearlyGoalData: { ...data, type: "year", yearId: selectedYear }
+            })
         }
 
         if (data.type === 'quarter') {
-            newGoal = await QuarterlyGoals.addQuarterlyGoal(user.uid, selectedYear, selectedQuarter, { ...data, type: 'quarter', yearId: selectedYear, quarterId: selectedQuarter })
-            console.log('new quarterly goal added from handle submit');
-            console.log(newGoal);
+            await addQuarterlyGoal.mutateAsync({
+                uid: user.uid,
+                yearId: selectedYear,
+                quarterId: selectedQuarter,
+                quarterGoalData: { ...data, type: 'quarter', yearId: selectedYear, quarterId: selectedQuarter }
+            })
         }
 
         if (data.type === 'week') {
-            newGoal = await WeeklyGoals.addWeeklyGoal(user.uid, selectedYear, selectedQuarter, selectedWeek, { ...data, type: 'week', yearId: selectedYear, quarterId: selectedQuarter, weekId: selectedWeek, done: 0 })
-            console.log('new weekly goal added from handle submit');
-            console.log(newGoal);
+            await addWeeklyGoal.mutateAsync({
+                uid: user.uid,
+                yearId: selectedYear,
+                quarterId: selectedQuarter,
+                weekId: selectedWeek,
+                weeklyGoalData: { ...data, type: 'week', done: 0, yearId: selectedYear, quarterId: selectedQuarter, weekId: selectedWeek }
+            })
         }
 
         navigate("..")

@@ -17,6 +17,9 @@ import type {
   Category,
   ID,
   Identity,
+  NewQuarterlyGoalPayload,
+  NewWeeklyGoalPayload,
+  NewYearlyGoalPayload,
   Period,
   QuarterGoal,
   WeekGoal,
@@ -177,14 +180,14 @@ export const YearlyGoals = {
     uid: ID,
     yearId: ID,
     yearlyGoalData: Omit<YearGoal, "id">
-  ): Promise<YearGoal> {
+  ): Promise<NewYearlyGoalPayload> {
     const docRef = await addDoc(
       collection(db, paths.yearlyGoals(uid, yearId)),
       yearlyGoalData
     );
 
     const docSnap = await getDoc(docRef);
-    return mapDoc<YearGoal>(docSnap);
+    return { uid, yearId, yearlyGoalData: mapDoc<YearGoal>(docSnap) };
   },
 };
 
@@ -223,7 +226,7 @@ export const QuarterlyGoals = {
     yearId: ID,
     quarterId: ID,
     quarterlyGoalData: Omit<QuarterGoal, "id">
-  ): Promise<QuarterGoal> {
+  ): Promise<NewQuarterlyGoalPayload> {
     const docRef = await addDoc(
       collection(db, paths.quarterlyGoals(uid, yearId, quarterId)),
       quarterlyGoalData
@@ -231,7 +234,12 @@ export const QuarterlyGoals = {
 
     const docSnap = await getDoc(docRef);
 
-    return mapDoc<QuarterGoal>(docSnap);
+    return {
+      uid,
+      yearId,
+      quarterId,
+      quarterGoalData: mapDoc<QuarterGoal>(docSnap),
+    };
   },
 };
 
@@ -283,7 +291,7 @@ export const WeeklyGoals = {
     quarterId: ID,
     weekId: ID,
     weeklyGoalData: Omit<WeekGoal, "id">
-  ): Promise<WeekGoal> {
+  ): Promise<NewWeeklyGoalPayload> {
     const docRef = await addDoc(
       collection(db, paths.weeklyGoals(uid, yearId, quarterId, weekId)),
       weeklyGoalData
@@ -291,7 +299,13 @@ export const WeeklyGoals = {
 
     const docSnap = await getDoc(docRef);
 
-    return mapDoc<WeekGoal>(docSnap);
+    return {
+      uid,
+      yearId,
+      quarterId,
+      weekId,
+      weeklyGoalData: mapDoc<WeekGoal>(docSnap),
+    };
   },
 
   async editWeeklyGoal(

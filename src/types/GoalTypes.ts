@@ -6,10 +6,20 @@ export type Category = {
   color: string;
 };
 
+export type NewCategoriesPayload = {
+  uid: ID;
+  items: Category[];
+};
+
 export type Identity = {
   id: ID;
   name: string;
   color: string;
+};
+
+export type NewIdentitiesPayload = {
+  uid: ID;
+  items: Identity[];
 };
 
 type GoalType = "year" | "quarter" | "week";
@@ -61,8 +71,50 @@ export type EnrichedGoalType = Goal & {
   parentYearGoalWish?: string;
 };
 
+export type NewYearlyGoalPayload = {
+  uid: ID;
+  yearId: ID;
+  yearlyGoalData: Omit<YearGoal, "id">;
+};
+
+export type NewQuarterlyGoalPayload = {
+  uid: ID;
+  yearId: ID;
+  quarterId: ID;
+  quarterGoalData: Omit<QuarterGoal, "id">;
+};
+
+export type NewWeeklyGoalPayload = {
+  uid: ID;
+  yearId: ID;
+  quarterId: ID;
+  weekId: ID;
+  weeklyGoalData: Omit<WeekGoal, "id">;
+};
+
 export type Period = {
   id: ID;
   name: string;
   type: "year" | "quarter" | "week";
+};
+
+export type NewYearPayload = {
+  uid: ID;
+  newYearId: ID;
+  newYearData: Period;
+};
+
+export type NewQuarterPayload = {
+  uid: ID;
+  selectedYear: ID;
+  newQuarterId: ID;
+  newQuarterData: Period;
+};
+
+export type NewWeekPayload = {
+  uid: ID;
+  selectedYear: ID;
+  selectedQuarter: ID;
+  newWeekId: ID;
+  newWeekData: Period;
 };

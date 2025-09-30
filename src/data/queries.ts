@@ -18,6 +18,14 @@ import type {
   Category,
   ID,
   Identity,
+  NewCategoriesPayload,
+  NewIdentitiesPayload,
+  NewQuarterlyGoalPayload,
+  NewQuarterPayload,
+  NewWeeklyGoalPayload,
+  NewWeekPayload,
+  NewYearlyGoalPayload,
+  NewYearPayload,
   Period,
   QuarterGoal,
   WeekGoal,
@@ -49,11 +57,6 @@ export function useCategories(uid: ID): UseQueryResult<Category[]> {
     enabled,
   });
 }
-
-type NewCategoriesPayload = {
-  uid: ID;
-  items: Category[];
-};
 
 export function useAddCategories() {
   const qc = useQueryClient();
@@ -94,11 +97,6 @@ export function useIdentities(uid: ID): UseQueryResult<Identity[]> {
   });
 }
 
-type NewIdentitiesPayload = {
-  uid: ID;
-  items: Identity[];
-};
-
 export function useAddIdentities() {
   const qc = useQueryClient();
 
@@ -138,12 +136,6 @@ export function useYears(uid: ID): UseQueryResult<Period[]> {
   });
 }
 
-type NewYearPayload = {
-  uid: ID;
-  newYearId: ID;
-  newYearData: Period;
-};
-
 export function useAddYear() {
   const qc = useQueryClient();
 
@@ -160,7 +152,6 @@ export function useAddYear() {
       const prevYears: Period[] = qc.getQueryData(qk.years(uid)) || [];
 
       qc.setQueryData(qk.years(uid), (prevYears: Period[]) => {
-        console.log([...prevYears, { ...newYearData, id: newYearId }]);
         return [...prevYears, { ...newYearData, id: newYearId }];
       });
 
@@ -188,6 +179,40 @@ export function useYearlyGoals(
   });
 }
 
+export function useAddYearlyGoal() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ uid, yearId, yearlyGoalData }: NewYearlyGoalPayload) =>
+      YearlyGoals.addYearlyGoal(uid, yearId, yearlyGoalData),
+
+    onSuccess: ({ uid, yearId }) => {
+      qc.invalidateQueries({ queryKey: qk.yearlyGoals(uid, yearId) });
+    },
+
+    onMutate: async ({ uid, yearId, yearlyGoalData }: NewYearlyGoalPayload) => {
+      await qc.cancelQueries({ queryKey: qk.yearlyGoals(uid, yearId) });
+
+      const prevYearlyGoals: YearGoal[] =
+        qc.getQueryData(qk.yearlyGoals(uid, yearId)) || [];
+
+      qc.setQueryData(
+        qk.yearlyGoals(uid, yearId),
+        (prevYearlyGoals: YearGoal[]) => {
+          return [...prevYearlyGoals, { ...yearlyGoalData }];
+        }
+      );
+
+      return { prevYearlyGoals };
+    },
+
+    onError(error, { uid, yearId }, context) {
+      qc.setQueryData(qk.yearlyGoals(uid, yearId), context?.prevYearlyGoals);
+      console.log(error);
+    },
+  });
+}
+
 export function useQuarters(uid: ID, yearId: ID): UseQueryResult<Period[]> {
   const enabled = Boolean(uid) && Boolean(yearId);
 
@@ -198,13 +223,6 @@ export function useQuarters(uid: ID, yearId: ID): UseQueryResult<Period[]> {
     enabled,
   });
 }
-
-type NewQuarterPayload = {
-  uid: ID;
-  selectedYear: ID;
-  newQuarterId: ID;
-  newQuarterData: Period;
-};
 
 export function useAddQuarter() {
   const qc = useQueryClient();
@@ -219,7 +237,6 @@ export function useAddQuarter() {
       QuartersRepo.addQuarter(uid, selectedYear, newQuarterId, newQuarterData),
 
     onSuccess: ({ uid, selectedYear }) => {
-      // invalidate the list for this year so UI refreshes
       qc.invalidateQueries({ queryKey: qk.quarters(uid, selectedYear) });
     },
 
@@ -236,10 +253,6 @@ export function useAddQuarter() {
       qc.setQueryData(
         qk.quarters(uid, selectedYear),
         (prevQuarters: Period[]) => {
-          console.log([
-            ...prevQuarters,
-            { ...newQuarterData, id: newQuarterId },
-          ]);
           return [...prevQuarters, { ...newQuarterData, id: newQuarterId }];
         }
       );
@@ -269,6 +282,57 @@ export function useQuarterlyGoals(
   });
 }
 
+export function useAddQuarterlyGoal() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      uid,
+      yearId,
+      quarterId,
+      quarterGoalData,
+    }: NewQuarterlyGoalPayload) =>
+      QuarterlyGoals.addQuarterlyGoal(uid, yearId, quarterId, quarterGoalData),
+
+    onSuccess: ({ uid, yearId, quarterId }) => {
+      qc.invalidateQueries({
+        queryKey: qk.quarterlyGoals(uid, yearId, quarterId),
+      });
+    },
+
+    onMutate: async ({
+      uid,
+      yearId,
+      quarterId,
+      quarterGoalData,
+    }: NewQuarterlyGoalPayload) => {
+      await qc.cancelQueries({
+        queryKey: qk.quarterlyGoals(uid, yearId, quarterId),
+      });
+
+      const prevQuarterlyGoals: QuarterGoal[] =
+        qc.getQueryData(qk.quarterlyGoals(uid, yearId, quarterId)) || [];
+
+      qc.setQueryData(
+        qk.quarterlyGoals(uid, yearId, quarterId),
+        (prevQuarterlyGoals: QuarterGoal[]) => {
+          return [...prevQuarterlyGoals, { ...quarterGoalData }];
+        }
+      );
+
+      return { prevQuarterlyGoals };
+    },
+
+    onError(error, { uid, yearId, quarterId }, context) {
+      qc.setQueryData(
+        qk.quarterlyGoals(uid, yearId, quarterId),
+        context?.prevQuarterlyGoals
+      );
+      console.log(error);
+    },
+  });
+}
+
 export function useWeeks(
   uid: ID,
   yearId: ID,
@@ -283,14 +347,6 @@ export function useWeeks(
     enabled,
   });
 }
-
-type NewWeekPayload = {
-  uid: ID;
-  selectedYear: ID;
-  selectedQuarter: ID;
-  newWeekId: ID;
-  newWeekData: Period;
-};
 
 export function useAddWeek() {
   const qc = useQueryClient();
@@ -312,7 +368,6 @@ export function useAddWeek() {
       ),
 
     onSuccess: ({ uid, selectedYear, selectedQuarter }) => {
-      // invalidate the list for this year so UI refreshes
       qc.invalidateQueries({
         queryKey: qk.weeks(uid, selectedYear, selectedQuarter),
       });
@@ -334,7 +389,6 @@ export function useAddWeek() {
       qc.setQueryData(
         qk.weeks(uid, selectedYear, selectedQuarter),
         (prevWeeks: Period[]) => {
-          console.log([...prevWeeks, { ...newWeekData, id: newWeekId }]);
           return [...prevWeeks, { ...newWeekData, id: newWeekId }];
         }
       );
@@ -366,5 +420,58 @@ export function useWeeklyGoals(
     queryFn: () => WeeklyGoals.listAll(uid, yearId, quarterId, weekId),
     enabled,
     staleTime: 60_000,
+  });
+}
+
+export function useAddWeeklyGoal() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      uid,
+      yearId,
+      quarterId,
+      weekId,
+      weeklyGoalData,
+    }: NewWeeklyGoalPayload) =>
+      WeeklyGoals.addWeeklyGoal(uid, yearId, quarterId, weekId, weeklyGoalData),
+
+    onSuccess: ({ uid, yearId, quarterId, weekId }) => {
+      qc.invalidateQueries({
+        queryKey: qk.weeklyGoals(uid, yearId, quarterId, weekId),
+      });
+    },
+
+    onMutate: async ({
+      uid,
+      yearId,
+      quarterId,
+      weekId,
+      weeklyGoalData,
+    }: NewWeeklyGoalPayload) => {
+      await qc.cancelQueries({
+        queryKey: qk.weeklyGoals(uid, yearId, quarterId, weekId),
+      });
+
+      const prevWeeklyGoals: WeekGoal[] =
+        qc.getQueryData(qk.weeklyGoals(uid, yearId, quarterId, weekId)) || [];
+
+      qc.setQueryData(
+        qk.weeklyGoals(uid, yearId, quarterId, weekId),
+        (prevWeeklyGoals: WeekGoal[]) => {
+          return [...prevWeeklyGoals, { ...weeklyGoalData }];
+        }
+      );
+
+      return { prevWeeklyGoals };
+    },
+
+    onError(error, { uid, yearId, quarterId, weekId }, context) {
+      qc.setQueryData(
+        qk.weeklyGoals(uid, yearId, quarterId, weekId),
+        context?.prevWeeklyGoals
+      );
+      console.log(error);
+    },
   });
 }
