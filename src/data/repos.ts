@@ -15,6 +15,7 @@ import { paths } from "../lib/paths";
 import { db } from "@/firebase";
 import type {
   Category,
+  EditWeeklyGoalPayload,
   ID,
   Identity,
   NewQuarterlyGoalPayload,
@@ -315,7 +316,7 @@ export const WeeklyGoals = {
     weekId: ID,
     goalId: ID,
     updatedFields: Partial<WeekGoal>
-  ): Promise<ID> {
+  ): Promise<EditWeeklyGoalPayload> {
     const documentRef = doc(
       db,
       paths.weeklyGoals(uid, yearId, quarterId, weekId),
@@ -327,6 +328,13 @@ export const WeeklyGoals = {
     // const docSnap = await getDoc(documentRef);
     // const data = mapDoc<WeekGoal>(docSnap);
 
-    return goalId;
+    return {
+      uid,
+      yearId,
+      quarterId,
+      weekId,
+      goalId,
+      updatedFields,
+    };
   },
 };

@@ -92,6 +92,15 @@ export type NewWeeklyGoalPayload = {
   weeklyGoalData: Omit<WeekGoal, "id">;
 };
 
+export type EditWeeklyGoalPayload = {
+  uid: ID;
+  yearId: ID;
+  quarterId: ID;
+  weekId: ID;
+  goalId: ID;
+  updatedFields: Partial<WeekGoal>;
+};
+
 export type Period = {
   id: ID;
   name: string;

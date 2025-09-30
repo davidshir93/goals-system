@@ -13,7 +13,7 @@ export default function Quarter() {
 
     const { selectedYear, selectedQuarter } = useGoals();
 
-    const [showParentsGoals, setShowParentGoals] = useState(true)
+    const [showParentsGoals, setShowParentGoals] = useState(false)
 
     const navigate = useNavigate();
 
@@ -21,12 +21,12 @@ export default function Quarter() {
         navigate("new")
     }
 
-    const { data: categories, isLoading: catLoading, error: catErr } = useCategories(user?.uid || "");
-    const { data: identities, isLoading: idLoading, error: idErr } = useIdentities(user?.uid || "");
-    const { data: yearlyGoals, isLoading: yearlyGoalsLoading, error: yearlyGoalsErr } = useYearlyGoals(user?.uid || "", selectedYear);
-    const { data: quarterlyGoals, isLoading: quarterlyGoalsLoading, error: quarterlyGoalsErr } = useQuarterlyGoals(user?.uid || "", selectedYear, selectedQuarter);
+    const { data: categories, error: catErr } = useCategories(user?.uid || "");
+    const { data: identities, error: idErr } = useIdentities(user?.uid || "");
+    const { data: yearlyGoals, error: yearlyGoalsErr } = useYearlyGoals(user?.uid || "", selectedYear);
+    const { data: quarterlyGoals, error: quarterlyGoalsErr } = useQuarterlyGoals(user?.uid || "", selectedYear, selectedQuarter);
 
-    if (quarterlyGoalsLoading || quarterlyGoalsErr || yearlyGoalsLoading || yearlyGoalsErr || catLoading || catErr || idLoading || idErr) return "Waittttt";
+    if (quarterlyGoalsErr || yearlyGoalsErr || catErr || idErr) return "Waittttt";
 
 
     return (

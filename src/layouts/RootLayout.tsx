@@ -1,17 +1,22 @@
 import { NavBar } from "@/components/NavBar"
 import { useAuth } from "@/context/AuthContext"
 import { useGoals } from "@/context/GoalsContext";
-import { useQuarters, useWeeks, useYears } from "@/data/queries";
+import { useCategories, useIdentities, useQuarterlyGoals, useQuarters, useWeeklyGoals, useWeeks, useYearlyGoals, useYears } from "@/data/queries";
 import { useEffect } from "react";
 import { Outlet, ScrollRestoration } from "react-router"
 
 export function RootLayout() {
     const { loading: authLoading, user } = useAuth()
-    const { selectedYear, setSelectedYear, selectedQuarter, setSelectedQuarter, setSelectedWeek } = useGoals();
+    const { selectedYear, setSelectedYear, selectedQuarter, setSelectedQuarter, selectedWeek, setSelectedWeek } = useGoals();
 
     const { data: years, isLoading: yearsLoading, error: yearsErr } = useYears(user?.uid || '');
     const { data: quarters, isLoading: quartersLoading, error: quartersErr } = useQuarters(user?.uid || '', selectedYear);
     const { data: weeks, isLoading: weeksLoading, error: weeksErr } = useWeeks(user?.uid || '', selectedYear, selectedQuarter);
+    const { isLoading: catLoading } = useCategories(user?.uid || "");
+    const { isLoading: idLoading } = useIdentities(user?.uid || "");
+    const { isLoading: yearlyGoalsLoading } = useYearlyGoals(user?.uid || "", selectedYear);
+    const { isLoading: quarterlyGoalsLoading } = useQuarterlyGoals(user?.uid || "", selectedYear, selectedQuarter);
+    const { isLoading: weeklyGoalsLoading } = useWeeklyGoals(user?.uid || "", selectedYear, selectedQuarter, selectedWeek);
 
     useEffect(() => {
         if (years?.length && years[years?.length - 1]) {
@@ -40,7 +45,7 @@ export function RootLayout() {
         }
     }, [weeks, setSelectedWeek])
 
-    const appLoading = authLoading || yearsLoading || quartersLoading || weeksLoading;
+    const appLoading = authLoading || yearsLoading || quartersLoading || weeksLoading || weeklyGoalsLoading || quarterlyGoalsLoading || yearlyGoalsLoading || catLoading || idLoading;
 
     if (appLoading) return <div className="loading-spinner" />
 

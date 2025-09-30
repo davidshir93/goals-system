@@ -16,6 +16,7 @@ import {
 } from "./repos";
 import type {
   Category,
+  EditWeeklyGoalPayload,
   ID,
   Identity,
   NewCategoriesPayload,
@@ -460,6 +461,66 @@ export function useAddWeeklyGoal() {
         qk.weeklyGoals(uid, yearId, quarterId, weekId),
         (prevWeeklyGoals: WeekGoal[]) => {
           return [...prevWeeklyGoals, { ...weeklyGoalData }];
+        }
+      );
+
+      return { prevWeeklyGoals };
+    },
+
+    onError(error, { uid, yearId, quarterId, weekId }, context) {
+      qc.setQueryData(
+        qk.weeklyGoals(uid, yearId, quarterId, weekId),
+        context?.prevWeeklyGoals
+      );
+      console.log(error);
+    },
+  });
+}
+
+export function UseEditWeeklyGoal() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      uid,
+      yearId,
+      quarterId,
+      weekId,
+      goalId,
+      updatedFields,
+    }: EditWeeklyGoalPayload) =>
+      WeeklyGoals.editWeeklyGoal(
+        uid,
+        yearId,
+        quarterId,
+        weekId,
+        goalId,
+        updatedFields
+      ),
+
+    onSuccess: ({ uid, yearId, quarterId, weekId }) => {
+      qc.invalidateQueries({
+        queryKey: qk.weeklyGoals(uid, yearId, quarterId, weekId),
+      });
+    },
+
+    onMutate: async ({
+      uid,
+      yearId,
+      quarterId,
+      weekId,
+    }: EditWeeklyGoalPayload) => {
+      await qc.cancelQueries({
+        queryKey: qk.weeklyGoals(uid, yearId, quarterId, weekId),
+      });
+
+      const prevWeeklyGoals: WeekGoal[] =
+        qc.getQueryData(qk.weeklyGoals(uid, yearId, quarterId, weekId)) || [];
+
+      qc.setQueryData(
+        qk.weeklyGoals(uid, yearId, quarterId, weekId),
+        (prevWeeklyGoals: WeekGoal[]) => {
+          return [...prevWeeklyGoals];
         }
       );
 

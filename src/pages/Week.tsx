@@ -1,14 +1,15 @@
 
 import GoalCard from "@/components/GoalCard";
 import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
+import { Slider } from "@/components/ui/slider";
 import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext";
-import { useCategories, useIdentities, useQuarterlyGoals, useWeeklyGoals, useYearlyGoals } from "@/data/queries";
-import { WeeklyGoals } from "@/data/repos";
+import { useCategories, UseEditWeeklyGoal, useIdentities, useQuarterlyGoals, useWeeklyGoals, useYearlyGoals } from "@/data/queries";
 import type { ID } from "@/types/GoalTypes";
 import { enrichGoal } from "@/utils/goalsUtils";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export default function Week() {
@@ -16,7 +17,7 @@ export default function Week() {
 
     const { selectedYear, selectedQuarter, selectedWeek } = useGoals();
 
-    const [showParentsGoals, setShowParentGoals] = useState(true)
+    const [showParentsGoals, setShowParentGoals] = useState(false)
 
     const navigate = useNavigate();
 
@@ -24,19 +25,24 @@ export default function Week() {
         navigate("new");
     };
 
-    const { data: categories, isLoading: catLoading, error: catErr } = useCategories(user?.uid || "");
-    const { data: identities, isLoading: idLoading, error: idErr } = useIdentities(user?.uid || "");
-    const { data: yearlyGoals, isLoading: yearlyGoalsLoading, error: yearlyGoalsErr } = useYearlyGoals(user?.uid || "", selectedYear);
-    const { data: quarterlyGoals, isLoading: quarterlyGoalsLoading, error: quarterlyGoalsErr } = useQuarterlyGoals(user?.uid || "", selectedYear, selectedQuarter);
-    const { data: weeklyGoals, isLoading: weeklyGoalsLoading, error: weeklyGoalsErr } = useWeeklyGoals(user?.uid || "", selectedYear, selectedQuarter, selectedWeek);
+    const { data: categories, error: catErr } = useCategories(user?.uid || "");
+    const { data: identities, error: idErr } = useIdentities(user?.uid || "");
+    const { data: yearlyGoals, error: yearlyGoalsErr } = useYearlyGoals(user?.uid || "", selectedYear);
+    const { data: quarterlyGoals, error: quarterlyGoalsErr } = useQuarterlyGoals(user?.uid || "", selectedYear, selectedQuarter);
+    const { data: weeklyGoals, error: weeklyGoalsErr } = useWeeklyGoals(user?.uid || "", selectedYear, selectedQuarter, selectedWeek);
 
-    if (weeklyGoalsLoading || weeklyGoalsErr || quarterlyGoalsLoading || quarterlyGoalsErr || yearlyGoalsLoading || yearlyGoalsErr || catLoading || catErr || idLoading || idErr) return "Waittttt";
+    const weeklyAverage = useMemo(() => {
+        return (!weeklyGoals || weeklyGoals.length === 0 ? 0 : weeklyGoals?.map(goal => goal.done / goal.planned).reduce((acc, curr) => acc + curr, 0) / weeklyGoals?.length * 100).toFixed()
+    }, [weeklyGoals])
 
+    const useEditWeeklyGoal = UseEditWeeklyGoal()
 
     const onEditWeeklyProgress = async (goalId: ID, done: number) => {
-        const updatedGoalId = await WeeklyGoals.editWeeklyGoal(user!.uid, selectedYear, selectedQuarter, selectedWeek, goalId, { done })
-        return updatedGoalId
+        await useEditWeeklyGoal.mutateAsync({ uid: user!.uid, yearId: selectedYear, quarterId: selectedQuarter, weekId: selectedWeek, goalId, updatedFields: { done } })
+        return
     }
+
+    if (weeklyGoalsErr || quarterlyGoalsErr || yearlyGoalsErr || catErr || idErr) return "Error!";
 
     return (
         <>
@@ -53,6 +59,28 @@ export default function Week() {
                         showParentGoals={showParentsGoals}
                     />
                 ))}
+                {weeklyAverage !== '0' &&
+                    <div>
+                        <Card className='mb-4'>
+                            <CardHeader>
+                                <CardTitle className='text-3xl font-extrabold'>Weekly Summary</CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <Slider
+                                    value={[Number(weeklyAverage)]}
+                                    max={100}
+                                    step={1}
+                                    className='mt-2 cursor-not-allowed'
+                                    doneColor='lightgreen'
+                                    disabled
+                                    isSummary
+                                />
+                            </CardContent>
+
+                        </Card>
+                    </div>
+                }
+
                 <li>
                     <Button onClick={newClick}>Add weekly goal</Button>
                 </li>
