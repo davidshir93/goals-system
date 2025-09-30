@@ -11,10 +11,7 @@ type GoalCardProps = {
 }
 
 export default function GoalCard({ goal, onEditWeeklyProgress, showParentGoals = true }: GoalCardProps) {
-    console.log('GoalCard');
-    console.log(goal);
     const [done, setDone] = useState(goal.type === 'week' && goal.done || 0)
-
 
     return (
         <Card className='mb-4'>

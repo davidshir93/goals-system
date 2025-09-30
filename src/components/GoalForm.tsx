@@ -217,7 +217,6 @@ export default function GoalForm({ type }: GoalFormProps) {
                                                 if (val === 'edit') {
                                                     setEditIdentitiesModalOpen(true)
                                                 } else {
-                                                    console.log(field);
                                                     field.onChange(val)
                                                 }
                                             }}

@@ -35,7 +35,6 @@ export default function Week() {
 
     const onEditWeeklyProgress = async (goalId: ID, done: number) => {
         const updatedGoalId = await WeeklyGoals.editWeeklyGoal(user!.uid, selectedYear, selectedQuarter, selectedWeek, goalId, { done })
-        console.log('updatedGoal' + updatedGoalId);
         return updatedGoalId
     }
 
