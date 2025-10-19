@@ -24,6 +24,12 @@ export type NewIdentitiesPayload = {
 
 type GoalType = "year" | "quarter" | "week";
 
+type Progress = {
+  goalId: ID;
+  plan: number;
+  done: number;
+};
+
 type BaseGoal = {
   id: ID;
   type: GoalType;
@@ -45,12 +51,14 @@ export type YearGoal = Omit<BaseGoal, "outcome" | "obstacles" | "plan"> & {
   outcome: string;
   obstacles: string;
   plan: string;
+  quarterProgress: Progress[] | [];
 };
 
 export type QuarterGoal = BaseGoal & {
   type: "quarter";
   parentYearGoalId: ID;
   quarterId: ID;
+  weekProgress: Progress[] | [];
 };
 
 export type WeekGoal = BaseGoal & {
@@ -74,14 +82,14 @@ export type EnrichedGoalType = Goal & {
 export type NewYearlyGoalPayload = {
   uid: ID;
   yearId: ID;
-  yearlyGoalData: Omit<YearGoal, "id">;
+  yearlyGoalData: Omit<YearGoal, "id" | "quarterProgress">;
 };
 
 export type NewQuarterlyGoalPayload = {
   uid: ID;
   yearId: ID;
   quarterId: ID;
-  quarterGoalData: Omit<QuarterGoal, "id">;
+  quarterGoalData: Omit<QuarterGoal, "id" | "weekProgress">;
 };
 
 export type NewWeeklyGoalPayload = {

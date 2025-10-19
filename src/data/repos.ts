@@ -9,7 +9,7 @@ import {
   doc,
   setDoc,
   writeBatch,
-  updateDoc,
+  // updateDoc,
 } from "firebase/firestore";
 import { paths } from "../lib/paths";
 import { db } from "@/firebase";
@@ -180,7 +180,7 @@ export const YearlyGoals = {
   async addYearlyGoal(
     uid: ID,
     yearId: ID,
-    yearlyGoalData: Omit<YearGoal, "id">
+    yearlyGoalData: Omit<YearGoal, "id" | "quarterProgress">
   ): Promise<NewYearlyGoalPayload> {
     const docRef = await addDoc(
       collection(db, paths.yearlyGoals(uid, yearId)),
@@ -226,7 +226,7 @@ export const QuarterlyGoals = {
     uid: ID,
     yearId: ID,
     quarterId: ID,
-    quarterlyGoalData: Omit<QuarterGoal, "id">
+    quarterlyGoalData: Omit<QuarterGoal, "id" | "weekProgress">
   ): Promise<NewQuarterlyGoalPayload> {
     const docRef = await addDoc(
       collection(db, paths.quarterlyGoals(uid, yearId, quarterId)),
@@ -317,16 +317,43 @@ export const WeeklyGoals = {
     goalId: ID,
     updatedFields: Partial<WeekGoal>
   ): Promise<EditWeeklyGoalPayload> {
-    const documentRef = doc(
+    const batch = writeBatch(db);
+
+    const weeklyGoalRef = doc(
       db,
       paths.weeklyGoals(uid, yearId, quarterId, weekId),
       goalId
     );
 
-    await updateDoc(documentRef, updatedFields);
+    // await updateDoc(weeklyGoalRef, updatedFields);
+    batch.update(weeklyGoalRef, updatedFields);
 
-    // const docSnap = await getDoc(documentRef);
-    // const data = mapDoc<WeekGoal>(docSnap);
+    const weekDocSnap = await getDoc(weeklyGoalRef);
+
+    const {
+      parentQuarterGoalId,
+      planned: currPlanned,
+      done: currDone,
+    } = mapDoc<WeekGoal>(weekDocSnap);
+
+    const quarterlyGoalRef = doc(
+      db,
+      paths.quarterlyGoals(uid, yearId, quarterId),
+      parentQuarterGoalId
+    );
+
+    // Save/update this weeklyGoal’s progress under a map
+    batch.update(quarterlyGoalRef, {
+      [`weeklyProgress.${goalId}`]: {
+        planned: updatedFields.planned || currPlanned,
+        done: updatedFields.done || currDone,
+      },
+    });
+
+    // Look for thr correct place to recalc the quarter summaries, maybe when loadng the quarter page, even possibly loading it without the summaries and summarize when asked to
+
+    // 5. Commit all changes atomically
+    await batch.commit();
 
     return {
       uid,
