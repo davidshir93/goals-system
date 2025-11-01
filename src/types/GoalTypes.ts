@@ -26,7 +26,7 @@ type GoalType = "year" | "quarter" | "week";
 
 type Progress = {
   goalId: ID;
-  plan: number;
+  planned: number;
   done: number;
 };
 
@@ -58,7 +58,7 @@ export type QuarterGoal = BaseGoal & {
   type: "quarter";
   parentYearGoalId: ID;
   quarterId: ID;
-  weekProgress: Progress[] | [];
+  weeklyProgress: Progress[] | [];
 };
 
 export type WeekGoal = BaseGoal & {

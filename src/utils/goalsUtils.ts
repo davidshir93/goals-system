@@ -55,6 +55,21 @@ export function enrichGoal(
     if (yearlyGoal) {
       enrichedGoal.parentYearGoalWish = yearlyGoal.wish;
     }
+
+    if (goal.weeklyProgress && typeof goal.weeklyProgress === "object") {
+      const totalPlanned = Object.values(goal.weeklyProgress).reduce(
+        (acc, week) => acc + week.planned,
+        0
+      );
+
+      const totalDone = Object.values(goal.weeklyProgress).reduce(
+        (acc, week) => acc + week.done,
+        0
+      );
+
+      enrichedGoal.doneAveragePercent =
+        totalPlanned > 0 ? (totalDone / totalPlanned) * 100 : 0;
+    }
   }
 
   if (goal.type === "year") {

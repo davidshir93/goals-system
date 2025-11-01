@@ -325,7 +325,6 @@ export const WeeklyGoals = {
       goalId
     );
 
-    // await updateDoc(weeklyGoalRef, updatedFields);
     batch.update(weeklyGoalRef, updatedFields);
 
     const weekDocSnap = await getDoc(weeklyGoalRef);
@@ -342,7 +341,7 @@ export const WeeklyGoals = {
       parentQuarterGoalId
     );
 
-    // Save/update this weeklyGoal’s progress under a map
+    // Save/update this weeklyGoal's progress under a map
     batch.update(quarterlyGoalRef, {
       [`weeklyProgress.${goalId}`]: {
         planned: updatedFields.planned || currPlanned,
@@ -350,9 +349,7 @@ export const WeeklyGoals = {
       },
     });
 
-    // Look for thr correct place to recalc the quarter summaries, maybe when loadng the quarter page, even possibly loading it without the summaries and summarize when asked to
-
-    // 5. Commit all changes atomically
+    // Commit all changes atomically
     await batch.commit();
 
     return {
