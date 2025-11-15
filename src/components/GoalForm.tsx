@@ -115,7 +115,7 @@ export default function GoalForm({ type }: GoalFormProps) {
                 uid: user.uid,
                 yearId: selectedYear,
                 quarterId: selectedQuarter,
-                quarterGoalData: { ...data, type: 'quarter', yearId: selectedYear, quarterId: selectedQuarter }
+                quarterGoalData: { ...data, type: 'quarter', yearId: selectedYear, quarterId: selectedQuarter, weeklyProgress: [] }
             })
         }
 
