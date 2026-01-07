@@ -4,6 +4,7 @@ import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectVa
 import { useState } from "react"
 import PeriodForm from "./PeriodForm"
 import { Modal } from "./Modal"
+import { useTranslation } from "react-i18next"
 
 type Props = {
     type: 'week' | 'quarter' | 'year',
@@ -14,6 +15,7 @@ type Props = {
 }
 
 export default function PeriodSelector({ type, periods, selectedPeriod, onChange, width = 80 }: Props) {
+    const { t } = useTranslation()
 
     const [newPeriodModalOpen, setNewPeriodModalOpen] = useState(false)
 
@@ -43,6 +45,14 @@ export default function PeriodSelector({ type, periods, selectedPeriod, onChange
         }
     }
 
+    const getNewPeriodText = () => {
+        switch (type) {
+            case 'year': return t('periods.newYear')
+            case 'quarter': return t('periods.newQuarter')
+            case 'week': return t('periods.newWeek')
+        }
+    }
+
     return (<>
         <Select
             value={selectedPeriod}
@@ -54,7 +64,7 @@ export default function PeriodSelector({ type, periods, selectedPeriod, onChange
             <SelectContent>
                 <SelectGroup>
                     {periods.map(period => <SelectItem key={period.id} value={period.id}>{period.name}</SelectItem>)}
-                    {showNewButton && <SelectItem key='new' value='new'>New {type[0].toUpperCase() + type.slice(1)}</SelectItem>}
+                    {showNewButton && <SelectItem key='new' value='new'>{getNewPeriodText()}</SelectItem>}
                 </SelectGroup>
             </SelectContent>
         </Select>

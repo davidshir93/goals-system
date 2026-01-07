@@ -17,6 +17,7 @@ import { IntFromInput } from '@/schemas/common'
 import type { Period } from '@/types/GoalTypes'
 import { getCurrentQuarter, getCurrentWeekInQuarter } from '@/utils/dates'
 import { useAddQuarter, useAddWeek, useAddYear } from '@/data/queries'
+import { useTranslation } from 'react-i18next'
 
 type PeriodFormProps = {
     type: 'year' | 'quarter' | 'week',
@@ -25,23 +26,24 @@ type PeriodFormProps = {
 }
 
 export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFormProps) {
+    const { t } = useTranslation()
 
     const YearlyPeriodFormSchema = z.object({
         type: z.literal('year'),
-        name: IntFromInput.refine((n) => n >= 1900 && n < 2100, "Year must be ≥ 1900")
-            .refine((n) => !existPeriods.find(year => year.name == n.toString()), "Year already exist"),
+        name: IntFromInput.refine((n) => n >= 1900 && n < 2100, t('validation.yearMin'))
+            .refine((n) => !existPeriods.find(year => year.name == n.toString()), t('validation.yearExists')),
     });
 
     const QuarterlyPeriodFormSchema = z.object({
         type: z.literal('quarter'),
-        name: IntFromInput.refine((n) => n >= 1 && n <= 4, "Quarter must be between 1 and 4")
-            .refine((n) => !existPeriods.find(quarter => quarter.name == 'Q' + n.toString()), "Quarter already exist"),
+        name: IntFromInput.refine((n) => n >= 1 && n <= 4, t('validation.quarterRange'))
+            .refine((n) => !existPeriods.find(quarter => quarter.name == 'Q' + n.toString()), t('validation.quarterExists')),
     });
 
     const WeeklyPeriodFormSchema = z.object({
         type: z.literal('week'),
-        name: IntFromInput.refine((n) => n >= 1 && n <= 13, "Week must be between 1 and 13")
-            .refine((n) => !existPeriods.find(week => week.name == 'W' + n.toString()), "Week already exist"),
+        name: IntFromInput.refine((n) => n >= 1 && n <= 13, t('validation.weekRange'))
+            .refine((n) => !existPeriods.find(week => week.name == 'W' + n.toString()), t('validation.weekExists')),
     });
 
     const PerTypeSchema = z.discriminatedUnion("type", [
@@ -118,6 +120,14 @@ export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFor
         closeModal()
     }
 
+    const getPeriodLabel = () => {
+        switch (type) {
+            case 'year': return t('periods.year')
+            case 'quarter': return t('periods.quarter')
+            case 'week': return t('periods.week')
+        }
+    }
+
     return (
         <>
             <Form {...form}>
@@ -128,7 +138,7 @@ export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFor
                         control={form.control}
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>New {type}</FormLabel>
+                                <FormLabel>{t('periodForm.newPeriod', { type: getPeriodLabel() })}</FormLabel>
                                 <FormControl>
                                     <Input type='number' {...field} />
                                 </FormControl>
@@ -137,8 +147,8 @@ export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFor
                         )}
                     />
 
-                    <Button type='button' onClick={form.handleSubmit(handleSubmit, (err) => console.error('Validation errors:', err))}>Add</Button>
-                    <Button type='button' onClick={closeModal} variant="outline">Cancel</Button>
+                    <Button type='button' onClick={form.handleSubmit(handleSubmit, (err) => console.error('Validation errors:', err))}>{t('common.add')}</Button>
+                    <Button type='button' onClick={closeModal} variant="outline">{t('common.cancel')}</Button>
                 </form>
             </Form >
         </>

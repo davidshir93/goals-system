@@ -21,6 +21,7 @@ import type { ID, Goal } from '@/types/GoalTypes'
 import { Modal } from './Modal'
 import ItemsListForm from './ItemsListForm'
 import { useState } from 'react'
+import { useTranslation } from 'react-i18next'
 
 type GoalFormProps = {
     type: 'year' | 'quarter' | 'week'
@@ -28,53 +29,53 @@ type GoalFormProps = {
     existingGoal?: Goal
 }
 
-const PlanItemSchema = z.object({
-    obstacle: z.string().trim(),
-    action: z.string().trim(),
-});
-
-const AllGoalsFormSchema = z.object({
-    type: z.union([z.literal('year'), z.literal('quarter'), z.literal('week')]),
-    wish: z.string().min(10, "The first step to achieving a goal is to write a wish!").max(120, "Max 120 chars"),
-    outcome: z.array(z.string().trim()).optional().default([]),
-    obstacles: z.array(z.string().trim()).optional().default([]),
-    plan: z.array(PlanItemSchema).optional().default([]),
-    notes: z.string().trim().max(2000).optional().default(""),
-})
-
-const YearlyGoalFormSchema = z.object({
-    type: z.literal('year'),
-    categoryId: Id.min(1, "A yearly goal must include a category."),
-    identityId: Id.min(1, "A yearly goal must include an identity."),
-    // The following fields are only required in yearlyGoals
-    outcome: z.array(z.string().trim()).min(1, "Add at least one outcome"),
-    obstacles: z.array(z.string().trim()).min(1, "Add at least one obstacle"),
-    plan: z.array(PlanItemSchema).min(1, "Add a plan for at least one obstacle"),
-});
-
-const QuarterlyGoalFormSchema = z.object({
-    type: z.literal('quarter'),
-    parentYearGoalId: z.string().trim().min(1, "A quarterly goal must derive from a yearly goal.")
-})
-
-const WeeklyGoalFormSchema = z.object({
-    type: z.literal('week'),
-    parentQuarterGoalId: z.string().trim().min(1, "A weekly goal must derive from a quarterly goal."),
-    planned: IntFromInput.refine((n) => n >= 1, "Planned must be ≥ 1").default(1),
-})
-
-const perTypeSchema = z.discriminatedUnion("type", [
-    YearlyGoalFormSchema,
-    QuarterlyGoalFormSchema,
-    WeeklyGoalFormSchema
-])
-
-export const GoalFormSchema = AllGoalsFormSchema.and(perTypeSchema)
-
-export type GoalFormType = z.infer<typeof GoalFormSchema>;
-type GoalFormOutput = z.output<typeof GoalFormSchema>;
-
 export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) {
+    const { t } = useTranslation()
+
+    const PlanItemSchema = z.object({
+        obstacle: z.string().trim(),
+        action: z.string().trim(),
+    });
+
+    const AllGoalsFormSchema = z.object({
+        type: z.union([z.literal('year'), z.literal('quarter'), z.literal('week')]),
+        wish: z.string().min(10, t('validation.wishRequired')).max(120, t('validation.maxChars', { count: 120 })),
+        outcome: z.array(z.string().trim()).optional().default([]),
+        obstacles: z.array(z.string().trim()).optional().default([]),
+        plan: z.array(PlanItemSchema).optional().default([]),
+        notes: z.string().trim().max(2000).optional().default(""),
+    })
+
+    const YearlyGoalFormSchema = z.object({
+        type: z.literal('year'),
+        categoryId: Id.min(1, t('validation.categoryRequired')),
+        identityId: Id.min(1, t('validation.identityRequired')),
+        outcome: z.array(z.string().trim()).min(1, t('validation.outcomeRequired')),
+        obstacles: z.array(z.string().trim()).min(1, t('validation.obstacleRequired')),
+        plan: z.array(PlanItemSchema).min(1, t('validation.planRequired')),
+    });
+
+    const QuarterlyGoalFormSchema = z.object({
+        type: z.literal('quarter'),
+        parentYearGoalId: z.string().trim().min(1, t('validation.parentYearRequired'))
+    })
+
+    const WeeklyGoalFormSchema = z.object({
+        type: z.literal('week'),
+        parentQuarterGoalId: z.string().trim().min(1, t('validation.parentQuarterRequired')),
+        planned: IntFromInput.refine((n) => n >= 1, t('validation.plannedMin')).default(1),
+    })
+
+    const perTypeSchema = z.discriminatedUnion("type", [
+        YearlyGoalFormSchema,
+        QuarterlyGoalFormSchema,
+        WeeklyGoalFormSchema
+    ])
+
+    const GoalFormSchema = AllGoalsFormSchema.and(perTypeSchema)
+
+    type GoalFormType = z.infer<typeof GoalFormSchema>;
+    type GoalFormOutput = z.output<typeof GoalFormSchema>;
 
     const [editCategoriesModalOpen, setEditCategoriesModalOpen] = useState(false)
     const [editIdentitiesModalOpen, setEditIdentitiesModalOpen] = useState(false)
@@ -242,11 +243,11 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
     }
 
     if (catLoading || idLoading || yearlyGoalsLoading || quarterlyGoalsLoading) {
-        return <div className="p-3 text-yellow-600">Loading data...</div>;
+        return <div className="p-3 text-yellow-600">{t('common.loadingData')}</div>;
     }
 
     if (catErr || idErr || yearlyGoalsErr || quarterlyGoalsErr) {
-        return <div className="p-3 text-red-600">Failed to load data.</div>;
+        return <div className="p-3 text-red-600">{t('common.failedToLoad')}</div>;
     }
 
     function findYearlyGoalCategoryColor(yearlyGoalId: ID) {
@@ -262,14 +263,31 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
         return category?.color || 'white'
     }
 
+    const getFormTitle = () => {
+        if (isEditMode) return t('goalForm.editGoal')
+        switch (type) {
+            case 'year': return t('goalForm.newYearGoal')
+            case 'quarter': return t('goalForm.newQuarterGoal')
+            case 'week': return t('goalForm.newWeekGoal')
+        }
+    }
+
+    const getPeriodName = () => {
+        switch (type) {
+            case 'year': return t('periods.year').toLowerCase()
+            case 'quarter': return t('periods.quarter').toLowerCase()
+            case 'week': return t('periods.week').toLowerCase()
+        }
+    }
+
     return (
         <div className="max-w-2xl mx-auto">
             <div className="mb-6">
                 <h1 className="text-2xl font-bold tracking-tight">
-                    {isEditMode ? 'Edit Goal' : `New ${type.charAt(0).toUpperCase() + type.slice(1)} Goal`}
+                    {getFormTitle()}
                 </h1>
                 <p className="text-muted-foreground text-sm mt-1">
-                    {isEditMode ? 'Update your goal details below' : 'Create a new goal to track your progress'}
+                    {isEditMode ? t('goalForm.editSubtitle') : t('goalForm.newSubtitle')}
                 </p>
             </div>
 
@@ -284,7 +302,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                 control={form.control}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel>Category</FormLabel>
+                                        <FormLabel>{t('goalForm.category')}</FormLabel>
                                         <FormControl>
                                             <Select
                                                 value={field.value}
@@ -297,7 +315,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                 }}
                                             >
                                                 <SelectTrigger className="w-full" style={{ backgroundColor: `${categories.find(cat => cat.id === field.value)?.color}` }}>
-                                                    <SelectValue placeholder="Select a category" />
+                                                    <SelectValue placeholder={t('goalForm.selectCategory')} />
                                                 </SelectTrigger>
                                                 <SelectContent>
                                                     <SelectGroup>
@@ -306,7 +324,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                                 {category.name}
                                                             </SelectItem>
                                                         ))}
-                                                        <SelectItem key='edit' value='edit'>Edit Categories</SelectItem>
+                                                        <SelectItem key='edit' value='edit'>{t('goalForm.editCategories')}</SelectItem>
                                                     </SelectGroup>
                                                 </SelectContent>
                                             </Select>
@@ -327,7 +345,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                             control={form.control}
                             render={({ field }) => (
                                 <FormItem>
-                                    <FormLabel>Identity</FormLabel>
+                                    <FormLabel>{t('goalForm.identity')}</FormLabel>
                                     <FormControl>
                                         <Select
                                             value={field.value}
@@ -340,7 +358,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                             }}
                                         >
                                             <SelectTrigger className="w-full" style={{ backgroundColor: `${identities.find(cat => cat.id === field.value)?.color}` }}>
-                                                <SelectValue placeholder="Select an identity" />
+                                                <SelectValue placeholder={t('goalForm.selectIdentity')} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
@@ -349,7 +367,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                             {identity.name}
                                                         </SelectItem>
                                                     ))}
-                                                    <SelectItem key='edit' value='edit'>Edit Identities</SelectItem>
+                                                    <SelectItem key='edit' value='edit'>{t('goalForm.editIdentities')}</SelectItem>
                                                 </SelectGroup>
                                             </SelectContent>
                                         </Select>
@@ -369,14 +387,14 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         control={form.control}
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Parent Quarter Goal</FormLabel>
+                                <FormLabel>{t('goalForm.parentQuarterGoal')}</FormLabel>
                                 <FormControl>
                                     <Select
                                         value={field.value}
                                         onValueChange={field.onChange}
                                     >
                                         <SelectTrigger className="w-full" style={{ backgroundColor: `${findQuarterGoalCategoryColor(field.value)}` }}>
-                                            <SelectValue placeholder="Select a parent quarterly goal" />
+                                            <SelectValue placeholder={t('goalForm.selectParentQuarter')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectGroup>
@@ -400,14 +418,14 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         control={form.control}
                         render={({ field }) => (
                             <FormItem>
-                                <FormLabel>Parent Yearly Goal</FormLabel>
+                                <FormLabel>{t('goalForm.parentYearGoal')}</FormLabel>
                                 <FormControl>
                                     <Select
                                         value={field.value}
                                         onValueChange={field.onChange}
                                     >
                                         <SelectTrigger className="w-full" style={{ backgroundColor: `${findYearlyGoalCategoryColor(field.value)}` }}>
-                                            <SelectValue placeholder="Select a parent yearly goal." />
+                                            <SelectValue placeholder={t('goalForm.selectParentYear')} />
                                         </SelectTrigger>
                                         <SelectContent>
                                             <SelectGroup>
@@ -432,10 +450,10 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         control={form.control}
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                                <FormLabel className="text-lg font-semibold">Goal Title</FormLabel>
+                                <FormLabel className="text-lg font-semibold">{t('goalForm.goalTitle')}</FormLabel>
                                 <FormControl>
                                     <Input
-                                        placeholder={`What do you want to achieve this ${type}?`}
+                                        placeholder={t('goalForm.goalPlaceholder', { period: getPeriodName() })}
                                         className='text-xl font-bold h-14 px-4 border-2 border-primary/20 focus:border-primary transition-colors'
                                         {...field}
                                     />
@@ -450,7 +468,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         {type === 'year' && (
                             <div className="flex items-center gap-2 pt-2">
                                 <div className="h-px flex-1 bg-border"></div>
-                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mental Contrasting</span>
+                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('goalForm.mentalContrasting')}</span>
                                 <div className="h-px flex-1 bg-border"></div>
                             </div>
                         )}
@@ -463,9 +481,9 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className={type === 'year' ? 'font-semibold' : ''}>
-                                        Outcomes {type !== 'year' && <span className="text-muted-foreground font-normal">(optional)</span>}
+                                        {type === 'year' ? t('goalForm.outcomes') : t('goalForm.outcomesOptional')}
                                     </FormLabel>
-                                    <p className="text-xs text-muted-foreground mb-2">Visualize success: What will achieving this feel like? What changes?</p>
+                                    <p className="text-xs text-muted-foreground mb-2">{t('goalForm.outcomesHelp')}</p>
                                     <div className="space-y-2">
                                         {(field.value as string[])?.map((item, index) => (
                                             <div key={index} className="flex gap-2">
@@ -476,7 +494,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                         newItems[index] = e.target.value;
                                                         field.onChange(newItems);
                                                     }}
-                                                    placeholder={`Outcome ${index + 1}`}
+                                                    placeholder={t('goalForm.outcomePlaceholder', { number: index + 1 })}
                                                 />
                                                 <Button
                                                     type="button"
@@ -497,7 +515,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                             size="sm"
                                             onClick={() => field.onChange([...(field.value as string[] || []), ''])}
                                         >
-                                            + Add Outcome
+                                            {t('goalForm.addOutcome')}
                                         </Button>
                                     </div>
                                     <FormMessage />
@@ -513,9 +531,9 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel className={type === 'year' ? 'font-semibold' : ''}>
-                                        Obstacles {type !== 'year' && <span className="text-muted-foreground font-normal">(optional)</span>}
+                                        {type === 'year' ? t('goalForm.obstacles') : t('goalForm.obstaclesOptional')}
                                     </FormLabel>
-                                    <p className="text-xs text-muted-foreground mb-2">Be honest: What internal obstacles might hold you back?</p>
+                                    <p className="text-xs text-muted-foreground mb-2">{t('goalForm.obstaclesHelp')}</p>
                                     <div className="space-y-2">
                                         {(field.value as string[])?.map((item, index) => (
                                             <div key={index} className="flex gap-2">
@@ -526,7 +544,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                         newItems[index] = e.target.value;
                                                         field.onChange(newItems);
                                                     }}
-                                                    placeholder={`Obstacle ${index + 1}`}
+                                                    placeholder={t('goalForm.obstaclePlaceholder', { number: index + 1 })}
                                                 />
                                                 <Button
                                                     type="button"
@@ -547,7 +565,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                             size="sm"
                                             onClick={() => field.onChange([...(field.value as string[] || []), ''])}
                                         >
-                                            + Add Obstacle
+                                            {t('goalForm.addObstacle')}
                                         </Button>
                                     </div>
                                     <FormMessage />
@@ -580,27 +598,27 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
 
                                     return (
                                         <FormItem>
-                                            <FormLabel className="font-semibold">Implementation Intentions</FormLabel>
+                                            <FormLabel className="font-semibold">{t('goalForm.implementationIntentions')}</FormLabel>
                                             <p className="text-xs text-muted-foreground mb-3">
-                                                For each obstacle, define your response using "If... then..." planning.
+                                                {t('goalForm.implementationHelp')}
                                             </p>
 
                                             {syncedPlan.length === 0 ? (
                                                 <div className="p-4 rounded-lg border border-dashed text-center text-sm text-muted-foreground">
-                                                    Add obstacles above to create your implementation plan
+                                                    {t('goalForm.addObstaclesFirst')}
                                                 </div>
                                             ) : (
                                                 <div className="space-y-3">
                                                     {syncedPlan.map((item, index) => (
                                                         <div key={index} className="p-4 rounded-lg border bg-muted/30 space-y-2">
                                                             <div className="flex items-start gap-2">
-                                                                <span className="text-sm font-medium text-orange-600 shrink-0 pt-0.5">If</span>
+                                                                <span className="text-sm font-medium text-orange-600 shrink-0 pt-0.5">{t('goalForm.if')}</span>
                                                                 <p className="text-sm italic text-muted-foreground flex-1">
                                                                     "{item.obstacle}"
                                                                 </p>
                                                             </div>
                                                             <div className="flex items-start gap-2">
-                                                                <span className="text-sm font-medium text-green-600 shrink-0 pt-2">Then I will</span>
+                                                                <span className="text-sm font-medium text-green-600 shrink-0 pt-2">{t('goalForm.thenIWill')}</span>
                                                                 <Input
                                                                     value={item.action}
                                                                     onChange={(e) => {
@@ -608,7 +626,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                                         newPlan[index] = { ...item, action: e.target.value };
                                                                         field.onChange(newPlan);
                                                                     }}
-                                                                    placeholder="What specific action will you take?"
+                                                                    placeholder={t('goalForm.actionPlaceholder')}
                                                                     className="flex-1"
                                                                 />
                                                             </div>
@@ -634,12 +652,12 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                 <FormItem className="space-y-4 p-5 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-2xl border-2 border-primary/25 shadow-sm">
                                     <div className="flex items-center gap-2">
                                         <span className="text-2xl">⏱️</span>
-                                        <FormLabel className="text-xl font-bold text-primary m-0">Planned Effort</FormLabel>
+                                        <FormLabel className="text-xl font-bold text-primary m-0">{t('goalForm.plannedEffort')}</FormLabel>
                                     </div>
                                     <div className="bg-background/60 rounded-lg p-3 border border-primary/10">
                                         <p className="text-sm text-muted-foreground leading-relaxed">
-                                            <span className="font-medium text-foreground">Effort matters more than outcomes.</span>{' '}
-                                            How many time slots (hours/sessions) will you dedicate to this goal?
+                                            <span className="font-medium text-foreground">{t('goalForm.effortHelp')}</span>{' '}
+                                            {t('goalForm.effortQuestion')}
                                         </p>
                                     </div>
                                     <div className="flex items-center justify-center gap-3">
@@ -651,7 +669,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                 {...field}
                                             />
                                         </FormControl>
-                                        <span className="text-lg text-muted-foreground font-medium">sessions</span>
+                                        <span className="text-lg text-muted-foreground font-medium">{t('goalForm.sessions')}</span>
                                     </div>
                                     <FormMessage />
                                 </FormItem>
@@ -661,10 +679,10 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
 
                     <div className="flex gap-3 pt-6 border-t">
                         <Button type='submit' className="flex-1 h-11 font-semibold">
-                            {isEditMode ? 'Save Changes' : 'Create Goal'}
+                            {isEditMode ? t('goalForm.saveChanges') : t('goalForm.createGoal')}
                         </Button>
                         <Button type="button" variant="outline" className="h-11 px-6" onClick={() => navigate("..")}>
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                     </div>
                 </form>

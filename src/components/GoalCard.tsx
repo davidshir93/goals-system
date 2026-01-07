@@ -6,6 +6,7 @@ import { Badge } from "./ui/badge";
 import { Slider } from "./ui/slider";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { Button } from "./ui/button";
+import { useTranslation } from "react-i18next";
 
 type GoalCardProps = {
   goal: EnrichedGoalType;
@@ -18,6 +19,7 @@ export default function GoalCard({
   onEditWeeklyProgress,
   showParentGoals = true,
 }: GoalCardProps) {
+  const { t } = useTranslation()
   const [showWoop, setShowWoop] = useState(false);
 
   const hasOutcome = goal.outcome && goal.outcome.length > 0;
@@ -94,13 +96,13 @@ export default function GoalCard({
           <div className="mb-4 p-3 rounded-lg bg-muted/50 space-y-2 text-sm">
             {goal.parentYearGoalWish && (
               <div className="flex items-start gap-2">
-                <span className="text-xs text-muted-foreground shrink-0 pt-0.5 font-medium">Year:</span>
+                <span className="text-xs text-muted-foreground shrink-0 pt-0.5 font-medium">{t('goals.parentYear')}</span>
                 <p className="text-muted-foreground">{goal.parentYearGoalWish}</p>
               </div>
             )}
             {goal.parentQuarterGoalWish && (
               <div className="flex items-start gap-2">
-                <span className="text-xs text-muted-foreground shrink-0 pt-0.5 font-medium">Quarter:</span>
+                <span className="text-xs text-muted-foreground shrink-0 pt-0.5 font-medium">{t('goals.parentQuarter')}</span>
                 <p className="text-muted-foreground">{goal.parentQuarterGoalWish}</p>
               </div>
             )}
@@ -159,12 +161,12 @@ export default function GoalCard({
                 strokeWidth="2"
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={`transition-transform duration-200 ${showWoop ? "rotate-90" : ""}`}
+                className={`transition-transform duration-200 ${showWoop ? "rotate-90" : ""} rtl-flip`}
               >
                 <path d="m9 18 6-6-6-6"/>
               </svg>
               <span className="text-xs font-medium">
-                {showWoop ? "Hide" : "Show"} Details
+                {showWoop ? t('goalCard.hideDetails') : t('goalCard.showDetails')}
               </span>
             </button>
 
@@ -179,7 +181,7 @@ export default function GoalCard({
                       >
                         <span className="flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                          Outcomes
+                          {t('goalCard.outcomes')}
                         </span>
                       </TabsTrigger>
                     )}
@@ -190,7 +192,7 @@ export default function GoalCard({
                       >
                         <span className="flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                          Obstacles
+                          {t('goalCard.obstacles')}
                         </span>
                       </TabsTrigger>
                     )}
@@ -201,7 +203,7 @@ export default function GoalCard({
                       >
                         <span className="flex items-center gap-1.5">
                           <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                          Plan
+                          {t('goalCard.plan')}
                         </span>
                       </TabsTrigger>
                     )}
@@ -244,12 +246,12 @@ export default function GoalCard({
                           goal.plan.map((item, index) => (
                             <div key={index} className="p-2.5 rounded-lg bg-blue-500/5 border border-blue-500/10">
                               <div className="flex items-start gap-2 mb-1.5">
-                                <span className="text-[10px] font-bold text-orange-500 shrink-0">IF</span>
+                                <span className="text-[10px] font-bold text-orange-500 shrink-0">{t('goalCard.if')}</span>
                                 <p className="text-xs text-muted-foreground">{item.obstacle}</p>
                               </div>
                               <div className="flex items-start gap-2">
-                                <span className="text-[10px] font-bold text-green-500 shrink-0">THEN</span>
-                                <p className="text-xs font-medium">{item.action || <span className="text-muted-foreground italic">No action defined</span>}</p>
+                                <span className="text-[10px] font-bold text-green-500 shrink-0">{t('goalCard.then')}</span>
+                                <p className="text-xs font-medium">{item.action || <span className="text-muted-foreground italic">{t('goalCard.noActionDefined')}</span>}</p>
                               </div>
                             </div>
                           ))

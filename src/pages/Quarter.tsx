@@ -14,8 +14,10 @@ import {
 import { enrichGoal } from "@/utils/goalsUtils";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function Quarter() {
+  const { t } = useTranslation()
   const { user } = useAuth();
 
   const { selectedYear, selectedQuarter } = useGoals();
@@ -56,8 +58,8 @@ export default function Quarter() {
   if (quarterlyGoalsErr || yearlyGoalsErr || catErr || idErr) {
     return (
       <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-        <p className="text-destructive font-medium">Failed to load quarterly goals</p>
-        <p className="text-destructive/80 text-sm mt-1">Please try refreshing the page.</p>
+        <p className="text-destructive font-medium">{t('goals.failedQuarterly')}</p>
+        <p className="text-destructive/80 text-sm mt-1">{t('common.tryRefreshing')}</p>
       </div>
     );
   }
@@ -68,7 +70,7 @@ export default function Quarter() {
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
           <p className="text-sm text-muted-foreground">{currentYear?.name}</p>
-          <h1 className="text-2xl font-bold tracking-tight">Quarter {currentQuarter?.name || ''}</h1>
+          <h1 className="text-2xl font-bold tracking-tight">{t('periods.quarter')} {currentQuarter?.name || ''}</h1>
         </div>
         <div className="flex items-center gap-4">
           <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -78,14 +80,14 @@ export default function Quarter() {
               checked={showParentsGoals}
               onChange={() => setShowParentGoals((prev) => !prev)}
             />
-            <span className="text-muted-foreground">Show parent goals</span>
+            <span className="text-muted-foreground">{t('goals.showParentGoals')}</span>
           </label>
           <Button onClick={newClick}>
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ltr:mr-2 rtl:ml-2">
               <path d="M5 12h14" />
               <path d="M12 5v14" />
             </svg>
-            Add Goal
+            {t('goals.addGoal')}
           </Button>
         </div>
       </div>
@@ -109,11 +111,11 @@ export default function Quarter() {
               <path d="M12 5v14" />
             </svg>
           </div>
-          <h3 className="text-lg font-semibold mb-2">No quarterly goals yet</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('goals.noQuarterlyGoals')}</h3>
           <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
-            Set your quarterly goals to break down your yearly objectives.
+            {t('goals.noQuarterlyGoalsDesc')}
           </p>
-          <Button onClick={newClick}>Add your first goal</Button>
+          <Button onClick={newClick}>{t('goals.addFirstGoal')}</Button>
         </div>
       )}
     </div>

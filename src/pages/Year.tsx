@@ -6,8 +6,10 @@ import { useGoals } from "@/context/GoalsContext"
 import { useCategories, useIdentities, useYearlyGoals, useYears } from "@/data/queries";
 import { enrichGoal } from "@/utils/goalsUtils";
 import { useNavigate } from "react-router-dom";
+import { useTranslation } from "react-i18next";
 
 export default function Year() {
+    const { t } = useTranslation()
     const { user } = useAuth()
 
     const { selectedYear } = useGoals();
@@ -31,7 +33,7 @@ export default function Year() {
         return (
             <div className="flex items-center justify-center p-8">
                 <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
-                <span className="ml-3 text-muted-foreground">Loading goals...</span>
+                <span className="ltr:ml-3 rtl:mr-3 text-muted-foreground">{t('common.loadingGoals')}</span>
             </div>
         );
     }
@@ -39,8 +41,8 @@ export default function Year() {
     if (hasError) {
         return (
             <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-                <p className="text-destructive font-medium">Failed to load yearly goals</p>
-                <p className="text-destructive/80 text-sm mt-1">Please try refreshing the page.</p>
+                <p className="text-destructive font-medium">{t('goals.failedYearly')}</p>
+                <p className="text-destructive/80 text-sm mt-1">{t('common.tryRefreshing')}</p>
             </div>
         );
     }
@@ -50,14 +52,14 @@ export default function Year() {
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <div>
-                    <h1 className="text-2xl font-bold tracking-tight">Year {currentYear?.name || ''}</h1>
+                    <h1 className="text-2xl font-bold tracking-tight">{t('periods.year')} {currentYear?.name || ''}</h1>
                 </div>
                 <Button onClick={newClick}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ltr:mr-2 rtl:ml-2">
                         <path d="M5 12h14" />
                         <path d="M12 5v14" />
                     </svg>
-                    Add Goal
+                    {t('goals.addGoal')}
                 </Button>
             </div>
 
@@ -79,11 +81,11 @@ export default function Year() {
                             <path d="M12 5v14" />
                         </svg>
                     </div>
-                    <h3 className="text-lg font-semibold mb-2">No yearly goals yet</h3>
+                    <h3 className="text-lg font-semibold mb-2">{t('goals.noYearlyGoals')}</h3>
                     <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
-                        Start by setting your yearly goals to define your long-term vision.
+                        {t('goals.noYearlyGoalsDesc')}
                     </p>
-                    <Button onClick={newClick}>Add your first goal</Button>
+                    <Button onClick={newClick}>{t('goals.addFirstGoal')}</Button>
                 </div>
             )}
         </div>

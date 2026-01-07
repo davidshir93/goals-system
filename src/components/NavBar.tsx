@@ -5,9 +5,12 @@ import { useGoals } from "@/context/GoalsContext"
 import PeriodSelector from "./PeriodSelector"
 import { useQuarters, useWeeks, useYears } from "@/data/queries"
 import { ThemeToggle } from "./ThemeToggle"
+import { LanguageSwitcher } from "./LanguageSwitcher"
 import { useState } from "react"
+import { useTranslation } from "react-i18next"
 
 export const NavBar = () => {
+    const { t } = useTranslation()
     const { user, logOut } = useAuth()
     const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
     const { selectedYear, setSelectedYear, selectedQuarter, setSelectedQuarter, selectedWeek, setSelectedWeek } = useGoals();
@@ -29,7 +32,7 @@ export const NavBar = () => {
                     {/* Logo / Brand */}
                     <div className="flex items-center gap-2">
                         <NavLink to="/" className="text-xl font-bold tracking-tight hover:opacity-80 transition-opacity">
-                            Goals
+                            {t('nav.brand')}
                         </NavLink>
                     </div>
 
@@ -38,7 +41,7 @@ export const NavBar = () => {
                         <div className="hidden md:flex items-center gap-1">
                             <NavLink to="/week" className={navLinkClasses}>
                                 <div className="flex items-center gap-2">
-                                    <span>Week</span>
+                                    <span>{t('nav.week')}</span>
                                     <PeriodSelector
                                         type='week'
                                         periods={weeks ?? []}
@@ -50,7 +53,7 @@ export const NavBar = () => {
                             </NavLink>
                             <NavLink to="/quarter" className={navLinkClasses}>
                                 <div className="flex items-center gap-2">
-                                    <span>Quarter</span>
+                                    <span>{t('nav.quarter')}</span>
                                     <PeriodSelector
                                         type="quarter"
                                         periods={quarters ?? []}
@@ -62,7 +65,7 @@ export const NavBar = () => {
                             </NavLink>
                             <NavLink to="/year" className={navLinkClasses}>
                                 <div className="flex items-center gap-2">
-                                    <span>Year</span>
+                                    <span>{t('nav.year')}</span>
                                     <PeriodSelector
                                         type="year"
                                         periods={years ?? []}
@@ -77,6 +80,7 @@ export const NavBar = () => {
 
                     {/* Right side actions */}
                     <div className="flex items-center gap-2">
+                        <LanguageSwitcher />
                         <ThemeToggle />
 
                         {user ? (
@@ -87,12 +91,12 @@ export const NavBar = () => {
                                     onClick={logOut}
                                     className="hidden md:flex items-center gap-2"
                                 >
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="rtl-flip">
                                         <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                                         <polyline points="16 17 21 12 16 7" />
                                         <line x1="21" x2="9" y1="12" y2="12" />
                                     </svg>
-                                    Logout
+                                    {t('nav.logout')}
                                 </Button>
 
                                 {/* Mobile menu button */}
@@ -101,7 +105,7 @@ export const NavBar = () => {
                                     size="icon"
                                     className="md:hidden"
                                     onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-                                    aria-label="Toggle menu"
+                                    aria-label={t('nav.toggleMenu')}
                                 >
                                     {mobileMenuOpen ? (
                                         <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -120,10 +124,10 @@ export const NavBar = () => {
                         ) : (
                             <div className="flex items-center gap-2">
                                 <NavLink to="/login">
-                                    <Button variant="ghost" size="sm">Login</Button>
+                                    <Button variant="ghost" size="sm">{t('nav.login')}</Button>
                                 </NavLink>
                                 <NavLink to="/signup">
-                                    <Button size="sm">Sign Up</Button>
+                                    <Button size="sm">{t('nav.signUp')}</Button>
                                 </NavLink>
                             </div>
                         )}
@@ -138,7 +142,7 @@ export const NavBar = () => {
                             className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                         >
-                            <span className="font-medium">Week</span>
+                            <span className="font-medium">{t('nav.week')}</span>
                             <PeriodSelector
                                 type='week'
                                 periods={weeks ?? []}
@@ -152,7 +156,7 @@ export const NavBar = () => {
                             className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                         >
-                            <span className="font-medium">Quarter</span>
+                            <span className="font-medium">{t('nav.quarter')}</span>
                             <PeriodSelector
                                 type="quarter"
                                 periods={quarters ?? []}
@@ -166,7 +170,7 @@ export const NavBar = () => {
                             className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors"
                             onClick={() => setMobileMenuOpen(false)}
                         >
-                            <span className="font-medium">Year</span>
+                            <span className="font-medium">{t('nav.year')}</span>
                             <PeriodSelector
                                 type="year"
                                 periods={years ?? []}
@@ -184,12 +188,12 @@ export const NavBar = () => {
                                 }}
                                 className="w-full justify-start"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ltr:mr-2 rtl:ml-2 rtl-flip">
                                     <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
                                     <polyline points="16 17 21 12 16 7" />
                                     <line x1="21" x2="9" y1="12" y2="12" />
                                 </svg>
-                                Logout
+                                {t('nav.logout')}
                             </Button>
                         </div>
                     </div>

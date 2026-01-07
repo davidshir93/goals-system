@@ -14,6 +14,7 @@ import { useAuth } from "@/context/AuthContext";
 import type { Category, Identity } from "@/types/GoalTypes";
 import { useAddCategories, useAddIdentities } from "@/data/queries";
 import { Badge } from "./ui/badge";
+import { useTranslation } from "react-i18next";
 
 type ItemsListFormProps = {
     type: "category" | "identity";
@@ -26,9 +27,11 @@ export default function ItemsListForm({
     currentItems,
     closeModal,
 }: ItemsListFormProps) {
+    const { t } = useTranslation()
+
     const ItemSchema = z.object({
-        name: z.string().trim().min(3, "Min 3 chars").max(30).default(""),
-        color: z.string().regex(/^#([0-9A-Fa-f]{6})$/, "Invalid hex color"),
+        name: z.string().trim().min(3, t('validation.minChars', { count: 3 })).max(30).default(""),
+        color: z.string().regex(/^#([0-9A-Fa-f]{6})$/, t('validation.invalidHexColor')),
     });
 
     const ItemsListSchema = z.object({
@@ -73,24 +76,25 @@ export default function ItemsListForm({
         }
     };
 
-    const typeLabel = type === "category" ? "Categories" : "Identities";
-    const typeSingular = type === "category" ? "Category" : "Identity";
+    const placeholder = type === "category" ? t('itemsList.categoryPlaceholder') : t('itemsList.identityPlaceholder');
+    const addButtonText = type === "category" ? t('itemsList.addCategory') : t('itemsList.addIdentity');
+    const saveButtonText = type === "category" ? t('itemsList.saveCategories') : t('itemsList.saveIdentities');
 
     return (
         <div className="space-y-6">
             <div>
-                <h2 className="text-xl font-bold mb-1">Edit {typeLabel}</h2>
+                <h2 className="text-xl font-bold mb-1">{type === "category" ? t('itemsList.editCategories') : t('itemsList.editIdentities')}</h2>
                 <p className="text-sm text-muted-foreground">
                     {type === "category"
-                        ? "Categories help organize your goals by area of life."
-                        : "Identities represent who you want to become."}
+                        ? t('itemsList.categoriesHelp')
+                        : t('itemsList.identitiesHelp')}
                 </p>
             </div>
 
             {/* Preview Section */}
             {watchedItems.length > 0 && (
                 <div className="p-3 bg-muted/50 rounded-lg">
-                    <p className="text-xs text-muted-foreground mb-2">Preview</p>
+                    <p className="text-xs text-muted-foreground mb-2">{t('common.preview')}</p>
                     <div className="flex flex-wrap gap-2">
                         {watchedItems.map((item, index) => (
                             <Badge
@@ -98,7 +102,9 @@ export default function ItemsListForm({
                                 style={{ backgroundColor: item.color }}
                                 className="text-white"
                             >
-                                {item.name || `${typeSingular} ${index + 1}`}
+                                {item.name || (type === "category"
+                                    ? t('itemsList.categoryNumber', { number: index + 1 })
+                                    : t('itemsList.identityNumber', { number: index + 1 }))}
                             </Badge>
                         ))}
                     </div>
@@ -137,7 +143,7 @@ export default function ItemsListForm({
                                     <FormItem className="flex-1">
                                         <FormControl>
                                             <Input
-                                                placeholder={`${typeSingular} name...`}
+                                                placeholder={placeholder}
                                                 className="border-0 bg-transparent focus-visible:ring-0 text-base font-medium"
                                                 {...nameField}
                                             />
@@ -169,19 +175,19 @@ export default function ItemsListForm({
                         className="w-full border-dashed"
                         onClick={() => append({ name: "", color: "#6366f1" })}
                     >
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ltr:mr-2 rtl:ml-2">
                             <path d="M12 5v14"/>
                             <path d="M5 12h14"/>
                         </svg>
-                        Add {typeSingular}
+                        {addButtonText}
                     </Button>
 
                     <div className="flex gap-2 pt-4 border-t">
                         <Button type="submit" className="flex-1">
-                            Save {typeLabel}
+                            {saveButtonText}
                         </Button>
                         <Button type="button" variant="outline" onClick={closeModal}>
-                            Cancel
+                            {t('common.cancel')}
                         </Button>
                     </div>
                 </form>

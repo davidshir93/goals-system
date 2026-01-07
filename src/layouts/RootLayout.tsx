@@ -4,8 +4,10 @@ import { useGoals } from "@/context/GoalsContext";
 import { useCategories, useIdentities, useQuarterlyGoals, useQuarters, useWeeklyGoals, useWeeks, useYearlyGoals, useYears } from "@/data/queries";
 import { useEffect } from "react";
 import { Outlet, ScrollRestoration } from "react-router"
+import { useTranslation } from "react-i18next"
 
 export function RootLayout() {
+    const { t } = useTranslation()
     const { loading: authLoading, user } = useAuth()
     const { selectedYear, setSelectedYear, selectedQuarter, setSelectedQuarter, selectedWeek, setSelectedWeek } = useGoals();
 
@@ -47,7 +49,14 @@ export function RootLayout() {
 
     const appLoading = authLoading || yearsLoading || quartersLoading || weeksLoading || weeklyGoalsLoading || quarterlyGoalsLoading || yearlyGoalsLoading || catLoading || idLoading;
 
-    if (appLoading) return <div className="loading-spinner" />
+    if (appLoading) return (
+        <div className="flex items-center justify-center min-h-screen">
+            <div className="text-center">
+                <div className="loading-spinner mx-auto mb-4" />
+                <p className="text-muted-foreground">{t('common.loading')}</p>
+            </div>
+        </div>
+    )
 
     const appError = yearsErr || quartersErr || weeksErr;
 
