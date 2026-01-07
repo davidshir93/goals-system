@@ -30,13 +30,18 @@ type Progress = {
   done: number;
 };
 
+export type PlanItem = {
+  obstacle: string;
+  action: string;
+};
+
 type BaseGoal = {
   id: ID;
   type: GoalType;
   wish: string;
-  outcome?: string; // required for year goals
-  obstacles?: string; // required for year goals
-  plan?: string; // required for year goals
+  outcome?: string[]; // required for year goals
+  obstacles?: string[]; // required for year goals
+  plan?: PlanItem[]; // required for year goals
   notes?: string;
   yearId: ID;
   // Frontend State Only
@@ -48,9 +53,9 @@ export type YearGoal = Omit<BaseGoal, "outcome" | "obstacles" | "plan"> & {
   type: "year";
   categoryId: ID;
   identityId: ID;
-  outcome: string;
-  obstacles: string;
-  plan: string;
+  outcome: string[];
+  obstacles: string[];
+  plan: PlanItem[];
   quarterProgress: Progress[] | [];
 };
 

@@ -10,7 +10,6 @@ import {
     FormMessage
 } from './ui/form'
 import { Input } from './ui/input'
-import { Textarea } from './ui/textarea'
 import { Button } from './ui/button'
 import { Id, IntFromInput } from '@/schemas/common'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select'
@@ -27,12 +26,17 @@ type GoalFormProps = {
     type: 'year' | 'quarter' | 'week'
 }
 
+const PlanItemSchema = z.object({
+    obstacle: z.string().trim(),
+    action: z.string().trim(),
+});
+
 const AllGoalsFormSchema = z.object({
     type: z.union([z.literal('year'), z.literal('quarter'), z.literal('week')]),
     wish: z.string().min(10, "The first step to achieving a goal is to write a wish!").max(120, "Max 120 chars"),
-    outcome: z.string().trim().optional().default(""),
-    obstacles: z.string().trim().optional().default(""),
-    plan: z.string().trim().optional().default(""),
+    outcome: z.array(z.string().trim()).optional().default([]),
+    obstacles: z.array(z.string().trim()).optional().default([]),
+    plan: z.array(PlanItemSchema).optional().default([]),
     notes: z.string().trim().max(2000).optional().default(""),
 })
 
@@ -41,9 +45,9 @@ const YearlyGoalFormSchema = z.object({
     categoryId: Id.min(1, "A yearly goal must include a category."),
     identityId: Id.min(1, "A yearly goal must include an identity."),
     // The following fields are only required in yearlyGoals
-    outcome: z.string().trim().min(10, "Min 10 chars").max(4000).default(""),
-    obstacles: z.string().trim().min(10, "Min 10 chars").max(4000).default(""),
-    plan: z.string().trim().min(10, "Min 10 chars").max(4000).default(""),
+    outcome: z.array(z.string().trim()).min(1, "Add at least one outcome"),
+    obstacles: z.array(z.string().trim()).min(1, "Add at least one obstacle"),
+    plan: z.array(PlanItemSchema).min(1, "Add a plan for at least one obstacle"),
 });
 
 const QuarterlyGoalFormSchema = z.object({
@@ -76,10 +80,10 @@ export default function GoalForm({ type }: GoalFormProps) {
 
     const defaultValues: GoalFormType =
         type === 'year'
-            ? { type: 'year', wish: '', outcome: '', obstacles: '', plan: '', categoryId: '', identityId: '', notes: '' }
+            ? { type: 'year', wish: '', outcome: [], obstacles: [], plan: [], categoryId: '', identityId: '', notes: '' }
             : type === 'quarter'
-                ? { type: 'quarter', wish: '', outcome: '', obstacles: '', plan: '', parentYearGoalId: '', notes: '' }
-                : { type: 'week', wish: '', outcome: '', obstacles: '', plan: '', parentQuarterGoalId: '', planned: 1, notes: '' };
+                ? { type: 'quarter', wish: '', outcome: [], obstacles: [], plan: [], parentYearGoalId: '', notes: '' }
+                : { type: 'week', wish: '', outcome: [], obstacles: [], plan: [], parentQuarterGoalId: '', planned: 1, notes: '' };
 
     const form = useForm<GoalFormType>({
         resolver: zodResolver(GoalFormSchema) as Resolver<GoalFormOutput>,
@@ -313,86 +317,242 @@ export default function GoalForm({ type }: GoalFormProps) {
                         key="wish"
                         control={form.control}
                         render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Wish</FormLabel>
+                            <FormItem className="space-y-3">
+                                <FormLabel className="text-lg font-semibold">Goal Title</FormLabel>
                                 <FormControl>
-                                    <Input placeholder={`What do you want to achieve this ${type}?`} className='text-lg' {...field} />
+                                    <Input
+                                        placeholder={`What do you want to achieve this ${type}?`}
+                                        className='text-xl font-bold h-14 px-4 border-2 border-primary/20 focus:border-primary transition-colors'
+                                        {...field}
+                                    />
                                 </FormControl>
                                 <FormMessage />
                             </FormItem>
                         )}
                     />
 
-                    {/* Outcome */}
-                    <FormField
-                        name="outcome"
-                        key="outcome"
-                        control={form.control}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Outcome</FormLabel>
-                                <FormControl>
-                                    <Textarea placeholder="What will be the result of achieving this wish?" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
+                    {/* WOOP Section */}
+                    <div className={`space-y-4 ${type === 'year' ? '' : 'opacity-80'}`}>
+                        {type === 'year' && (
+                            <div className="flex items-center gap-2 pt-2">
+                                <div className="h-px flex-1 bg-border"></div>
+                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Mental Contrasting</span>
+                                <div className="h-px flex-1 bg-border"></div>
+                            </div>
                         )}
-                    />
 
-                    {/* Obstacles */}
-                    <FormField
-                        name="obstacles"
-                        key="obstacles"
-                        control={form.control}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Obstacles</FormLabel>
-                                <FormControl>
-                                    <Textarea placeholder="What will be the obstacles you'll probably be facing trying to achieve that goal?" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
+                        {/* Outcome */}
+                        <FormField
+                            name="outcome"
+                            key="outcome"
+                            control={form.control}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className={type === 'year' ? 'font-semibold' : ''}>
+                                        Outcomes {type !== 'year' && <span className="text-muted-foreground font-normal">(optional)</span>}
+                                    </FormLabel>
+                                    <p className="text-xs text-muted-foreground mb-2">Visualize success: What will achieving this feel like? What changes?</p>
+                                    <div className="space-y-2">
+                                        {(field.value as string[])?.map((item, index) => (
+                                            <div key={index} className="flex gap-2">
+                                                <Input
+                                                    value={item}
+                                                    onChange={(e) => {
+                                                        const newItems = [...(field.value as string[])];
+                                                        newItems[index] = e.target.value;
+                                                        field.onChange(newItems);
+                                                    }}
+                                                    placeholder={`Outcome ${index + 1}`}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => {
+                                                        const newItems = (field.value as string[]).filter((_, i) => i !== index);
+                                                        field.onChange(newItems);
+                                                    }}
+                                                >
+                                                    X
+                                                </Button>
+                                            </div>
+                                        ))}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => field.onChange([...(field.value as string[] || []), ''])}
+                                        >
+                                            + Add Outcome
+                                        </Button>
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Obstacles */}
+                        <FormField
+                            name="obstacles"
+                            key="obstacles"
+                            control={form.control}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel className={type === 'year' ? 'font-semibold' : ''}>
+                                        Obstacles {type !== 'year' && <span className="text-muted-foreground font-normal">(optional)</span>}
+                                    </FormLabel>
+                                    <p className="text-xs text-muted-foreground mb-2">Be honest: What internal obstacles might hold you back?</p>
+                                    <div className="space-y-2">
+                                        {(field.value as string[])?.map((item, index) => (
+                                            <div key={index} className="flex gap-2">
+                                                <Input
+                                                    value={item}
+                                                    onChange={(e) => {
+                                                        const newItems = [...(field.value as string[])];
+                                                        newItems[index] = e.target.value;
+                                                        field.onChange(newItems);
+                                                    }}
+                                                    placeholder={`Obstacle ${index + 1}`}
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    onClick={() => {
+                                                        const newItems = (field.value as string[]).filter((_, i) => i !== index);
+                                                        field.onChange(newItems);
+                                                    }}
+                                                >
+                                                    X
+                                                </Button>
+                                            </div>
+                                        ))}
+                                        <Button
+                                            type="button"
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => field.onChange([...(field.value as string[] || []), ''])}
+                                        >
+                                            + Add Obstacle
+                                        </Button>
+                                    </div>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+
+                        {/* Plan - linked to obstacles */}
+                        {type === 'year' && (
+                            <FormField
+                                name="plan"
+                                key="plan"
+                                control={form.control}
+                                render={({ field }) => {
+                                    const obstacles = form.watch('obstacles') as string[];
+                                    const planItems = field.value as { obstacle: string; action: string }[];
+
+                                    // Sync plan items with obstacles
+                                    const syncedPlan = obstacles
+                                        .filter(o => o.trim() !== '')
+                                        .map(obstacle => {
+                                            const existing = planItems.find(p => p.obstacle === obstacle);
+                                            return existing || { obstacle, action: '' };
+                                        });
+
+                                    // Update if changed
+                                    if (JSON.stringify(syncedPlan) !== JSON.stringify(planItems) && obstacles.some(o => o.trim() !== '')) {
+                                        field.onChange(syncedPlan);
+                                    }
+
+                                    return (
+                                        <FormItem>
+                                            <FormLabel className="font-semibold">Implementation Intentions</FormLabel>
+                                            <p className="text-xs text-muted-foreground mb-3">
+                                                For each obstacle, define your response using "If... then..." planning.
+                                            </p>
+
+                                            {syncedPlan.length === 0 ? (
+                                                <div className="p-4 rounded-lg border border-dashed text-center text-sm text-muted-foreground">
+                                                    Add obstacles above to create your implementation plan
+                                                </div>
+                                            ) : (
+                                                <div className="space-y-3">
+                                                    {syncedPlan.map((item, index) => (
+                                                        <div key={index} className="p-4 rounded-lg border bg-muted/30 space-y-2">
+                                                            <div className="flex items-start gap-2">
+                                                                <span className="text-sm font-medium text-orange-600 shrink-0 pt-0.5">If</span>
+                                                                <p className="text-sm italic text-muted-foreground flex-1">
+                                                                    "{item.obstacle}"
+                                                                </p>
+                                                            </div>
+                                                            <div className="flex items-start gap-2">
+                                                                <span className="text-sm font-medium text-green-600 shrink-0 pt-2">Then I will</span>
+                                                                <Input
+                                                                    value={item.action}
+                                                                    onChange={(e) => {
+                                                                        const newPlan = [...syncedPlan];
+                                                                        newPlan[index] = { ...item, action: e.target.value };
+                                                                        field.onChange(newPlan);
+                                                                    }}
+                                                                    placeholder="What specific action will you take?"
+                                                                    className="flex-1"
+                                                                />
+                                                            </div>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+                                            <FormMessage />
+                                        </FormItem>
+                                    );
+                                }}
+                            />
                         )}
-                    />
+                    </div>
 
-                    {/* Plan */}
-                    <FormField
-                        name="plan"
-                        key="plan"
-                        control={form.control}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>Plan</FormLabel>
-                                <FormControl>
-                                    <Textarea placeholder="What will you do to overcome those obstacles?" {...field} />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
-
-                    {/* Planned */}
+                    {/* Planned Effort */}
                     {type === 'week' &&
                         <FormField
                             name="planned"
                             key="planned"
                             control={form.control}
                             render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>Planned</FormLabel>
-                                    <FormControl>
-                                        <Input type='number' {...field} />
-                                    </FormControl>
+                                <FormItem className="space-y-4 p-5 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-2xl border-2 border-primary/25 shadow-sm">
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-2xl">⏱️</span>
+                                        <FormLabel className="text-xl font-bold text-primary m-0">Planned Effort</FormLabel>
+                                    </div>
+                                    <div className="bg-background/60 rounded-lg p-3 border border-primary/10">
+                                        <p className="text-sm text-muted-foreground leading-relaxed">
+                                            <span className="font-medium text-foreground">Effort matters more than outcomes.</span>{' '}
+                                            How many time slots (hours/sessions) will you dedicate to this goal?
+                                        </p>
+                                    </div>
+                                    <div className="flex items-center justify-center gap-3">
+                                        <FormControl>
+                                            <Input
+                                                type='number'
+                                                min={1}
+                                                className="text-4xl font-extrabold h-20 w-32 text-center border-2 border-primary/30 focus:border-primary bg-background rounded-xl shadow-inner"
+                                                {...field}
+                                            />
+                                        </FormControl>
+                                        <span className="text-lg text-muted-foreground font-medium">sessions</span>
+                                    </div>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
                     }
 
-                    <Button type='submit'>Submit</Button>
-                    <Button type="button" variant="outline" onClick={() => navigate("..")}>
-                        Cancel
-                    </Button>
+                    <div className="flex gap-3 pt-4">
+                        <Button type='submit' className="flex-1 h-12 text-lg font-semibold">
+                            Create Goal
+                        </Button>
+                        <Button type="button" variant="outline" className="h-12 px-6" onClick={() => navigate("..")}>
+                            Cancel
+                        </Button>
+                    </div>
                 </form>
             </Form>
         </>
