@@ -505,6 +505,9 @@ export function UseEditWeeklyGoal() {
       qc.invalidateQueries({
         queryKey: qk.quarterlyGoals(uid, yearId, quarterId),
       });
+      qc.invalidateQueries({
+        queryKey: qk.yearlyGoals(uid, yearId),
+      });
     },
 
     onMutate: async ({

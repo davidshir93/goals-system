@@ -2,14 +2,14 @@ import GoalCard from "@/components/GoalCard";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext"
-import { useCategories, useIdentities, useQuarterlyGoals, useYearlyGoals } from "@/data/queries";
+import { useCategories, useIdentities, useYearlyGoals } from "@/data/queries";
 import { enrichGoal } from "@/utils/goalsUtils";
 import { useNavigate } from "react-router-dom";
 
 export default function Year() {
     const { user } = useAuth()
 
-    const { selectedYear, selectedQuarter } = useGoals();
+    const { selectedYear } = useGoals();
 
     const navigate = useNavigate();
 
@@ -19,10 +19,9 @@ export default function Year() {
     const { data: categories, isLoading: catLoading, error: catErr } = useCategories(user?.uid || "");
     const { data: identities, isLoading: idLoading, error: idErr } = useIdentities(user?.uid || "");
     const { data: yearlyGoals, isLoading: yearlyGoalsLoading, error: yearlyGoalsErr } = useYearlyGoals(user?.uid || "", selectedYear);
-    const { data: quarterlyGoals, isLoading: quarterlyGoalsLoading, error: quarterlyGoalsErr } = useQuarterlyGoals(user?.uid || "", selectedYear, selectedQuarter);
 
-    const isLoading = quarterlyGoalsLoading || yearlyGoalsLoading || catLoading || idLoading;
-    const hasError = quarterlyGoalsErr || yearlyGoalsErr || catErr || idErr;
+    const isLoading = yearlyGoalsLoading || catLoading || idLoading;
+    const hasError = yearlyGoalsErr || catErr || idErr;
 
     if (isLoading) {
         return (
@@ -47,7 +46,7 @@ export default function Year() {
             <ul>
                 {yearlyGoals?.map(goal => <GoalCard
                     key={goal.id}
-                    goal={enrichGoal(goal, quarterlyGoals!, yearlyGoals!, categories!, identities!)}
+                    goal={enrichGoal(goal, [], yearlyGoals!, categories!, identities!)}
                 />)}
                 <li><Button onClick={newClick}>Add yearly goal</Button></li>
             </ul>

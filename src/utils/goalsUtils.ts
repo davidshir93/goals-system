@@ -74,6 +74,21 @@ export function enrichGoal(
 
   if (goal.type === "year") {
     yearlyGoal = goal;
+
+    if (goal.quarterProgress && typeof goal.quarterProgress === "object") {
+      const totalPlanned = Object.values(goal.quarterProgress).reduce(
+        (acc, quarter) => acc + quarter.planned,
+        0
+      );
+
+      const totalDone = Object.values(goal.quarterProgress).reduce(
+        (acc, quarter) => acc + quarter.done,
+        0
+      );
+
+      enrichedGoal.doneAveragePercent =
+        totalPlanned > 0 ? (totalDone / totalPlanned) * 100 : 0;
+    }
   }
 
   enrichedGoal.category =

@@ -75,7 +75,7 @@ export default function GoalCard({
           </>
         )}
 
-        {goal.type === "quarter" &&
+        {(goal.type === "quarter" || goal.type === "year") &&
           !goal.emptyProgress &&
           goal.doneAveragePercent !== undefined && (
             <>

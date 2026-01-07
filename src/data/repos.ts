@@ -342,10 +342,50 @@ export const WeeklyGoals = {
     );
 
     // Save/update this weeklyGoal's progress under a map
+    const newPlanned = updatedFields.planned ?? currPlanned;
+    const newDone = updatedFields.done ?? currDone;
+
     batch.update(quarterlyGoalRef, {
       [`weeklyProgress.${goalId}`]: {
-        planned: updatedFields.planned || currPlanned,
-        done: updatedFields.done || currDone,
+        planned: newPlanned,
+        done: newDone,
+      },
+    });
+
+    // Get the quarterly goal to find parent yearly goal and current weekly progress
+    const quarterDocSnap = await getDoc(quarterlyGoalRef);
+    const quarterGoal = mapDoc<QuarterGoal>(quarterDocSnap);
+
+    // Calculate aggregated totals for this quarterly goal
+    const weeklyProgress = quarterGoal.weeklyProgress || {};
+    const progressValues = Object.entries(weeklyProgress).map(([id, prog]) => {
+      // Use new values for the goal being edited
+      if (id === goalId) {
+        return { planned: newPlanned, done: newDone };
+      }
+      return prog;
+    });
+
+    // Add new entry if this goal wasn't in weeklyProgress yet
+    const goalExists = Object.keys(weeklyProgress).includes(goalId);
+    if (!goalExists) {
+      progressValues.push({ planned: newPlanned, done: newDone });
+    }
+
+    const totalPlanned = progressValues.reduce((acc, p) => acc + p.planned, 0);
+    const totalDone = progressValues.reduce((acc, p) => acc + p.done, 0);
+
+    // Update parent yearly goal's quarterProgress
+    const yearlyGoalRef = doc(
+      db,
+      paths.yearlyGoals(uid, yearId),
+      quarterGoal.parentYearGoalId
+    );
+
+    batch.update(yearlyGoalRef, {
+      [`quarterProgress.${parentQuarterGoalId}`]: {
+        planned: totalPlanned,
+        done: totalDone,
       },
     });
 
