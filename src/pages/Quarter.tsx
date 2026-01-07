@@ -44,7 +44,14 @@ export default function Quarter() {
     );
   }, [quarterlyGoals, yearlyGoals, categories, identities]);
 
-  if (quarterlyGoalsErr || yearlyGoalsErr || catErr || idErr) return "Waittttt";
+  if (quarterlyGoalsErr || yearlyGoalsErr || catErr || idErr) {
+    return (
+      <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+        <p className="text-red-700 font-medium">Failed to load quarterly goals</p>
+        <p className="text-red-600 text-sm mt-1">Please try refreshing the page.</p>
+      </div>
+    );
+  }
 
   return (
     <>

@@ -21,7 +21,26 @@ export default function Year() {
     const { data: yearlyGoals, isLoading: yearlyGoalsLoading, error: yearlyGoalsErr } = useYearlyGoals(user?.uid || "", selectedYear);
     const { data: quarterlyGoals, isLoading: quarterlyGoalsLoading, error: quarterlyGoalsErr } = useQuarterlyGoals(user?.uid || "", selectedYear, selectedQuarter);
 
-    if (quarterlyGoalsLoading || quarterlyGoalsErr || yearlyGoalsLoading || yearlyGoalsErr || catLoading || catErr || idLoading || idErr) return "Waittttt";
+    const isLoading = quarterlyGoalsLoading || yearlyGoalsLoading || catLoading || idLoading;
+    const hasError = quarterlyGoalsErr || yearlyGoalsErr || catErr || idErr;
+
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                <span className="ml-3 text-gray-600">Loading goals...</span>
+            </div>
+        );
+    }
+
+    if (hasError) {
+        return (
+            <div className="p-4 rounded-lg bg-red-50 border border-red-200">
+                <p className="text-red-700 font-medium">Failed to load yearly goals</p>
+                <p className="text-red-600 text-sm mt-1">Please try refreshing the page.</p>
+            </div>
+        );
+    }
 
     return (
         <>
