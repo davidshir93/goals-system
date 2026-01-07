@@ -48,7 +48,7 @@ export default function PeriodSelector({ type, periods, selectedPeriod, onChange
             value={selectedPeriod}
             onValueChange={handleValueChange}
         >
-            <SelectTrigger className={`w-[${width}px]`}>
+            <SelectTrigger className="h-8 text-xs" style={{ width: `${width}px` }}>
                 <SelectValue />
             </SelectTrigger>
             <SelectContent>

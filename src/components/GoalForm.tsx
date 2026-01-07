@@ -263,9 +263,18 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
     }
 
     return (
-        <>
+        <div className="max-w-2xl mx-auto">
+            <div className="mb-6">
+                <h1 className="text-2xl font-bold tracking-tight">
+                    {isEditMode ? 'Edit Goal' : `New ${type.charAt(0).toUpperCase() + type.slice(1)} Goal`}
+                </h1>
+                <p className="text-muted-foreground text-sm mt-1">
+                    {isEditMode ? 'Update your goal details below' : 'Create a new goal to track your progress'}
+                </p>
+            </div>
+
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit, (err) => console.error('Validation errors:', err))} className='mt-4 grid grid-cols-1 gap-4'>
+                <form onSubmit={form.handleSubmit(handleSubmit, (err) => console.error('Validation errors:', err))} className='grid grid-cols-1 gap-6'>
 
                     {/* Category */}
                     {type === 'year' && categories &&
@@ -650,17 +659,17 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         />
                     }
 
-                    <div className="flex gap-3 pt-4">
-                        <Button type='submit' className="flex-1 h-12 text-lg font-semibold">
+                    <div className="flex gap-3 pt-6 border-t">
+                        <Button type='submit' className="flex-1 h-11 font-semibold">
                             {isEditMode ? 'Save Changes' : 'Create Goal'}
                         </Button>
-                        <Button type="button" variant="outline" className="h-12 px-6" onClick={() => navigate("..")}>
+                        <Button type="button" variant="outline" className="h-11 px-6" onClick={() => navigate("..")}>
                             Cancel
                         </Button>
                     </div>
                 </form>
             </Form>
-        </>
+        </div>
 
     )
 }

@@ -20,9 +20,9 @@ const Slider = React.forwardRef<
     )}
     {...props}
   >
-    <SliderPrimitive.Track className="relative h-1.5 w-full grow overflow-hidden rounded-full bg-primary/20 h-[50px] mt-0  flex items-center justify-center">
-      <SliderPrimitive.Range className="absolute h-full bg-primary" style={{ backgroundColor: props.doneColor }} />
-      <p className='text-xl font-extrabold text-center z-5'>{props.value || props.defaultValue}{!props.isSummary ? ` / ${props.max}` : '%'} {Number(props.value || props.defaultValue) >= Number(props.max || 0) && ' 🏆'}</p>
+    <SliderPrimitive.Track className="relative h-10 w-full grow overflow-hidden rounded-full bg-muted flex items-center justify-center">
+      <SliderPrimitive.Range className="absolute h-full bg-primary/80" style={{ backgroundColor: props.doneColor }} />
+      <p className='text-xl font-bold text-center z-5'>{props.value || props.defaultValue}{!props.isSummary ? ` / ${props.max}` : '%'}{Number(props.value || props.defaultValue) >= Number(props.max || 0) && ' 🏆'}</p>
     </SliderPrimitive.Track>
     <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 opacity-0" />
   </SliderPrimitive.Root>

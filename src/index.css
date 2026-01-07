@@ -118,7 +118,43 @@
     @apply border-border outline-ring/50;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased;
+  }
+}
+
+/* Smooth theme transitions */
+html {
+  transition: background-color 0.2s ease, color 0.2s ease;
+}
+
+html.dark {
+  color-scheme: dark;
+}
+
+/* Better focus states */
+*:focus-visible {
+  @apply outline-none ring-2 ring-ring ring-offset-2 ring-offset-background;
+}
+
+/* Custom scrollbar */
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+    scrollbar-color: var(--border) transparent;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-thumb {
+    background-color: hsl(var(--border));
+    border-radius: 3px;
+  }
+
+  .scrollbar-thin::-webkit-scrollbar-track {
+    background: transparent;
   }
 }
 
@@ -129,33 +165,40 @@
 .loading-spinner::after {
   content: "";
   z-index: 999;
-  width: 200px;
-  height: 200px;
+  width: 120px;
+  height: 120px;
   position: fixed;
   top: 50%;
   left: 50%;
   translate: -50% -50%;
   border-radius: 50%;
-  border: 12px solid transparent;
-  border-bottom-color: var(--primary);
+  border: 4px solid transparent;
+  border-bottom-color: oklch(0.205 0 0);
   animation: spin infinite 1.25s ease-in;
-  mix-blend-mode: multiply;
 }
 
 .loading-spinner::before {
   content: "";
   z-index: 999;
-  width: 200px;
-  height: 200px;
+  width: 120px;
+  height: 120px;
   position: fixed;
   top: 50%;
   left: 50%;
   translate: -50% -50%;
   border-radius: 50%;
-  border: 12px solid transparent;
-  border-top-color: var(--primary);
+  border: 4px solid transparent;
+  border-top-color: oklch(0.556 0 0);
   animation: spin infinite 2s ease-in-out;
-  mix-blend-mode: multiply;
+}
+
+/* Dark mode spinner */
+.dark .loading-spinner::after {
+  border-bottom-color: oklch(0.922 0 0);
+}
+
+.dark .loading-spinner::before {
+  border-top-color: oklch(0.708 0 0);
 }
 
 @keyframes spin {

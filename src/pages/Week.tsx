@@ -1,7 +1,7 @@
 import GoalCard from "@/components/GoalCard";
+import { GoalGrid } from "@/components/GoalGrid";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Label } from "@/components/ui/label";
 import { Slider } from "@/components/ui/slider";
 import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext";
@@ -10,8 +10,11 @@ import {
   UseEditWeeklyGoal,
   useIdentities,
   useQuarterlyGoals,
+  useQuarters,
   useWeeklyGoals,
+  useWeeks,
   useYearlyGoals,
+  useYears,
 } from "@/data/queries";
 import type { ID } from "@/types/GoalTypes";
 import { enrichGoal } from "@/utils/goalsUtils";
@@ -49,6 +52,15 @@ export default function Week() {
     selectedWeek
   );
 
+  // Get period names for context
+  const { data: years } = useYears(user?.uid || "");
+  const { data: quarters } = useQuarters(user?.uid || "", selectedYear);
+  const { data: weeks } = useWeeks(user?.uid || "", selectedYear, selectedQuarter);
+
+  const currentYear = years?.find(y => y.id === selectedYear);
+  const currentQuarter = quarters?.find(q => q.id === selectedQuarter);
+  const currentWeek = weeks?.find(w => w.id === selectedWeek);
+
   const weeklyAverage = useMemo(() => {
     return (
       !weeklyGoals || weeklyGoals.length === 0
@@ -77,66 +89,99 @@ export default function Week() {
 
   if (weeklyGoalsErr || quarterlyGoalsErr || yearlyGoalsErr || catErr || idErr) {
     return (
-      <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-        <p className="text-red-700 font-medium">Failed to load weekly goals</p>
-        <p className="text-red-600 text-sm mt-1">Please try refreshing the page.</p>
+      <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+        <p className="text-destructive font-medium">Failed to load weekly goals</p>
+        <p className="text-destructive/80 text-sm mt-1">Please try refreshing the page.</p>
       </div>
     );
   }
 
   return (
-    <>
-      <div className="flex gap-4 p-4">
-        <input
-          type="checkbox"
-          className="text-sm"
-          checked={showParentsGoals}
-          onChange={() => setShowParentGoals((prev) => !prev)}
-        />
-        <Label>Show Parents Goals</Label>
+    <div className="space-y-6">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <p className="text-sm text-muted-foreground">
+            {currentYear?.name} · {currentQuarter?.name}
+          </p>
+          <h1 className="text-2xl font-bold tracking-tight">Week {currentWeek?.name || ''}</h1>
+        </div>
+        <div className="flex items-center gap-4">
+          <label className="flex items-center gap-2 text-sm cursor-pointer">
+            <input
+              type="checkbox"
+              className="rounded border-input h-4 w-4"
+              checked={showParentsGoals}
+              onChange={() => setShowParentGoals((prev) => !prev)}
+            />
+            <span className="text-muted-foreground">Show parent goals</span>
+          </label>
+          <Button onClick={newClick}>
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
+            </svg>
+            Add Goal
+          </Button>
+        </div>
       </div>
-      <ul>
-        {weeklyGoals?.map((goal) => (
-          <GoalCard
-            key={goal.id}
-            goal={enrichGoal(
-              goal,
-              quarterlyGoals!,
-              yearlyGoals!,
-              categories!,
-              identities!
-            )}
-            onEditWeeklyProgress={onEditWeeklyProgress}
-            showParentGoals={showParentsGoals}
-          />
-        ))}
-        {weeklyAverage !== "0" && (
-          <div>
-            <Card className="mb-4">
-              <CardHeader>
-                <CardTitle className="text-3xl font-extrabold">
-                  Weekly Summary
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <Slider
-                  value={[Number(weeklyAverage)]}
-                  max={100}
-                  step={1}
-                  className="mt-2 cursor-not-allowed"
-                  doneColor="lightgreen"
-                  disabled
-                  isSummary
-                />
-              </CardContent>
-            </Card>
-          </div>
-        )}
 
-        <li>
-          <Button onClick={newClick}>Add weekly goal</Button>
-        </li>
-      </ul>
-    </>
+      {/* Goals Grid */}
+      {weeklyGoals && weeklyGoals.length > 0 ? (
+        <GoalGrid>
+          {weeklyGoals.map((goal) => (
+            <GoalCard
+              key={goal.id}
+              goal={enrichGoal(
+                goal,
+                quarterlyGoals!,
+                yearlyGoals!,
+                categories!,
+                identities!
+              )}
+              onEditWeeklyProgress={onEditWeeklyProgress}
+              showParentGoals={showParentsGoals}
+            />
+          ))}
+        </GoalGrid>
+      ) : (
+        <div className="text-center py-12">
+          <div className="rounded-full bg-muted p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+              <path d="M5 12h14" />
+              <path d="M12 5v14" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold mb-2">No weekly goals yet</h3>
+          <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
+            Start by adding your first weekly goal to track your progress.
+          </p>
+          <Button onClick={newClick}>Add your first goal</Button>
+        </div>
+      )}
+
+      {/* Summary Card */}
+      {weeklyAverage !== "0" && (
+        <Card>
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl font-semibold">Weekly Summary</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <Slider
+              value={[Number(weeklyAverage)]}
+              max={100}
+              step={1}
+              className="cursor-not-allowed"
+              doneColor="lightgreen"
+              disabled
+              isSummary
+            />
+            <p className="text-center text-sm text-muted-foreground mt-3">
+              {weeklyAverage}% complete
+            </p>
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }

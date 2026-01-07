@@ -1,8 +1,9 @@
 import GoalCard from "@/components/GoalCard";
+import { GoalGrid } from "@/components/GoalGrid";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext"
-import { useCategories, useIdentities, useYearlyGoals } from "@/data/queries";
+import { useCategories, useIdentities, useYearlyGoals, useYears } from "@/data/queries";
 import { enrichGoal } from "@/utils/goalsUtils";
 import { useNavigate } from "react-router-dom";
 
@@ -19,6 +20,9 @@ export default function Year() {
     const { data: categories, isLoading: catLoading, error: catErr } = useCategories(user?.uid || "");
     const { data: identities, isLoading: idLoading, error: idErr } = useIdentities(user?.uid || "");
     const { data: yearlyGoals, isLoading: yearlyGoalsLoading, error: yearlyGoalsErr } = useYearlyGoals(user?.uid || "", selectedYear);
+    const { data: years } = useYears(user?.uid || "");
+
+    const currentYear = years?.find(y => y.id === selectedYear);
 
     const isLoading = yearlyGoalsLoading || catLoading || idLoading;
     const hasError = yearlyGoalsErr || catErr || idErr;
@@ -26,32 +30,62 @@ export default function Year() {
     if (isLoading) {
         return (
             <div className="flex items-center justify-center p-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
-                <span className="ml-3 text-gray-600">Loading goals...</span>
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+                <span className="ml-3 text-muted-foreground">Loading goals...</span>
             </div>
         );
     }
 
     if (hasError) {
         return (
-            <div className="p-4 rounded-lg bg-red-50 border border-red-200">
-                <p className="text-red-700 font-medium">Failed to load yearly goals</p>
-                <p className="text-red-600 text-sm mt-1">Please try refreshing the page.</p>
+            <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
+                <p className="text-destructive font-medium">Failed to load yearly goals</p>
+                <p className="text-destructive/80 text-sm mt-1">Please try refreshing the page.</p>
             </div>
         );
     }
 
     return (
-        <>
-            <ul>
-                {yearlyGoals?.map(goal => <GoalCard
-                    key={goal.id}
-                    goal={enrichGoal(goal, [], yearlyGoals!, categories!, identities!)}
-                />)}
-                <li><Button onClick={newClick}>Add yearly goal</Button></li>
-            </ul>
+        <div className="space-y-6">
+            {/* Page Header */}
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                <div>
+                    <h1 className="text-2xl font-bold tracking-tight">Year {currentYear?.name || ''}</h1>
+                </div>
+                <Button onClick={newClick}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="mr-2">
+                        <path d="M5 12h14" />
+                        <path d="M12 5v14" />
+                    </svg>
+                    Add Goal
+                </Button>
+            </div>
 
-        </>
-
+            {/* Goals Grid */}
+            {yearlyGoals && yearlyGoals.length > 0 ? (
+                <GoalGrid>
+                    {yearlyGoals.map(goal => (
+                        <GoalCard
+                            key={goal.id}
+                            goal={enrichGoal(goal, [], yearlyGoals!, categories!, identities!)}
+                        />
+                    ))}
+                </GoalGrid>
+            ) : (
+                <div className="text-center py-12">
+                    <div className="rounded-full bg-muted p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
+                            <path d="M5 12h14" />
+                            <path d="M12 5v14" />
+                        </svg>
+                    </div>
+                    <h3 className="text-lg font-semibold mb-2">No yearly goals yet</h3>
+                    <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
+                        Start by setting your yearly goals to define your long-term vision.
+                    </p>
+                    <Button onClick={newClick}>Add your first goal</Button>
+                </div>
+            )}
+        </div>
     )
 }
