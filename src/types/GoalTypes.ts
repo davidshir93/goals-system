@@ -114,6 +114,21 @@ export type EditWeeklyGoalPayload = {
   updatedFields: Partial<WeekGoal>;
 };
 
+export type EditYearlyGoalPayload = {
+  uid: ID;
+  yearId: ID;
+  goalId: ID;
+  updatedFields: Partial<YearGoal>;
+};
+
+export type EditQuarterlyGoalPayload = {
+  uid: ID;
+  yearId: ID;
+  quarterId: ID;
+  goalId: ID;
+  updatedFields: Partial<QuarterGoal>;
+};
+
 export type Period = {
   id: ID;
   name: string;

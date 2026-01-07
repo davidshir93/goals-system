@@ -16,7 +16,9 @@ import {
 } from "./repos";
 import type {
   Category,
+  EditQuarterlyGoalPayload,
   EditWeeklyGoalPayload,
+  EditYearlyGoalPayload,
   ID,
   Identity,
   NewCategoriesPayload,
@@ -214,6 +216,52 @@ export function useAddYearlyGoal() {
   });
 }
 
+export function useEditYearlyGoal() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      uid,
+      yearId,
+      goalId,
+      updatedFields,
+    }: EditYearlyGoalPayload) =>
+      YearlyGoals.editYearlyGoal(uid, yearId, goalId, updatedFields),
+
+    onSuccess: ({ uid, yearId }) => {
+      qc.invalidateQueries({ queryKey: qk.yearlyGoals(uid, yearId) });
+    },
+
+    onMutate: async ({
+      uid,
+      yearId,
+      goalId,
+      updatedFields,
+    }: EditYearlyGoalPayload) => {
+      await qc.cancelQueries({ queryKey: qk.yearlyGoals(uid, yearId) });
+
+      const prevYearlyGoals: YearGoal[] =
+        qc.getQueryData(qk.yearlyGoals(uid, yearId)) || [];
+
+      qc.setQueryData(
+        qk.yearlyGoals(uid, yearId),
+        (prevYearlyGoals: YearGoal[]) => {
+          return prevYearlyGoals.map((goal) =>
+            goal.id === goalId ? { ...goal, ...updatedFields } : goal
+          );
+        }
+      );
+
+      return { prevYearlyGoals };
+    },
+
+    onError(error, { uid, yearId }, context) {
+      qc.setQueryData(qk.yearlyGoals(uid, yearId), context?.prevYearlyGoals);
+      console.log(error);
+    },
+  });
+}
+
 export function useQuarters(uid: ID, yearId: ID): UseQueryResult<Period[]> {
   const enabled = Boolean(uid) && Boolean(yearId);
 
@@ -318,6 +366,67 @@ export function useAddQuarterlyGoal() {
         qk.quarterlyGoals(uid, yearId, quarterId),
         (prevQuarterlyGoals: QuarterGoal[]) => {
           return [...prevQuarterlyGoals, { ...quarterGoalData }];
+        }
+      );
+
+      return { prevQuarterlyGoals };
+    },
+
+    onError(error, { uid, yearId, quarterId }, context) {
+      qc.setQueryData(
+        qk.quarterlyGoals(uid, yearId, quarterId),
+        context?.prevQuarterlyGoals
+      );
+      console.log(error);
+    },
+  });
+}
+
+export function useEditQuarterlyGoal() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      uid,
+      yearId,
+      quarterId,
+      goalId,
+      updatedFields,
+    }: EditQuarterlyGoalPayload) =>
+      QuarterlyGoals.editQuarterlyGoal(
+        uid,
+        yearId,
+        quarterId,
+        goalId,
+        updatedFields
+      ),
+
+    onSuccess: ({ uid, yearId, quarterId }) => {
+      qc.invalidateQueries({
+        queryKey: qk.quarterlyGoals(uid, yearId, quarterId),
+      });
+    },
+
+    onMutate: async ({
+      uid,
+      yearId,
+      quarterId,
+      goalId,
+      updatedFields,
+    }: EditQuarterlyGoalPayload) => {
+      await qc.cancelQueries({
+        queryKey: qk.quarterlyGoals(uid, yearId, quarterId),
+      });
+
+      const prevQuarterlyGoals: QuarterGoal[] =
+        qc.getQueryData(qk.quarterlyGoals(uid, yearId, quarterId)) || [];
+
+      qc.setQueryData(
+        qk.quarterlyGoals(uid, yearId, quarterId),
+        (prevQuarterlyGoals: QuarterGoal[]) => {
+          return prevQuarterlyGoals.map((goal) =>
+            goal.id === goalId ? { ...goal, ...updatedFields } : goal
+          );
         }
       );
 

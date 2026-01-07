@@ -1,9 +1,11 @@
 import { useState } from "react";
+import { Link } from "react-router-dom";
 import type { EnrichedGoalType, ID, PlanItem } from "@/types/GoalTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Slider } from "./ui/slider";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
+import { Button } from "./ui/button";
 
 type GoalCardProps = {
   goal: EnrichedGoalType;
@@ -30,28 +32,40 @@ export default function GoalCard({
     return Array.isArray(plan) && plan.length > 0 && typeof plan[0] === 'object' && 'obstacle' in plan[0];
   };
 
+  const editPath = `/${goal.type}/edit/${goal.id}`;
+
   return (
     <Card className="mb-4">
       <CardHeader className="pb-3">
-        <div className="flex gap-2 flex-wrap">
-          {goal.category && (
-            <Badge
-              variant="default"
-              className="text-xs"
-              style={{ backgroundColor: goal.category.color }}
-            >
-              {goal.category.name}
-            </Badge>
-          )}
-          {goal.identity && (
-            <Badge
-              variant="default"
-              className="text-xs"
-              style={{ backgroundColor: goal.identity.color }}
-            >
-              {goal.identity.name}
-            </Badge>
-          )}
+        <div className="flex justify-between items-start">
+          <div className="flex gap-2 flex-wrap">
+            {goal.category && (
+              <Badge
+                variant="default"
+                className="text-xs"
+                style={{ backgroundColor: goal.category.color }}
+              >
+                {goal.category.name}
+              </Badge>
+            )}
+            {goal.identity && (
+              <Badge
+                variant="default"
+                className="text-xs"
+                style={{ backgroundColor: goal.identity.color }}
+              >
+                {goal.identity.name}
+              </Badge>
+            )}
+          </div>
+          <Button variant="ghost" size="sm" asChild className="text-muted-foreground hover:text-foreground -mt-1 -mr-2">
+            <Link to={editPath}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                <path d="m15 5 4 4"/>
+              </svg>
+            </Link>
+          </Button>
         </div>
 
         <CardTitle className="text-2xl font-bold leading-tight">{goal.wish}</CardTitle>

@@ -13,17 +13,19 @@ import { Input } from './ui/input'
 import { Button } from './ui/button'
 import { Id, IntFromInput } from '@/schemas/common'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { useAddQuarterlyGoal, useAddWeeklyGoal, useAddYearlyGoal, useCategories, useIdentities, useQuarterlyGoals, useYearlyGoals } from '@/data/queries'
+import { useAddQuarterlyGoal, useAddWeeklyGoal, useAddYearlyGoal, useEditYearlyGoal, useEditQuarterlyGoal, UseEditWeeklyGoal, useCategories, useIdentities, useQuarterlyGoals, useYearlyGoals } from '@/data/queries'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { useGoals } from '@/context/GoalsContext'
-import type { ID } from '@/types/GoalTypes'
+import type { ID, Goal } from '@/types/GoalTypes'
 import { Modal } from './Modal'
 import ItemsListForm from './ItemsListForm'
 import { useState } from 'react'
 
 type GoalFormProps = {
     type: 'year' | 'quarter' | 'week'
+    goalId?: ID
+    existingGoal?: Goal
 }
 
 const PlanItemSchema = z.object({
@@ -72,22 +74,65 @@ export const GoalFormSchema = AllGoalsFormSchema.and(perTypeSchema)
 export type GoalFormType = z.infer<typeof GoalFormSchema>;
 type GoalFormOutput = z.output<typeof GoalFormSchema>;
 
-export default function GoalForm({ type }: GoalFormProps) {
+export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) {
 
     const [editCategoriesModalOpen, setEditCategoriesModalOpen] = useState(false)
     const [editIdentitiesModalOpen, setEditIdentitiesModalOpen] = useState(false)
 
+    const isEditMode = Boolean(goalId && existingGoal)
 
-    const defaultValues: GoalFormType =
-        type === 'year'
-            ? { type: 'year', wish: '', outcome: [], obstacles: [], plan: [], categoryId: '', identityId: '', notes: '' }
-            : type === 'quarter'
-                ? { type: 'quarter', wish: '', outcome: [], obstacles: [], plan: [], parentYearGoalId: '', notes: '' }
-                : { type: 'week', wish: '', outcome: [], obstacles: [], plan: [], parentQuarterGoalId: '', planned: 1, notes: '' };
+    const getDefaultValues = (): GoalFormType => {
+        if (existingGoal) {
+            if (existingGoal.type === 'year') {
+                return {
+                    type: 'year',
+                    wish: existingGoal.wish,
+                    outcome: existingGoal.outcome || [],
+                    obstacles: existingGoal.obstacles || [],
+                    plan: existingGoal.plan || [],
+                    categoryId: existingGoal.categoryId,
+                    identityId: existingGoal.identityId,
+                    notes: existingGoal.notes || ''
+                }
+            }
+            if (existingGoal.type === 'quarter') {
+                return {
+                    type: 'quarter',
+                    wish: existingGoal.wish,
+                    outcome: existingGoal.outcome || [],
+                    obstacles: existingGoal.obstacles || [],
+                    plan: existingGoal.plan || [],
+                    parentYearGoalId: existingGoal.parentYearGoalId,
+                    notes: existingGoal.notes || ''
+                }
+            }
+            if (existingGoal.type === 'week') {
+                return {
+                    type: 'week',
+                    wish: existingGoal.wish,
+                    outcome: existingGoal.outcome || [],
+                    obstacles: existingGoal.obstacles || [],
+                    plan: existingGoal.plan || [],
+                    parentQuarterGoalId: existingGoal.parentQuarterGoalId,
+                    planned: existingGoal.planned,
+                    notes: existingGoal.notes || ''
+                }
+            }
+        }
+
+        // Default values for new goals
+        if (type === 'year') {
+            return { type: 'year', wish: '', outcome: [], obstacles: [], plan: [], categoryId: '', identityId: '', notes: '' }
+        }
+        if (type === 'quarter') {
+            return { type: 'quarter', wish: '', outcome: [], obstacles: [], plan: [], parentYearGoalId: '', notes: '' }
+        }
+        return { type: 'week', wish: '', outcome: [], obstacles: [], plan: [], parentQuarterGoalId: '', planned: 1, notes: '' }
+    }
 
     const form = useForm<GoalFormType>({
         resolver: zodResolver(GoalFormSchema) as Resolver<GoalFormOutput>,
-        defaultValues
+        defaultValues: getDefaultValues()
     })
 
     const { user } = useAuth()
@@ -102,35 +147,95 @@ export default function GoalForm({ type }: GoalFormProps) {
     const addYearlyGoal = useAddYearlyGoal();
     const addQuarterlyGoal = useAddQuarterlyGoal()
     const addWeeklyGoal = useAddWeeklyGoal()
+    const editYearlyGoal = useEditYearlyGoal()
+    const editQuarterlyGoal = useEditQuarterlyGoal()
+    const editWeeklyGoal = UseEditWeeklyGoal()
 
     const handleSubmit = async (data: GoalFormType) => {
         if (!user) return
 
-        if (data.type === 'year') {
-            await addYearlyGoal.mutateAsync({
-                uid: user.uid,
-                yearId: selectedYear,
-                yearlyGoalData: { ...data, type: "year", yearId: selectedYear }
-            })
-        }
+        if (isEditMode && goalId) {
+            // Edit existing goal
+            if (data.type === 'year') {
+                await editYearlyGoal.mutateAsync({
+                    uid: user.uid,
+                    yearId: selectedYear,
+                    goalId,
+                    updatedFields: {
+                        wish: data.wish,
+                        outcome: data.outcome,
+                        obstacles: data.obstacles,
+                        plan: data.plan,
+                        categoryId: data.categoryId,
+                        identityId: data.identityId,
+                        notes: data.notes
+                    }
+                })
+            }
 
-        if (data.type === 'quarter') {
-            await addQuarterlyGoal.mutateAsync({
-                uid: user.uid,
-                yearId: selectedYear,
-                quarterId: selectedQuarter,
-                quarterGoalData: { ...data, type: 'quarter', yearId: selectedYear, quarterId: selectedQuarter, weeklyProgress: [] }
-            })
-        }
+            if (data.type === 'quarter') {
+                await editQuarterlyGoal.mutateAsync({
+                    uid: user.uid,
+                    yearId: selectedYear,
+                    quarterId: selectedQuarter,
+                    goalId,
+                    updatedFields: {
+                        wish: data.wish,
+                        outcome: data.outcome,
+                        obstacles: data.obstacles,
+                        plan: data.plan,
+                        parentYearGoalId: data.parentYearGoalId,
+                        notes: data.notes
+                    }
+                })
+            }
 
-        if (data.type === 'week') {
-            await addWeeklyGoal.mutateAsync({
-                uid: user.uid,
-                yearId: selectedYear,
-                quarterId: selectedQuarter,
-                weekId: selectedWeek,
-                weeklyGoalData: { ...data, type: 'week', done: 0, yearId: selectedYear, quarterId: selectedQuarter, weekId: selectedWeek }
-            })
+            if (data.type === 'week') {
+                await editWeeklyGoal.mutateAsync({
+                    uid: user.uid,
+                    yearId: selectedYear,
+                    quarterId: selectedQuarter,
+                    weekId: selectedWeek,
+                    goalId,
+                    updatedFields: {
+                        wish: data.wish,
+                        outcome: data.outcome,
+                        obstacles: data.obstacles,
+                        plan: data.plan,
+                        parentQuarterGoalId: data.parentQuarterGoalId,
+                        planned: data.planned,
+                        notes: data.notes
+                    }
+                })
+            }
+        } else {
+            // Create new goal
+            if (data.type === 'year') {
+                await addYearlyGoal.mutateAsync({
+                    uid: user.uid,
+                    yearId: selectedYear,
+                    yearlyGoalData: { ...data, type: "year", yearId: selectedYear }
+                })
+            }
+
+            if (data.type === 'quarter') {
+                await addQuarterlyGoal.mutateAsync({
+                    uid: user.uid,
+                    yearId: selectedYear,
+                    quarterId: selectedQuarter,
+                    quarterGoalData: { ...data, type: 'quarter', yearId: selectedYear, quarterId: selectedQuarter, weeklyProgress: [] }
+                })
+            }
+
+            if (data.type === 'week') {
+                await addWeeklyGoal.mutateAsync({
+                    uid: user.uid,
+                    yearId: selectedYear,
+                    quarterId: selectedQuarter,
+                    weekId: selectedWeek,
+                    weeklyGoalData: { ...data, type: 'week', done: 0, yearId: selectedYear, quarterId: selectedQuarter, weekId: selectedWeek }
+                })
+            }
         }
 
         navigate("..")
@@ -547,7 +652,7 @@ export default function GoalForm({ type }: GoalFormProps) {
 
                     <div className="flex gap-3 pt-4">
                         <Button type='submit' className="flex-1 h-12 text-lg font-semibold">
-                            Create Goal
+                            {isEditMode ? 'Save Changes' : 'Create Goal'}
                         </Button>
                         <Button type="button" variant="outline" className="h-12 px-6" onClick={() => navigate("..")}>
                             Cancel

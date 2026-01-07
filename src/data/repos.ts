@@ -15,7 +15,9 @@ import { paths } from "../lib/paths";
 import { db } from "@/firebase";
 import type {
   Category,
+  EditQuarterlyGoalPayload,
   EditWeeklyGoalPayload,
+  EditYearlyGoalPayload,
   ID,
   Identity,
   NewQuarterlyGoalPayload,
@@ -190,6 +192,21 @@ export const YearlyGoals = {
     const docSnap = await getDoc(docRef);
     return { uid, yearId, yearlyGoalData: mapDoc<YearGoal>(docSnap) };
   },
+
+  async editYearlyGoal(
+    uid: ID,
+    yearId: ID,
+    goalId: ID,
+    updatedFields: Partial<YearGoal>
+  ): Promise<EditYearlyGoalPayload> {
+    const yearlyGoalRef = doc(db, paths.yearlyGoals(uid, yearId), goalId);
+
+    const batch = writeBatch(db);
+    batch.update(yearlyGoalRef, updatedFields);
+    await batch.commit();
+
+    return { uid, yearId, goalId, updatedFields };
+  },
 };
 
 export const QuartersRepo = {
@@ -241,6 +258,26 @@ export const QuarterlyGoals = {
       quarterId,
       quarterGoalData: mapDoc<QuarterGoal>(docSnap),
     };
+  },
+
+  async editQuarterlyGoal(
+    uid: ID,
+    yearId: ID,
+    quarterId: ID,
+    goalId: ID,
+    updatedFields: Partial<QuarterGoal>
+  ): Promise<EditQuarterlyGoalPayload> {
+    const quarterlyGoalRef = doc(
+      db,
+      paths.quarterlyGoals(uid, yearId, quarterId),
+      goalId
+    );
+
+    const batch = writeBatch(db);
+    batch.update(quarterlyGoalRef, updatedFields);
+    await batch.commit();
+
+    return { uid, yearId, quarterId, goalId, updatedFields };
   },
 };
 

@@ -8,6 +8,7 @@ import Quarter from './pages/Quarter'
 import Week from './pages/Week'
 import ProtectedRoutes from './components/ProtectedRoutes'
 import GoalForm from './components/GoalForm'
+import EditGoal from './components/EditGoal'
 
 export const router = createBrowserRouter([
     {
@@ -42,6 +43,10 @@ export const router = createBrowserRouter([
                                     {
                                         path: 'new',
                                         element: <GoalForm type='year' />
+                                    },
+                                    {
+                                        path: 'edit/:goalId',
+                                        element: <EditGoal type='year' />
                                     }
                                 ]
                             },
@@ -55,6 +60,10 @@ export const router = createBrowserRouter([
                                     {
                                         path: 'new',
                                         element: <GoalForm type='quarter' />
+                                    },
+                                    {
+                                        path: 'edit/:goalId',
+                                        element: <EditGoal type='quarter' />
                                     }
                                 ]
                             },
@@ -68,6 +77,10 @@ export const router = createBrowserRouter([
                                     {
                                         path: 'new',
                                         element: <GoalForm type='week' />
+                                    },
+                                    {
+                                        path: 'edit/:goalId',
+                                        element: <EditGoal type='week' />
                                     }
                                 ]
                             }
