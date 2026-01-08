@@ -129,21 +129,24 @@ export default function Year() {
             </div>
 
             {/* Goals Grid */}
-            {yearlyGoals && yearlyGoals.length > 0 ? (
-                <GoalGrid>
-                    {yearlyGoals.map(goal => {
+            {sortedYearlyGoals && sortedYearlyGoals.length > 0 ? (
+                <SortableGoalGrid
+                    items={sortedYearlyGoals}
+                    onReorder={handleReorder}
+                >
+                    {(item) => {
+                        const goal = yearlyGoals!.find(g => g.id === item.id)!;
                         const hasChildren = hasQuarterlyChildren(goal.id);
                         return (
                             <GoalCard
-                                key={goal.id}
                                 goal={enrichGoal(goal, [], yearlyGoals!, categories!, identities!)}
                                 onDelete={handleDeleteYearlyGoal}
                                 canDelete={!hasChildren}
                                 deleteWarning={hasChildren ? t('goals.deleteYearlyWarning') : undefined}
                             />
                         );
-                    })}
-                </GoalGrid>
+                    }}
+                </SortableGoalGrid>
             ) : (
                 <div className="text-center py-12">
                     <div className="rounded-full bg-muted p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">

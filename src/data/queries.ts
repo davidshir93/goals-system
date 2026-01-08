@@ -983,7 +983,7 @@ export function useReorderYearlyGoals() {
           const goal = prevYearlyGoals.find((g) => g.id === id);
           return goal ? { ...goal, sortOrder: index } : null;
         })
-        .filter((g): g is YearGoal => g !== null);
+        .filter((g) => g !== null) as YearGoal[];
 
       qc.setQueryData(qk.yearlyGoals(uid, yearId), reorderedGoals);
 
@@ -1032,7 +1032,7 @@ export function useReorderQuarterlyGoals() {
           const goal = prevQuarterlyGoals.find((g) => g.id === id);
           return goal ? { ...goal, sortOrder: index } : null;
         })
-        .filter((g): g is QuarterGoal => g !== null);
+        .filter((g) => g !== null) as QuarterGoal[];
 
       qc.setQueryData(qk.quarterlyGoals(uid, yearId, quarterId), reorderedGoals);
 
@@ -1088,7 +1088,7 @@ export function useReorderWeeklyGoals() {
           const goal = prevWeeklyGoals.find((g) => g.id === id);
           return goal ? { ...goal, sortOrder: index } : null;
         })
-        .filter((g): g is WeekGoal => g !== null);
+        .filter((g) => g !== null) as WeekGoal[];
 
       qc.setQueryData(
         qk.weeklyGoals(uid, yearId, quarterId, weekId),
