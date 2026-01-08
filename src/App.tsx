@@ -12,7 +12,7 @@ function App() {
         <a href="https://react.dev" target="_blank">
         </a>
       </div>
-      <h1>Goals System 2025</h1>
+      <h1>Goals System</h1>
       <div className="card">
         <Button onClick={() => setCount((count) => count + 1)}>
           count is {count}

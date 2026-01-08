@@ -31,7 +31,7 @@
     "toggleMenu": "פתח תפריט"
   },
   "auth": {
-    "title": "🎯 מערכת מטרות 2025",
+    "title": "🎯 מערכת מטרות",
     "email": "אימייל",
     "password": "סיסמה",
     "confirmPassword": "אימות סיסמה",
@@ -111,7 +111,7 @@
     "parentYearGoal": "🔗 מטרת אב שנתית",
     "selectParentYear": "בחר מטרה שנתית.",
     "goalTitle": "✏️ כותרת המטרה",
-    "goalPlaceholder": "מה אתה רוצה להשיג ב{{period}}?",
+    "goalPlaceholder": "מהי המטרה שלך ל{{period}}?",
     "mentalContrasting": "🧠 ניגודיות מנטלית",
     "outcomes": "✨ תוצאות",
     "outcomesOptional": "✨ תוצאות (אופציונלי)",

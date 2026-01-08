@@ -1,4 +1,4 @@
-# Goals System 2025
+# Goals System
 
 A clean, modular React + TypeScript application for setting, managing, and tracking personal goals across yearly, quarterly, and weekly timeframes. The app emphasizes visual progress tracking, identity-based reflection, and a well-structured planning workflow.
 

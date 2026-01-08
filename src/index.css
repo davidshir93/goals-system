@@ -235,47 +235,17 @@ html.dark {
   font-weight: 600;
 }
 
-.loading-spinner::after {
-  content: "";
-  z-index: 999;
-  width: 120px;
-  height: 120px;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  translate: -50% -50%;
+.loading-spinner {
+  width: 40px;
+  height: 40px;
+  border: 3px solid hsl(var(--muted));
+  border-top-color: hsl(var(--primary));
   border-radius: 50%;
-  border: 4px solid transparent;
-  border-bottom-color: oklch(0.205 0 0);
-  animation: spin infinite 1.25s ease-in;
+  animation: spinner-rotate 0.8s linear infinite;
 }
 
-.loading-spinner::before {
-  content: "";
-  z-index: 999;
-  width: 120px;
-  height: 120px;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  translate: -50% -50%;
-  border-radius: 50%;
-  border: 4px solid transparent;
-  border-top-color: oklch(0.556 0 0);
-  animation: spin infinite 2s ease-in-out;
-}
-
-/* Dark mode spinner */
-.dark .loading-spinner::after {
-  border-bottom-color: oklch(0.922 0 0);
-}
-
-.dark .loading-spinner::before {
-  border-top-color: oklch(0.708 0 0);
-}
-
-@keyframes spin {
+@keyframes spinner-rotate {
   to {
-    rotate: 360deg;
+    transform: rotate(360deg);
   }
 }

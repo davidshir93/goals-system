@@ -543,11 +543,9 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
 
                     {/* WOOP Section - Only for yearly goals */}
                     {type === 'year' && (
-                        <div className="space-y-4">
-                            <div className="flex items-center gap-2 pt-2">
-                                <div className="h-px flex-1 bg-border"></div>
-                                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('goalForm.mentalContrasting')}</span>
-                                <div className="h-px flex-1 bg-border"></div>
+                        <div className="space-y-6 p-5 rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
+                            <div className="flex items-center gap-3">
+                                <h2 className="text-xl font-bold text-primary">{t('goalForm.mentalContrasting')}</h2>
                             </div>
 
                             {/* Outcome */}
@@ -557,7 +555,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                 control={form.control}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="font-semibold">{t('goalForm.outcomes')}</FormLabel>
+                                        <FormLabel className="text-base font-medium">{t('goalForm.outcomes')}</FormLabel>
                                         <p className="text-xs text-muted-foreground mb-2">{t('goalForm.outcomesHelp')}</p>
                                         <div className="space-y-2">
                                             {(field.value as string[])?.map((item, index) => (
@@ -605,7 +603,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                 control={form.control}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="font-semibold">{t('goalForm.obstacles')}</FormLabel>
+                                        <FormLabel className="text-base font-medium">{t('goalForm.obstacles')}</FormLabel>
                                         <p className="text-xs text-muted-foreground mb-2">{t('goalForm.obstaclesHelp')}</p>
                                         <div className="space-y-2">
                                             {(field.value as string[])?.map((item, index) => (
@@ -670,7 +668,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
 
                                     return (
                                         <FormItem>
-                                            <FormLabel className="font-semibold">{t('goalForm.implementationIntentions')}</FormLabel>
+                                            <FormLabel className="text-base font-medium">{t('goalForm.implementationIntentions')}</FormLabel>
                                             <p className="text-xs text-muted-foreground mb-3">
                                                 {t('goalForm.implementationHelp')}
                                             </p>
