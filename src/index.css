@@ -170,6 +170,15 @@ html[dir="rtl"] {
   direction: rtl;
 }
 
+[dir="rtl"] [data-slot="select-trigger"] {
+  flex-direction: row-reverse;
+  text-align: right;
+}
+
+[dir="rtl"] [data-slot="select-trigger"] span {
+  text-align: right;
+}
+
 /* Cards and panels RTL border */
 [dir="rtl"] .border-l-4 {
   border-left-width: 0;

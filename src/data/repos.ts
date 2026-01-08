@@ -37,6 +37,29 @@ function mapDoc<T extends { id: string }>(d: DocumentData): T {
   return { id: d.id, ...d.data() } as T;
 }
 
+export type ThemeMode = "system" | "light" | "dark";
+
+export type UserPreferences = {
+  theme: ThemeMode;
+};
+
+export const UserPreferencesRepo = {
+  async get(uid: ID): Promise<UserPreferences | null> {
+    const docRef = doc(db, paths.userPreferences(uid));
+    const docSnap = await getDoc(docRef);
+    if (docSnap.exists()) {
+      return docSnap.data() as UserPreferences;
+    }
+    return null;
+  },
+
+  async update(uid: ID, preferences: Partial<UserPreferences>): Promise<{ uid: ID; preferences: Partial<UserPreferences> }> {
+    const docRef = doc(db, paths.userPreferences(uid));
+    await setDoc(docRef, preferences, { merge: true });
+    return { uid, preferences };
+  },
+};
+
 export const CategoriesRepo = {
   async listAll(uid: ID): Promise<Category[]> {
     const q = query(

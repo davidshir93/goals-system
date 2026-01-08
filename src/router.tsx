@@ -9,6 +9,7 @@ import Week from './pages/Week'
 import ProtectedRoutes from './components/ProtectedRoutes'
 import GoalForm from './components/GoalForm'
 import EditGoal from './components/EditGoal'
+import SmartRedirect from './components/SmartRedirect'
 
 export const router = createBrowserRouter([
     {
@@ -33,6 +34,10 @@ export const router = createBrowserRouter([
                     {
                         element: <ProtectedRoutes />,
                         children: [
+                            {
+                                path: 'home',
+                                element: <SmartRedirect />
+                            },
                             {
                                 path: 'year',
                                 children: [

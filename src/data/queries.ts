@@ -13,6 +13,8 @@ import {
   WeeksRepo,
   YearlyGoals,
   YearsRepo,
+  UserPreferencesRepo,
+  type UserPreferences,
 } from "./repos";
 import type {
   Category,
@@ -40,6 +42,7 @@ import type {
 } from "@/types/GoalTypes";
 
 const qk = {
+  userPreferences: (uid: ID) => ["userPreferences", { uid }] as const,
   categories: (uid: ID) => ["categories", { uid }] as const,
   identities: (uid: ID) => ["identities", { uid }] as const,
   years: (uid: ID) => ["years", { uid }] as const,
@@ -53,6 +56,47 @@ const qk = {
   weeklyGoals: (uid: ID, yearId: ID, quarterId: ID, weekId: ID) =>
     ["weeklyGoals", { uid, yearId, quarterId, weekId }] as const,
 };
+
+export function useUserPreferences(uid: ID): UseQueryResult<UserPreferences | null> {
+  const enabled = Boolean(uid);
+
+  return useQuery({
+    queryKey: qk.userPreferences(uid),
+    queryFn: () => UserPreferencesRepo.get(uid),
+    staleTime: 60_000,
+    enabled,
+  });
+}
+
+export function useUpdateUserPreferences() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ uid, preferences }: { uid: ID; preferences: Partial<UserPreferences> }) =>
+      UserPreferencesRepo.update(uid, preferences),
+
+    onSuccess: ({ uid }) => {
+      qc.invalidateQueries({ queryKey: qk.userPreferences(uid) });
+    },
+
+    onMutate: async ({ uid, preferences }: { uid: ID; preferences: Partial<UserPreferences> }) => {
+      await qc.cancelQueries({ queryKey: qk.userPreferences(uid) });
+      const prevPreferences: UserPreferences | null = qc.getQueryData(qk.userPreferences(uid)) || null;
+
+      qc.setQueryData(qk.userPreferences(uid), (prev: UserPreferences | null) => ({
+        ...prev,
+        ...preferences,
+      }));
+
+      return { prevPreferences };
+    },
+
+    onError(error, { uid }, context) {
+      qc.setQueryData(qk.userPreferences(uid), context?.prevPreferences);
+      console.log(error);
+    },
+  });
+}
 
 export function useCategories(uid: ID): UseQueryResult<Category[]> {
   const enabled = Boolean(uid);

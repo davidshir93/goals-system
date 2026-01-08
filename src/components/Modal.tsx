@@ -29,7 +29,7 @@ export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
                 ></div>
 
                 {/* modal box */}
-                <div className="relative z-10 bg-card text-card-foreground rounded-2xl shadow-lg p-6 w-full max-w-[400px] mx-4 border">
+                <div className="relative z-10 bg-card text-card-foreground rounded-2xl shadow-lg p-6 w-full max-w-[400px] mx-4 border max-h-[85vh] overflow-y-auto">
                     {children}
                 </div>
             </div>

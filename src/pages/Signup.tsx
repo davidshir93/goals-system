@@ -21,7 +21,7 @@ export default function Signup() {
     const navigate = useNavigate()
 
     useEffect(() => {
-        if (user !== null) navigate("/week")
+        if (user !== null) navigate("/home")
     }, [user, navigate])
 
     const handleFormChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -37,7 +37,7 @@ export default function Signup() {
         e.preventDefault()
         try {
             await signUp(signUpInfo.email, signUpInfo.password)
-            navigate("/")
+            navigate("/home")
         } catch (err) {
             console.log('Error with email password sign in: ' + err);
         }
@@ -47,7 +47,7 @@ export default function Signup() {
     const handleGoogleSignIn = async () => {
         try {
             await googleSignIn()
-            navigate("/")
+            navigate("/home")
         } catch (err) {
             console.log('Error with google sign in: ' + err);
         }

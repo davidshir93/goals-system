@@ -23,6 +23,7 @@ import { Modal } from './Modal'
 import ItemsListForm from './ItemsListForm'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
+import { getTextColorForBg } from '@/utils/colors'
 
 type GoalFormProps = {
     type: 'year' | 'quarter' | 'week'
@@ -301,38 +302,56 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                             <FormField
                                 name="categoryId"
                                 control={form.control}
-                                render={({ field }) => (
-                                    <FormItem>
-                                        <FormLabel>{t('goalForm.category')}</FormLabel>
-                                        <FormControl>
-                                            <Select
-                                                value={field.value}
-                                                onValueChange={(val) => {
-                                                    if (val === 'edit') {
-                                                        setEditCategoriesModalOpen(true)
-                                                    } else {
-                                                        field.onChange(val)
-                                                    }
-                                                }}
-                                            >
-                                                <SelectTrigger className="w-full" style={{ backgroundColor: `${categories.find(cat => cat.id === field.value)?.color}` }}>
-                                                    <SelectValue placeholder={t('goalForm.selectCategory')} />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectGroup>
-                                                        {categories.map(category => (
-                                                            <SelectItem key={category.id} value={category.id} style={{ backgroundColor: `${category.color}` }} className='my-2'>
-                                                                {category.name}
-                                                            </SelectItem>
-                                                        ))}
-                                                        <SelectItem key='edit' value='edit'>{t('goalForm.editCategories')}</SelectItem>
-                                                    </SelectGroup>
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                )}
+                                render={({ field }) => {
+                                    const selectedCategory = categories.find(cat => cat.id === field.value);
+                                    const selectedColor = selectedCategory?.color || '';
+                                    return (
+                                        <FormItem>
+                                            <FormLabel>{t('goalForm.category')}</FormLabel>
+                                            <FormControl>
+                                                <Select
+                                                    value={field.value}
+                                                    onValueChange={(val) => {
+                                                        if (val === 'edit') {
+                                                            setEditCategoriesModalOpen(true)
+                                                        } else {
+                                                            field.onChange(val)
+                                                        }
+                                                    }}
+                                                >
+                                                    <SelectTrigger
+                                                        className="w-full"
+                                                        style={{
+                                                            backgroundColor: selectedColor,
+                                                            color: selectedColor ? getTextColorForBg(selectedColor) : undefined
+                                                        }}
+                                                    >
+                                                        <SelectValue placeholder={t('goalForm.selectCategory')} />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectGroup>
+                                                            {categories.map(category => (
+                                                                <SelectItem
+                                                                    key={category.id}
+                                                                    value={category.id}
+                                                                    style={{
+                                                                        backgroundColor: category.color,
+                                                                        color: getTextColorForBg(category.color)
+                                                                    }}
+                                                                    className='my-2'
+                                                                >
+                                                                    {category.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                            <SelectItem key='edit' value='edit'>{t('goalForm.editCategories')}</SelectItem>
+                                                        </SelectGroup>
+                                                    </SelectContent>
+                                                </Select>
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    );
+                                }}
                             />
                             <Modal isOpen={editCategoriesModalOpen} onClose={() => setEditCategoriesModalOpen(false)}>
                                 <ItemsListForm type='category' currentItems={categories} closeModal={() => setEditCategoriesModalOpen(false)} />
@@ -344,38 +363,56 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         <FormField
                             name="identityId"
                             control={form.control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel>{t('goalForm.identity')}</FormLabel>
-                                    <FormControl>
-                                        <Select
-                                            value={field.value}
-                                            onValueChange={(val) => {
-                                                if (val === 'edit') {
-                                                    setEditIdentitiesModalOpen(true)
-                                                } else {
-                                                    field.onChange(val)
-                                                }
-                                            }}
-                                        >
-                                            <SelectTrigger className="w-full" style={{ backgroundColor: `${identities.find(cat => cat.id === field.value)?.color}` }}>
-                                                <SelectValue placeholder={t('goalForm.selectIdentity')} />
-                                            </SelectTrigger>
-                                            <SelectContent>
-                                                <SelectGroup>
-                                                    {identities.map(identity => (
-                                                        <SelectItem key={identity.id} value={identity.id} style={{ backgroundColor: `${identity.color}` }} className='my-2'>
-                                                            {identity.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                    <SelectItem key='edit' value='edit'>{t('goalForm.editIdentities')}</SelectItem>
-                                                </SelectGroup>
-                                            </SelectContent>
-                                        </Select>
-                                    </FormControl>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
+                            render={({ field }) => {
+                                const selectedIdentity = identities.find(id => id.id === field.value);
+                                const selectedColor = selectedIdentity?.color || '';
+                                return (
+                                    <FormItem>
+                                        <FormLabel>{t('goalForm.identity')}</FormLabel>
+                                        <FormControl>
+                                            <Select
+                                                value={field.value}
+                                                onValueChange={(val) => {
+                                                    if (val === 'edit') {
+                                                        setEditIdentitiesModalOpen(true)
+                                                    } else {
+                                                        field.onChange(val)
+                                                    }
+                                                }}
+                                            >
+                                                <SelectTrigger
+                                                    className="w-full"
+                                                    style={{
+                                                        backgroundColor: selectedColor,
+                                                        color: selectedColor ? getTextColorForBg(selectedColor) : undefined
+                                                    }}
+                                                >
+                                                    <SelectValue placeholder={t('goalForm.selectIdentity')} />
+                                                </SelectTrigger>
+                                                <SelectContent>
+                                                    <SelectGroup>
+                                                        {identities.map(identity => (
+                                                            <SelectItem
+                                                                key={identity.id}
+                                                                value={identity.id}
+                                                                style={{
+                                                                    backgroundColor: identity.color,
+                                                                    color: getTextColorForBg(identity.color)
+                                                                }}
+                                                                className='my-2'
+                                                            >
+                                                                {identity.name}
+                                                            </SelectItem>
+                                                        ))}
+                                                        <SelectItem key='edit' value='edit'>{t('goalForm.editIdentities')}</SelectItem>
+                                                    </SelectGroup>
+                                                </SelectContent>
+                                            </Select>
+                                        </FormControl>
+                                        <FormMessage />
+                                    </FormItem>
+                                );
+                            }}
                         />
                         <Modal isOpen={editIdentitiesModalOpen} onClose={() => setEditIdentitiesModalOpen(false)}>
                             <ItemsListForm type='identity' currentItems={identities} closeModal={() => setEditIdentitiesModalOpen(false)} />
@@ -386,62 +423,102 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                     {type === 'week' && quarterlyGoals && (<FormField
                         name="parentQuarterGoalId"
                         control={form.control}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>{t('goalForm.parentQuarterGoal')}</FormLabel>
-                                <FormControl>
-                                    <Select
-                                        value={field.value}
-                                        onValueChange={field.onChange}
-                                    >
-                                        <SelectTrigger className="w-full" style={{ backgroundColor: `${findQuarterGoalCategoryColor(field.value)}` }}>
-                                            <SelectValue placeholder={t('goalForm.selectParentQuarter')} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                {quarterlyGoals.map(quarterlyGoal => (
-                                                    <SelectItem key={quarterlyGoal.id} value={quarterlyGoal.id} className='my-2' style={{ backgroundColor: `${findQuarterGoalCategoryColor(quarterlyGoal.id)}` }}>
-                                                        {quarterlyGoal.wish}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        render={({ field }) => {
+                            const selectedColor = findQuarterGoalCategoryColor(field.value);
+                            return (
+                                <FormItem>
+                                    <FormLabel>{t('goalForm.parentQuarterGoal')}</FormLabel>
+                                    <FormControl>
+                                        <Select
+                                            value={field.value}
+                                            onValueChange={field.onChange}
+                                        >
+                                            <SelectTrigger
+                                                className="w-full"
+                                                style={{
+                                                    backgroundColor: selectedColor,
+                                                    color: getTextColorForBg(selectedColor)
+                                                }}
+                                            >
+                                                <SelectValue placeholder={t('goalForm.selectParentQuarter')} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    {quarterlyGoals.map(quarterlyGoal => {
+                                                        const itemColor = findQuarterGoalCategoryColor(quarterlyGoal.id);
+                                                        return (
+                                                            <SelectItem
+                                                                key={quarterlyGoal.id}
+                                                                value={quarterlyGoal.id}
+                                                                className='my-2'
+                                                                style={{
+                                                                    backgroundColor: itemColor,
+                                                                    color: getTextColorForBg(itemColor)
+                                                                }}
+                                                            >
+                                                                {quarterlyGoal.wish}
+                                                            </SelectItem>
+                                                        );
+                                                    })}
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            );
+                        }}
                     />)}
 
                     {/* Parent year goal */}
                     {type === 'quarter' && yearlyGoals && (<FormField
                         name="parentYearGoalId"
                         control={form.control}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>{t('goalForm.parentYearGoal')}</FormLabel>
-                                <FormControl>
-                                    <Select
-                                        value={field.value}
-                                        onValueChange={field.onChange}
-                                    >
-                                        <SelectTrigger className="w-full" style={{ backgroundColor: `${findYearlyGoalCategoryColor(field.value)}` }}>
-                                            <SelectValue placeholder={t('goalForm.selectParentYear')} />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectGroup>
-                                                {yearlyGoals.map(yearlyGoal => (
-                                                    <SelectItem key={yearlyGoal.id} value={yearlyGoal.id} className='my-2' style={{ backgroundColor: `${findYearlyGoalCategoryColor(yearlyGoal.id)}` }}>
-                                                        {yearlyGoal.wish}
-                                                    </SelectItem>
-                                                ))}
-                                            </SelectGroup>
-                                        </SelectContent>
-                                    </Select>
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
+                        render={({ field }) => {
+                            const selectedColor = findYearlyGoalCategoryColor(field.value);
+                            return (
+                                <FormItem>
+                                    <FormLabel>{t('goalForm.parentYearGoal')}</FormLabel>
+                                    <FormControl>
+                                        <Select
+                                            value={field.value}
+                                            onValueChange={field.onChange}
+                                        >
+                                            <SelectTrigger
+                                                className="w-full"
+                                                style={{
+                                                    backgroundColor: selectedColor,
+                                                    color: getTextColorForBg(selectedColor)
+                                                }}
+                                            >
+                                                <SelectValue placeholder={t('goalForm.selectParentYear')} />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                <SelectGroup>
+                                                    {yearlyGoals.map(yearlyGoal => {
+                                                        const itemColor = findYearlyGoalCategoryColor(yearlyGoal.id);
+                                                        return (
+                                                            <SelectItem
+                                                                key={yearlyGoal.id}
+                                                                value={yearlyGoal.id}
+                                                                className='my-2'
+                                                                style={{
+                                                                    backgroundColor: itemColor,
+                                                                    color: getTextColorForBg(itemColor)
+                                                                }}
+                                                            >
+                                                                {yearlyGoal.wish}
+                                                            </SelectItem>
+                                                        );
+                                                    })}
+                                                </SelectGroup>
+                                            </SelectContent>
+                                        </Select>
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            );
+                        }}
                     />)}
 
                     {/* Wish */}
@@ -637,26 +714,28 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         </div>
                     )}
 
-                    {/* Notes */}
-                    <FormField
-                        name="notes"
-                        key="notes"
-                        control={form.control}
-                        render={({ field }) => (
-                            <FormItem>
-                                <FormLabel>{t('goalForm.notes')}</FormLabel>
-                                <p className="text-xs text-muted-foreground mb-2">{t('goalForm.notesHelp')}</p>
-                                <FormControl>
-                                    <Textarea
-                                        placeholder={t('common.notesPlaceholder')}
-                                        className="min-h-[100px] resize-y"
-                                        {...field}
-                                    />
-                                </FormControl>
-                                <FormMessage />
-                            </FormItem>
-                        )}
-                    />
+                    {/* Notes - for year and quarter goals */}
+                    {type !== 'week' && (
+                        <FormField
+                            name="notes"
+                            key="notes"
+                            control={form.control}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>{t('goalForm.notes')}</FormLabel>
+                                    <p className="text-xs text-muted-foreground mb-2">{t('goalForm.notesHelp')}</p>
+                                    <FormControl>
+                                        <Textarea
+                                            placeholder={t('common.notesPlaceholder')}
+                                            className="min-h-[100px] resize-y"
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
 
                     {/* Planned Effort */}
                     {type === 'week' &&
@@ -664,34 +743,90 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                             name="planned"
                             key="planned"
                             control={form.control}
+                            render={({ field }) => {
+                                const handleIncrement = () => {
+                                    const currentValue = parseInt(String(field.value)) || 1;
+                                    field.onChange(currentValue + 1);
+                                };
+                                const handleDecrement = () => {
+                                    const currentValue = parseInt(String(field.value)) || 1;
+                                    if (currentValue > 1) {
+                                        field.onChange(currentValue - 1);
+                                    }
+                                };
+                                return (
+                                    <FormItem className="space-y-4 p-5 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-2xl border-2 border-primary/25 shadow-sm">
+                                        <div className="flex items-center gap-2">
+                                            <span className="text-2xl">⏱️</span>
+                                            <FormLabel className="text-xl font-bold text-primary m-0">{t('goalForm.plannedEffort')}</FormLabel>
+                                        </div>
+                                        <div className="bg-background/60 rounded-lg p-3 border border-primary/10">
+                                            <p className="text-sm text-muted-foreground leading-relaxed">
+                                                <span className="font-medium text-foreground">{t('goalForm.effortHelp')}</span>{' '}
+                                                {t('goalForm.effortQuestion')}
+                                            </p>
+                                        </div>
+                                        <div className="flex flex-col items-center gap-2">
+                                            <div className="flex items-center gap-2">
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="h-14 w-14 rounded-xl text-2xl font-bold border-2 border-primary/30 hover:bg-primary/10 hover:border-primary"
+                                                    onClick={handleDecrement}
+                                                    disabled={parseInt(String(field.value)) <= 1}
+                                                >
+                                                    -
+                                                </Button>
+                                                <FormControl>
+                                                    <Input
+                                                        type='number'
+                                                        min={1}
+                                                        className="!text-5xl font-extrabold h-24 w-36 text-center leading-none pt-1 border-2 border-primary/30 focus:border-primary bg-background rounded-xl shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                        {...field}
+                                                    />
+                                                </FormControl>
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="icon"
+                                                    className="h-14 w-14 rounded-xl text-2xl font-bold border-2 border-primary/30 hover:bg-primary/10 hover:border-primary"
+                                                    onClick={handleIncrement}
+                                                >
+                                                    +
+                                                </Button>
+                                            </div>
+                                            <span className="text-xl text-muted-foreground font-semibold">{t('goalForm.sessions')}</span>
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                );
+                            }}
+                        />
+                    }
+
+                    {/* Notes - for weekly goals (at the bottom) */}
+                    {type === 'week' && (
+                        <FormField
+                            name="notes"
+                            key="notes-week"
+                            control={form.control}
                             render={({ field }) => (
-                                <FormItem className="space-y-4 p-5 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-2xl border-2 border-primary/25 shadow-sm">
-                                    <div className="flex items-center gap-2">
-                                        <span className="text-2xl">⏱️</span>
-                                        <FormLabel className="text-xl font-bold text-primary m-0">{t('goalForm.plannedEffort')}</FormLabel>
-                                    </div>
-                                    <div className="bg-background/60 rounded-lg p-3 border border-primary/10">
-                                        <p className="text-sm text-muted-foreground leading-relaxed">
-                                            <span className="font-medium text-foreground">{t('goalForm.effortHelp')}</span>{' '}
-                                            {t('goalForm.effortQuestion')}
-                                        </p>
-                                    </div>
-                                    <div className="flex items-center justify-center gap-3">
-                                        <FormControl>
-                                            <Input
-                                                type='number'
-                                                min={1}
-                                                className="text-4xl font-extrabold h-20 w-32 text-center border-2 border-primary/30 focus:border-primary bg-background rounded-xl shadow-inner"
-                                                {...field}
-                                            />
-                                        </FormControl>
-                                        <span className="text-lg text-muted-foreground font-medium">{t('goalForm.sessions')}</span>
-                                    </div>
+                                <FormItem>
+                                    <FormLabel>{t('goalForm.notes')}</FormLabel>
+                                    <p className="text-xs text-muted-foreground mb-2">{t('goalForm.notesHelp')}</p>
+                                    <FormControl>
+                                        <Textarea
+                                            placeholder={t('common.notesPlaceholder')}
+                                            className="min-h-[100px] resize-y"
+                                            {...field}
+                                        />
+                                    </FormControl>
                                     <FormMessage />
                                 </FormItem>
                             )}
                         />
-                    }
+                    )}
 
                     <div className="flex gap-3 pt-6 border-t">
                         <Button type='submit' className="flex-1 h-11 font-semibold">

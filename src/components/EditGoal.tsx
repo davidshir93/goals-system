@@ -3,12 +3,14 @@ import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext";
 import { useYearlyGoals, useQuarterlyGoals, useWeeklyGoals } from "@/data/queries";
 import GoalForm from "./GoalForm";
+import { useTranslation } from "react-i18next";
 
 type EditGoalProps = {
     type: 'year' | 'quarter' | 'week';
 };
 
 export default function EditGoal({ type }: EditGoalProps) {
+    const { t } = useTranslation();
     const { goalId } = useParams<{ goalId: string }>();
     const { user } = useAuth();
     const { selectedYear, selectedQuarter, selectedWeek } = useGoals();
@@ -34,7 +36,7 @@ export default function EditGoal({ type }: EditGoalProps) {
     const isLoading = yearLoading || quarterLoading || weekLoading;
 
     if (isLoading) {
-        return <div className="p-3 text-yellow-600">Loading goal...</div>;
+        return <div className="p-3 text-yellow-600">{t('goals.loadingGoal')}</div>;
     }
 
     let existingGoal;
@@ -47,13 +49,8 @@ export default function EditGoal({ type }: EditGoalProps) {
     }
 
     if (!existingGoal) {
-        return <div className="p-3 text-red-600">Goal not found</div>;
+        return <div className="p-3 text-red-600">{t('goals.goalNotFound')}</div>;
     }
 
-    return (
-        <div>
-            <h1 className="text-2xl font-bold mb-4">Edit {type.charAt(0).toUpperCase() + type.slice(1)} Goal</h1>
-            <GoalForm type={type} goalId={goalId} existingGoal={existingGoal} />
-        </div>
-    );
+    return <GoalForm type={type} goalId={goalId} existingGoal={existingGoal} />;
 }
