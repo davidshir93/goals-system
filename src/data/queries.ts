@@ -37,6 +37,9 @@ import type {
   NewYearPayload,
   Period,
   QuarterGoal,
+  ReorderQuarterlyGoalsPayload,
+  ReorderWeeklyGoalsPayload,
+  ReorderYearlyGoalsPayload,
   WeekGoal,
   YearGoal,
 } from "@/types/GoalTypes";
@@ -957,6 +960,156 @@ export function useCopyWeeklyGoals() {
 
     onError(error) {
       console.error("Error copying weekly goals:", error);
+    },
+  });
+}
+
+export function useReorderYearlyGoals() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({ uid, yearId, orderedGoalIds }: ReorderYearlyGoalsPayload) =>
+      YearlyGoals.reorderGoals(uid, yearId, orderedGoalIds),
+
+    onMutate: async ({ uid, yearId, orderedGoalIds }: ReorderYearlyGoalsPayload) => {
+      await qc.cancelQueries({ queryKey: qk.yearlyGoals(uid, yearId) });
+
+      const prevYearlyGoals: YearGoal[] =
+        qc.getQueryData(qk.yearlyGoals(uid, yearId)) || [];
+
+      // Optimistically update with new order
+      const reorderedGoals = orderedGoalIds
+        .map((id, index) => {
+          const goal = prevYearlyGoals.find((g) => g.id === id);
+          return goal ? { ...goal, sortOrder: index } : null;
+        })
+        .filter((g): g is YearGoal => g !== null);
+
+      qc.setQueryData(qk.yearlyGoals(uid, yearId), reorderedGoals);
+
+      return { prevYearlyGoals };
+    },
+
+    onError(error, { uid, yearId }, context) {
+      qc.setQueryData(qk.yearlyGoals(uid, yearId), context?.prevYearlyGoals);
+      console.error("Error reordering yearly goals:", error);
+    },
+
+    onSuccess: ({ uid, yearId }) => {
+      qc.invalidateQueries({ queryKey: qk.yearlyGoals(uid, yearId) });
+    },
+  });
+}
+
+export function useReorderQuarterlyGoals() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      uid,
+      yearId,
+      quarterId,
+      orderedGoalIds,
+    }: ReorderQuarterlyGoalsPayload) =>
+      QuarterlyGoals.reorderGoals(uid, yearId, quarterId, orderedGoalIds),
+
+    onMutate: async ({
+      uid,
+      yearId,
+      quarterId,
+      orderedGoalIds,
+    }: ReorderQuarterlyGoalsPayload) => {
+      await qc.cancelQueries({
+        queryKey: qk.quarterlyGoals(uid, yearId, quarterId),
+      });
+
+      const prevQuarterlyGoals: QuarterGoal[] =
+        qc.getQueryData(qk.quarterlyGoals(uid, yearId, quarterId)) || [];
+
+      // Optimistically update with new order
+      const reorderedGoals = orderedGoalIds
+        .map((id, index) => {
+          const goal = prevQuarterlyGoals.find((g) => g.id === id);
+          return goal ? { ...goal, sortOrder: index } : null;
+        })
+        .filter((g): g is QuarterGoal => g !== null);
+
+      qc.setQueryData(qk.quarterlyGoals(uid, yearId, quarterId), reorderedGoals);
+
+      return { prevQuarterlyGoals };
+    },
+
+    onError(error, { uid, yearId, quarterId }, context) {
+      qc.setQueryData(
+        qk.quarterlyGoals(uid, yearId, quarterId),
+        context?.prevQuarterlyGoals
+      );
+      console.error("Error reordering quarterly goals:", error);
+    },
+
+    onSuccess: ({ uid, yearId, quarterId }) => {
+      qc.invalidateQueries({
+        queryKey: qk.quarterlyGoals(uid, yearId, quarterId),
+      });
+    },
+  });
+}
+
+export function useReorderWeeklyGoals() {
+  const qc = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      uid,
+      yearId,
+      quarterId,
+      weekId,
+      orderedGoalIds,
+    }: ReorderWeeklyGoalsPayload) =>
+      WeeklyGoals.reorderGoals(uid, yearId, quarterId, weekId, orderedGoalIds),
+
+    onMutate: async ({
+      uid,
+      yearId,
+      quarterId,
+      weekId,
+      orderedGoalIds,
+    }: ReorderWeeklyGoalsPayload) => {
+      await qc.cancelQueries({
+        queryKey: qk.weeklyGoals(uid, yearId, quarterId, weekId),
+      });
+
+      const prevWeeklyGoals: WeekGoal[] =
+        qc.getQueryData(qk.weeklyGoals(uid, yearId, quarterId, weekId)) || [];
+
+      // Optimistically update with new order
+      const reorderedGoals = orderedGoalIds
+        .map((id, index) => {
+          const goal = prevWeeklyGoals.find((g) => g.id === id);
+          return goal ? { ...goal, sortOrder: index } : null;
+        })
+        .filter((g): g is WeekGoal => g !== null);
+
+      qc.setQueryData(
+        qk.weeklyGoals(uid, yearId, quarterId, weekId),
+        reorderedGoals
+      );
+
+      return { prevWeeklyGoals };
+    },
+
+    onError(error, { uid, yearId, quarterId, weekId }, context) {
+      qc.setQueryData(
+        qk.weeklyGoals(uid, yearId, quarterId, weekId),
+        context?.prevWeeklyGoals
+      );
+      console.error("Error reordering weekly goals:", error);
+    },
+
+    onSuccess: ({ uid, yearId, quarterId, weekId }) => {
+      qc.invalidateQueries({
+        queryKey: qk.weeklyGoals(uid, yearId, quarterId, weekId),
+      });
     },
   });
 }

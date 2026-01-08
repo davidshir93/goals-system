@@ -1,5 +1,5 @@
 import GoalCard from "@/components/GoalCard";
-import { GoalGrid } from "@/components/GoalGrid";
+import { SortableGoalGrid } from "@/components/SortableGoalGrid";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -18,6 +18,7 @@ import {
   useDeleteWeeklyGoal,
   useCopyWeeklyGoals,
   useUpdateWeekNotes,
+  useReorderWeeklyGoals,
 } from "@/data/queries";
 import { PeriodNotes } from "@/components/PeriodNotes";
 import type { ID } from "@/types/GoalTypes";
@@ -67,20 +68,31 @@ export default function Week() {
   const currentQuarter = quarters?.find(q => q.id === selectedQuarter);
   const currentWeek = weeks?.find(w => w.id === selectedWeek);
 
+  // Sort goals by sortOrder
+  const sortedWeeklyGoals = useMemo(() => {
+    if (!weeklyGoals) return [];
+    return [...weeklyGoals].sort((a, b) => {
+      const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+      const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+      return orderA - orderB;
+    });
+  }, [weeklyGoals]);
+
   const weeklyAverage = useMemo(() => {
     return (
-      !weeklyGoals || weeklyGoals.length === 0
+      !sortedWeeklyGoals || sortedWeeklyGoals.length === 0
         ? 0
-        : (weeklyGoals
+        : (sortedWeeklyGoals
             ?.map((goal) => goal.done / goal.planned)
             .reduce((acc, curr) => acc + curr, 0) /
-            weeklyGoals?.length) *
+            sortedWeeklyGoals?.length) *
           100
     ).toFixed();
-  }, [weeklyGoals]);
+  }, [sortedWeeklyGoals]);
 
   const useEditWeeklyGoal = UseEditWeeklyGoal();
   const deleteWeeklyGoal = useDeleteWeeklyGoal();
+  const reorderWeeklyGoals = useReorderWeeklyGoals();
 
   const onEditWeeklyProgress = (goalId: ID, done: number) => {
     useEditWeeklyGoal.mutate({
@@ -109,6 +121,16 @@ export default function Week() {
       quarterId: selectedQuarter,
       weekId: selectedWeek,
       goalId,
+    });
+  };
+
+  const handleReorder = (orderedIds: ID[]) => {
+    reorderWeeklyGoals.mutate({
+      uid: user!.uid,
+      yearId: selectedYear,
+      quarterId: selectedQuarter,
+      weekId: selectedWeek,
+      orderedGoalIds: orderedIds,
     });
   };
 
@@ -223,9 +245,13 @@ export default function Week() {
       </div>
 
       {/* Goals Grid */}
-      {weeklyGoals && weeklyGoals.length > 0 ? (
-        <GoalGrid>
-          {weeklyGoals.map((goal) => {
+      {sortedWeeklyGoals && sortedWeeklyGoals.length > 0 ? (
+        <SortableGoalGrid
+          items={sortedWeeklyGoals}
+          onReorder={handleReorder}
+        >
+          {(item) => {
+            const goal = sortedWeeklyGoals.find((g) => g.id === item.id)!;
             const enrichedGoal = enrichGoal(
               goal,
               quarterlyGoals!,
@@ -236,7 +262,6 @@ export default function Week() {
             const parentYearGoal = getParentYearGoal(goal.parentQuarterGoalId);
             return (
               <GoalCard
-                key={goal.id}
                 goal={enrichedGoal}
                 onEditWeeklyProgress={onEditWeeklyProgress}
                 showParentGoals={showParentsGoals}
@@ -245,8 +270,8 @@ export default function Week() {
                 parentYearGoal={parentYearGoal}
               />
             );
-          })}
-        </GoalGrid>
+          }}
+        </SortableGoalGrid>
       ) : (
         <div className="text-center py-12">
           <div className="rounded-full bg-muted p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">

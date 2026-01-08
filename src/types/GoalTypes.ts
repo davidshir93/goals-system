@@ -44,6 +44,7 @@ type BaseGoal = {
   plan?: PlanItem[]; // required for year goals
   notes?: string;
   yearId: ID;
+  sortOrder?: number; // for drag-and-drop sorting
   // Frontend State Only
   emptyProgress?: boolean;
   doneAveragePercent?: number;
@@ -194,4 +195,25 @@ export type NewWeekPayload = {
   selectedQuarter: ID;
   newWeekId: ID;
   newWeekData: Period;
+};
+
+export type ReorderYearlyGoalsPayload = {
+  uid: ID;
+  yearId: ID;
+  orderedGoalIds: ID[];
+};
+
+export type ReorderQuarterlyGoalsPayload = {
+  uid: ID;
+  yearId: ID;
+  quarterId: ID;
+  orderedGoalIds: ID[];
+};
+
+export type ReorderWeeklyGoalsPayload = {
+  uid: ID;
+  yearId: ID;
+  quarterId: ID;
+  weekId: ID;
+  orderedGoalIds: ID[];
 };

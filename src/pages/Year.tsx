@@ -1,12 +1,13 @@
 import GoalCard from "@/components/GoalCard";
-import { GoalGrid } from "@/components/GoalGrid";
+import { SortableGoalGrid } from "@/components/SortableGoalGrid";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext"
-import { useCategories, useIdentities, useYearlyGoals, useYears, useQuarters, useDeleteYearlyGoal, useUpdateYearNotes } from "@/data/queries";
+import { useCategories, useIdentities, useYearlyGoals, useYears, useQuarters, useDeleteYearlyGoal, useUpdateYearNotes, useReorderYearlyGoals } from "@/data/queries";
 import { PeriodNotes } from "@/components/PeriodNotes";
 import type { ID, QuarterGoal } from "@/types/GoalTypes";
 import { enrichGoal } from "@/utils/goalsUtils";
+import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import { useQueries } from "@tanstack/react-query";
@@ -57,6 +58,26 @@ export default function Year() {
             goalId,
         });
     };
+
+    const reorderYearlyGoals = useReorderYearlyGoals();
+
+    const handleReorder = (orderedIds: ID[]) => {
+        reorderYearlyGoals.mutate({
+            uid: user!.uid,
+            yearId: selectedYear,
+            orderedGoalIds: orderedIds,
+        });
+    };
+
+    // Sort goals by sortOrder
+    const sortedYearlyGoals = useMemo(() => {
+        if (!yearlyGoals) return [];
+        return [...yearlyGoals].sort((a, b) => {
+            const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+            const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+            return orderA - orderB;
+        });
+    }, [yearlyGoals]);
 
     const updateYearNotes = useUpdateYearNotes();
 

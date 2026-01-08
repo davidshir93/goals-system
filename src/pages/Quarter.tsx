@@ -1,5 +1,5 @@
 import GoalCard from "@/components/GoalCard";
-import { GoalGrid } from "@/components/GoalGrid";
+import { SortableGoalGrid } from "@/components/SortableGoalGrid";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext";
@@ -13,6 +13,7 @@ import {
   useWeeks,
   useDeleteQuarterlyGoal,
   useUpdateQuarterNotes,
+  useReorderQuarterlyGoals,
 } from "@/data/queries";
 import { PeriodNotes } from "@/components/PeriodNotes";
 import type { ID, WeekGoal } from "@/types/GoalTypes";
@@ -90,6 +91,17 @@ export default function Quarter() {
     });
   };
 
+  const reorderQuarterlyGoals = useReorderQuarterlyGoals();
+
+  const handleReorder = (orderedIds: ID[]) => {
+    reorderQuarterlyGoals.mutate({
+      uid: user!.uid,
+      yearId: selectedYear,
+      quarterId: selectedQuarter,
+      orderedGoalIds: orderedIds,
+    });
+  };
+
   const updateQuarterNotes = useUpdateQuarterNotes();
 
   const handleSaveQuarterNotes = (notes: string) => {
@@ -104,11 +116,21 @@ export default function Quarter() {
   const currentYear = years?.find(y => y.id === selectedYear);
   const currentQuarter = quarters?.find(q => q.id === selectedQuarter);
 
+  // Sort goals by sortOrder
+  const sortedQuarterlyGoals = useMemo(() => {
+    if (!quarterlyGoals) return [];
+    return [...quarterlyGoals].sort((a, b) => {
+      const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
+      const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
+      return orderA - orderB;
+    });
+  }, [quarterlyGoals]);
+
   const enrichedQuarterlyGoals = useMemo(() => {
-    return quarterlyGoals?.map((goal) =>
+    return sortedQuarterlyGoals.map((goal) =>
       enrichGoal(goal, quarterlyGoals!, yearlyGoals!, categories!, identities!)
     );
-  }, [quarterlyGoals, yearlyGoals, categories, identities]);
+  }, [sortedQuarterlyGoals, quarterlyGoals, yearlyGoals, categories, identities]);
 
   if (quarterlyGoalsErr || yearlyGoalsErr || catErr || idErr) {
     return (
@@ -149,15 +171,18 @@ export default function Quarter() {
 
       {/* Goals Grid */}
       {enrichedQuarterlyGoals && enrichedQuarterlyGoals.length > 0 ? (
-        <GoalGrid>
-          {enrichedQuarterlyGoals.map((goal) => {
+        <SortableGoalGrid
+          items={sortedQuarterlyGoals}
+          onReorder={handleReorder}
+        >
+          {(item) => {
+            const goal = enrichedQuarterlyGoals.find((g) => g.id === item.id)!;
             const hasChildren = hasWeeklyChildren(goal.id);
             // Get the original goal to access parentYearGoalId (which exists on QuarterGoal type)
             const originalGoal = quarterlyGoals?.find(qg => qg.id === goal.id);
             const parentYearGoal = getParentYearGoal(originalGoal?.parentYearGoalId);
             return (
               <GoalCard
-                key={goal.id}
                 goal={goal}
                 showParentGoals={showParentsGoals}
                 onDelete={handleDeleteQuarterlyGoal}
@@ -166,8 +191,8 @@ export default function Quarter() {
                 parentYearGoal={parentYearGoal}
               />
             );
-          })}
-        </GoalGrid>
+          }}
+        </SortableGoalGrid>
       ) : (
         <div className="text-center py-12">
           <div className="rounded-full bg-muted p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">

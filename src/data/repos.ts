@@ -29,6 +29,9 @@ import type {
   NewYearlyGoalPayload,
   Period,
   QuarterGoal,
+  ReorderQuarterlyGoalsPayload,
+  ReorderWeeklyGoalsPayload,
+  ReorderYearlyGoalsPayload,
   WeekGoal,
   YearGoal,
 } from "@/types/GoalTypes";
@@ -252,6 +255,22 @@ export const YearlyGoals = {
     await deleteDoc(yearlyGoalRef);
     return { uid, yearId, goalId };
   },
+
+  async reorderGoals(
+    uid: ID,
+    yearId: ID,
+    orderedGoalIds: ID[]
+  ): Promise<ReorderYearlyGoalsPayload> {
+    const batch = writeBatch(db);
+
+    orderedGoalIds.forEach((goalId, index) => {
+      const goalRef = doc(db, paths.yearlyGoals(uid, yearId), goalId);
+      batch.update(goalRef, { sortOrder: index });
+    });
+
+    await batch.commit();
+    return { uid, yearId, orderedGoalIds };
+  },
 };
 
 export const QuartersRepo = {
@@ -366,6 +385,23 @@ export const QuarterlyGoals = {
 
     await batch.commit();
     return { uid, yearId, quarterId, goalId };
+  },
+
+  async reorderGoals(
+    uid: ID,
+    yearId: ID,
+    quarterId: ID,
+    orderedGoalIds: ID[]
+  ): Promise<ReorderQuarterlyGoalsPayload> {
+    const batch = writeBatch(db);
+
+    orderedGoalIds.forEach((goalId, index) => {
+      const goalRef = doc(db, paths.quarterlyGoals(uid, yearId, quarterId), goalId);
+      batch.update(goalRef, { sortOrder: index });
+    });
+
+    await batch.commit();
+    return { uid, yearId, quarterId, orderedGoalIds };
   },
 };
 
@@ -649,5 +685,23 @@ export const WeeklyGoals = {
 
     await batch.commit();
     return createdGoals;
+  },
+
+  async reorderGoals(
+    uid: ID,
+    yearId: ID,
+    quarterId: ID,
+    weekId: ID,
+    orderedGoalIds: ID[]
+  ): Promise<ReorderWeeklyGoalsPayload> {
+    const batch = writeBatch(db);
+
+    orderedGoalIds.forEach((goalId, index) => {
+      const goalRef = doc(db, paths.weeklyGoals(uid, yearId, quarterId, weekId), goalId);
+      batch.update(goalRef, { sortOrder: index });
+    });
+
+    await batch.commit();
+    return { uid, yearId, quarterId, weekId, orderedGoalIds };
   },
 };
