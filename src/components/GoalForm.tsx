@@ -10,6 +10,7 @@ import {
     FormMessage
 } from './ui/form'
 import { Input } from './ui/input'
+import { Textarea } from './ui/textarea'
 import { Button } from './ui/button'
 import { Id, IntFromInput } from '@/schemas/common'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select'
@@ -463,118 +464,112 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         )}
                     />
 
-                    {/* WOOP Section */}
-                    <div className={`space-y-4 ${type === 'year' ? '' : 'opacity-80'}`}>
-                        {type === 'year' && (
+                    {/* WOOP Section - Only for yearly goals */}
+                    {type === 'year' && (
+                        <div className="space-y-4">
                             <div className="flex items-center gap-2 pt-2">
                                 <div className="h-px flex-1 bg-border"></div>
                                 <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">{t('goalForm.mentalContrasting')}</span>
                                 <div className="h-px flex-1 bg-border"></div>
                             </div>
-                        )}
 
-                        {/* Outcome */}
-                        <FormField
-                            name="outcome"
-                            key="outcome"
-                            control={form.control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className={type === 'year' ? 'font-semibold' : ''}>
-                                        {type === 'year' ? t('goalForm.outcomes') : t('goalForm.outcomesOptional')}
-                                    </FormLabel>
-                                    <p className="text-xs text-muted-foreground mb-2">{t('goalForm.outcomesHelp')}</p>
-                                    <div className="space-y-2">
-                                        {(field.value as string[])?.map((item, index) => (
-                                            <div key={index} className="flex gap-2">
-                                                <Input
-                                                    value={item}
-                                                    onChange={(e) => {
-                                                        const newItems = [...(field.value as string[])];
-                                                        newItems[index] = e.target.value;
-                                                        field.onChange(newItems);
-                                                    }}
-                                                    placeholder={t('goalForm.outcomePlaceholder', { number: index + 1 })}
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="icon"
-                                                    onClick={() => {
-                                                        const newItems = (field.value as string[]).filter((_, i) => i !== index);
-                                                        field.onChange(newItems);
-                                                    }}
-                                                >
-                                                    X
-                                                </Button>
-                                            </div>
-                                        ))}
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => field.onChange([...(field.value as string[] || []), ''])}
-                                        >
-                                            {t('goalForm.addOutcome')}
-                                        </Button>
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                            {/* Outcome */}
+                            <FormField
+                                name="outcome"
+                                key="outcome"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="font-semibold">{t('goalForm.outcomes')}</FormLabel>
+                                        <p className="text-xs text-muted-foreground mb-2">{t('goalForm.outcomesHelp')}</p>
+                                        <div className="space-y-2">
+                                            {(field.value as string[])?.map((item, index) => (
+                                                <div key={index} className="flex gap-2">
+                                                    <Input
+                                                        value={item}
+                                                        onChange={(e) => {
+                                                            const newItems = [...(field.value as string[])];
+                                                            newItems[index] = e.target.value;
+                                                            field.onChange(newItems);
+                                                        }}
+                                                        placeholder={t('goalForm.outcomePlaceholder', { number: index + 1 })}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={() => {
+                                                            const newItems = (field.value as string[]).filter((_, i) => i !== index);
+                                                            field.onChange(newItems);
+                                                        }}
+                                                    >
+                                                        X
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => field.onChange([...(field.value as string[] || []), ''])}
+                                            >
+                                                {t('goalForm.addOutcome')}
+                                            </Button>
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
-                        {/* Obstacles */}
-                        <FormField
-                            name="obstacles"
-                            key="obstacles"
-                            control={form.control}
-                            render={({ field }) => (
-                                <FormItem>
-                                    <FormLabel className={type === 'year' ? 'font-semibold' : ''}>
-                                        {type === 'year' ? t('goalForm.obstacles') : t('goalForm.obstaclesOptional')}
-                                    </FormLabel>
-                                    <p className="text-xs text-muted-foreground mb-2">{t('goalForm.obstaclesHelp')}</p>
-                                    <div className="space-y-2">
-                                        {(field.value as string[])?.map((item, index) => (
-                                            <div key={index} className="flex gap-2">
-                                                <Input
-                                                    value={item}
-                                                    onChange={(e) => {
-                                                        const newItems = [...(field.value as string[])];
-                                                        newItems[index] = e.target.value;
-                                                        field.onChange(newItems);
-                                                    }}
-                                                    placeholder={t('goalForm.obstaclePlaceholder', { number: index + 1 })}
-                                                />
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="icon"
-                                                    onClick={() => {
-                                                        const newItems = (field.value as string[]).filter((_, i) => i !== index);
-                                                        field.onChange(newItems);
-                                                    }}
-                                                >
-                                                    X
-                                                </Button>
-                                            </div>
-                                        ))}
-                                        <Button
-                                            type="button"
-                                            variant="outline"
-                                            size="sm"
-                                            onClick={() => field.onChange([...(field.value as string[] || []), ''])}
-                                        >
-                                            {t('goalForm.addObstacle')}
-                                        </Button>
-                                    </div>
-                                    <FormMessage />
-                                </FormItem>
-                            )}
-                        />
+                            {/* Obstacles */}
+                            <FormField
+                                name="obstacles"
+                                key="obstacles"
+                                control={form.control}
+                                render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel className="font-semibold">{t('goalForm.obstacles')}</FormLabel>
+                                        <p className="text-xs text-muted-foreground mb-2">{t('goalForm.obstaclesHelp')}</p>
+                                        <div className="space-y-2">
+                                            {(field.value as string[])?.map((item, index) => (
+                                                <div key={index} className="flex gap-2">
+                                                    <Input
+                                                        value={item}
+                                                        onChange={(e) => {
+                                                            const newItems = [...(field.value as string[])];
+                                                            newItems[index] = e.target.value;
+                                                            field.onChange(newItems);
+                                                        }}
+                                                        placeholder={t('goalForm.obstaclePlaceholder', { number: index + 1 })}
+                                                    />
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        onClick={() => {
+                                                            const newItems = (field.value as string[]).filter((_, i) => i !== index);
+                                                            field.onChange(newItems);
+                                                        }}
+                                                    >
+                                                        X
+                                                    </Button>
+                                                </div>
+                                            ))}
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={() => field.onChange([...(field.value as string[] || []), ''])}
+                                            >
+                                                {t('goalForm.addObstacle')}
+                                            </Button>
+                                        </div>
+                                        <FormMessage />
+                                    </FormItem>
+                                )}
+                            />
 
-                        {/* Plan - linked to obstacles */}
-                        {type === 'year' && (
+                            {/* Plan - linked to obstacles */}
                             <FormField
                                 name="plan"
                                 key="plan"
@@ -639,8 +634,29 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                     );
                                 }}
                             />
+                        </div>
+                    )}
+
+                    {/* Notes */}
+                    <FormField
+                        name="notes"
+                        key="notes"
+                        control={form.control}
+                        render={({ field }) => (
+                            <FormItem>
+                                <FormLabel>{t('goalForm.notes')}</FormLabel>
+                                <p className="text-xs text-muted-foreground mb-2">{t('goalForm.notesHelp')}</p>
+                                <FormControl>
+                                    <Textarea
+                                        placeholder={t('common.notesPlaceholder')}
+                                        className="min-h-[100px] resize-y"
+                                        {...field}
+                                    />
+                                </FormControl>
+                                <FormMessage />
+                            </FormItem>
                         )}
-                    </div>
+                    />
 
                     {/* Planned Effort */}
                     {type === 'week' &&

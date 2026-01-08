@@ -10,11 +10,18 @@ import {
   useQuarters,
   useYearlyGoals,
   useYears,
+  useWeeks,
+  useDeleteQuarterlyGoal,
+  useUpdateQuarterNotes,
 } from "@/data/queries";
+import { PeriodNotes } from "@/components/PeriodNotes";
+import type { ID, WeekGoal } from "@/types/GoalTypes";
 import { enrichGoal } from "@/utils/goalsUtils";
 import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQueries } from "@tanstack/react-query";
+import { WeeklyGoals } from "@/data/repos";
 
 export default function Quarter() {
   const { t } = useTranslation()
@@ -45,6 +52,54 @@ export default function Quarter() {
   // Get period names for context
   const { data: years } = useYears(user?.uid || "");
   const { data: quarters } = useQuarters(user?.uid || "", selectedYear);
+  const { data: weeks } = useWeeks(user?.uid || "", selectedYear, selectedQuarter);
+
+  const deleteQuarterlyGoal = useDeleteQuarterlyGoal();
+
+  // Fetch all weekly goals across all weeks to check for children
+  const weeklyGoalsQueries = useQueries({
+    queries: (weeks || []).map((week) => ({
+      queryKey: ['weeklyGoals', user?.uid, selectedYear, selectedQuarter, week.id],
+      queryFn: () => WeeklyGoals.listAll(user!.uid, selectedYear, selectedQuarter, week.id),
+      enabled: !!user?.uid && !!selectedYear && !!selectedQuarter && !!week.id,
+    })),
+  });
+
+  // Flatten all weekly goals to check for parent links
+  const allWeeklyGoals: WeekGoal[] = weeklyGoalsQueries
+    .filter(q => q.data)
+    .flatMap(q => q.data as WeekGoal[]);
+
+  // Check if a quarterly goal has weekly children
+  const hasWeeklyChildren = (quarterGoalId: ID): boolean => {
+    return allWeeklyGoals.some(wg => wg.parentQuarterGoalId === quarterGoalId);
+  };
+
+  // Get the parent yearly goal for a quarterly goal
+  const getParentYearGoal = (parentYearGoalId: ID | undefined) => {
+    if (!parentYearGoalId || !yearlyGoals) return undefined;
+    return yearlyGoals.find(yg => yg.id === parentYearGoalId);
+  };
+
+  const handleDeleteQuarterlyGoal = (goalId: ID) => {
+    deleteQuarterlyGoal.mutate({
+      uid: user!.uid,
+      yearId: selectedYear,
+      quarterId: selectedQuarter,
+      goalId,
+    });
+  };
+
+  const updateQuarterNotes = useUpdateQuarterNotes();
+
+  const handleSaveQuarterNotes = (notes: string) => {
+    updateQuarterNotes.mutate({
+      uid: user!.uid,
+      yearId: selectedYear,
+      quarterId: selectedQuarter,
+      notes,
+    });
+  };
 
   const currentYear = years?.find(y => y.id === selectedYear);
   const currentQuarter = quarters?.find(q => q.id === selectedQuarter);
@@ -73,10 +128,10 @@ export default function Quarter() {
           <h1 className="text-2xl font-bold tracking-tight">{t('periods.quarter')} {currentQuarter?.name || ''}</h1>
         </div>
         <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <label className="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
             <input
               type="checkbox"
-              className="rounded border-input h-4 w-4"
+              className="rounded border-input h-4 w-4 accent-primary shrink-0"
               checked={showParentsGoals}
               onChange={() => setShowParentGoals((prev) => !prev)}
             />
@@ -95,13 +150,23 @@ export default function Quarter() {
       {/* Goals Grid */}
       {enrichedQuarterlyGoals && enrichedQuarterlyGoals.length > 0 ? (
         <GoalGrid>
-          {enrichedQuarterlyGoals.map((goal) => (
-            <GoalCard
-              key={goal.id}
-              goal={goal}
-              showParentGoals={showParentsGoals}
-            />
-          ))}
+          {enrichedQuarterlyGoals.map((goal) => {
+            const hasChildren = hasWeeklyChildren(goal.id);
+            // Get the original goal to access parentYearGoalId (which exists on QuarterGoal type)
+            const originalGoal = quarterlyGoals?.find(qg => qg.id === goal.id);
+            const parentYearGoal = getParentYearGoal(originalGoal?.parentYearGoalId);
+            return (
+              <GoalCard
+                key={goal.id}
+                goal={goal}
+                showParentGoals={showParentsGoals}
+                onDelete={handleDeleteQuarterlyGoal}
+                canDelete={!hasChildren}
+                deleteWarning={hasChildren ? t('goals.deleteQuarterlyWarning') : undefined}
+                parentYearGoal={parentYearGoal}
+              />
+            );
+          })}
         </GoalGrid>
       ) : (
         <div className="text-center py-12">
@@ -118,6 +183,13 @@ export default function Quarter() {
           <Button onClick={newClick}>{t('goals.addFirstGoal')}</Button>
         </div>
       )}
+
+      {/* Period Notes */}
+      <PeriodNotes
+        notes={currentQuarter?.notes}
+        onSave={handleSaveQuarterNotes}
+        isPending={updateQuarterNotes.isPending}
+      />
     </div>
   );
 }

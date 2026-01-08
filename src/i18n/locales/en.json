@@ -15,7 +15,10 @@
     "show": "Show",
     "hide": "Hide",
     "details": "Details",
-    "preview": "Preview"
+    "preview": "Preview",
+    "confirm": "Confirm",
+    "notes": "Notes",
+    "notesPlaceholder": "Add notes..."
   },
   "nav": {
     "brand": "Goals",
@@ -46,7 +49,11 @@
     "newWeek": "New Week",
     "year": "Year",
     "quarter": "Quarter",
-    "week": "Week"
+    "week": "Week",
+    "copyFromLast": "Copy from last week",
+    "periodNotes": "Period Notes",
+    "periodNotesPlaceholder": "Summarize this period...",
+    "savePeriodNotes": "Save Notes"
   },
   "goals": {
     "addGoal": "Add Goal",
@@ -64,17 +71,25 @@
     "weeklySummary": "Weekly Summary",
     "percentComplete": "{{percent}}% complete",
     "parentYear": "Year:",
-    "parentQuarter": "Quarter:"
+    "parentQuarter": "Quarter:",
+    "deleteGoal": "Delete Goal",
+    "deleteConfirm": "Are you sure you want to delete this goal?",
+    "deleteYearlyWarning": "This yearly goal has quarterly goals linked to it. Delete them first.",
+    "deleteQuarterlyWarning": "This quarterly goal has weekly goals linked to it. Delete them first.",
+    "cannotDelete": "Cannot delete",
+    "viewParentGoal": "View Parent Goal",
+    "parentGoalDetails": "Parent Goal Details"
   },
   "goalCard": {
     "outcomes": "Outcomes",
     "obstacles": "Obstacles",
     "plan": "Plan",
-    "showDetails": "Show Details",
-    "hideDetails": "Hide Details",
+    "showWOOP": "Show WOOP",
+    "hideWOOP": "Hide WOOP",
     "if": "IF",
     "then": "THEN",
-    "noActionDefined": "No action defined"
+    "noActionDefined": "No action defined",
+    "notes": "Notes"
   },
   "goalForm": {
     "editGoal": "Edit Goal",
@@ -117,7 +132,10 @@
     "effortQuestion": "How many time slots (hours/sessions) will you dedicate to this goal?",
     "sessions": "sessions",
     "saveChanges": "Save Changes",
-    "createGoal": "Create Goal"
+    "createGoal": "Create Goal",
+    "deleteGoal": "Delete Goal",
+    "notes": "Notes",
+    "notesHelp": "Add any additional notes or context for this goal."
   },
   "validation": {
     "wishRequired": "The first step to achieving a goal is to write a wish!",

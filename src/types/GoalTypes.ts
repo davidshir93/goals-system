@@ -129,10 +129,50 @@ export type EditQuarterlyGoalPayload = {
   updatedFields: Partial<QuarterGoal>;
 };
 
+export type DeleteYearlyGoalPayload = {
+  uid: ID;
+  yearId: ID;
+  goalId: ID;
+};
+
+export type DeleteQuarterlyGoalPayload = {
+  uid: ID;
+  yearId: ID;
+  quarterId: ID;
+  goalId: ID;
+};
+
+export type DeleteWeeklyGoalPayload = {
+  uid: ID;
+  yearId: ID;
+  quarterId: ID;
+  weekId: ID;
+  goalId: ID;
+};
+
+export type CopyWeeklyGoalsPayload = {
+  uid: ID;
+  yearId: ID;
+  sourceQuarterId: ID;
+  sourceWeekId: ID;
+  targetQuarterId: ID;
+  targetWeekId: ID;
+};
+
 export type Period = {
   id: ID;
   name: string;
   type: "year" | "quarter" | "week";
+  notes?: string;
+};
+
+export type UpdatePeriodNotesPayload = {
+  uid: ID;
+  yearId: ID;
+  quarterId?: ID;
+  weekId?: ID;
+  periodType: "year" | "quarter" | "week";
+  notes: string;
 };
 
 export type NewYearPayload = {

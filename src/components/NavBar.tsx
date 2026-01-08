@@ -137,48 +137,60 @@ export const NavBar = () => {
                 {/* Mobile Navigation Menu */}
                 {mobileMenuOpen && user && (
                     <div className="md:hidden border-t py-4 space-y-2 animate-in slide-in-from-top-2 duration-200">
-                        <NavLink
-                            to="/week"
-                            className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors"
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            <span className="font-medium">{t('nav.week')}</span>
-                            <PeriodSelector
-                                type='week'
-                                periods={weeks ?? []}
-                                selectedPeriod={selectedWeek}
-                                onChange={setSelectedWeek}
-                                width={110}
-                            />
-                        </NavLink>
-                        <NavLink
-                            to="/quarter"
-                            className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors"
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            <span className="font-medium">{t('nav.quarter')}</span>
-                            <PeriodSelector
-                                type="quarter"
-                                periods={quarters ?? []}
-                                selectedPeriod={selectedQuarter}
-                                onChange={setSelectedQuarter}
-                                width={110}
-                            />
-                        </NavLink>
-                        <NavLink
-                            to="/year"
-                            className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors"
-                            onClick={() => setMobileMenuOpen(false)}
-                        >
-                            <span className="font-medium">{t('nav.year')}</span>
-                            <PeriodSelector
-                                type="year"
-                                periods={years ?? []}
-                                selectedPeriod={selectedYear}
-                                onChange={setSelectedYear}
-                                width={110}
-                            />
-                        </NavLink>
+                        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors">
+                            <NavLink
+                                to="/week"
+                                className="font-medium flex-1"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {t('nav.week')}
+                            </NavLink>
+                            <div onClick={(e) => e.stopPropagation()}>
+                                <PeriodSelector
+                                    type='week'
+                                    periods={weeks ?? []}
+                                    selectedPeriod={selectedWeek}
+                                    onChange={setSelectedWeek}
+                                    width={110}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors">
+                            <NavLink
+                                to="/quarter"
+                                className="font-medium flex-1"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {t('nav.quarter')}
+                            </NavLink>
+                            <div onClick={(e) => e.stopPropagation()}>
+                                <PeriodSelector
+                                    type="quarter"
+                                    periods={quarters ?? []}
+                                    selectedPeriod={selectedQuarter}
+                                    onChange={setSelectedQuarter}
+                                    width={110}
+                                />
+                            </div>
+                        </div>
+                        <div className="flex items-center justify-between p-3 rounded-lg hover:bg-accent transition-colors">
+                            <NavLink
+                                to="/year"
+                                className="font-medium flex-1"
+                                onClick={() => setMobileMenuOpen(false)}
+                            >
+                                {t('nav.year')}
+                            </NavLink>
+                            <div onClick={(e) => e.stopPropagation()}>
+                                <PeriodSelector
+                                    type="year"
+                                    periods={years ?? []}
+                                    selectedPeriod={selectedYear}
+                                    onChange={setSelectedYear}
+                                    width={110}
+                                />
+                            </div>
+                        </div>
                         <div className="pt-2 border-t mt-2">
                             <Button
                                 variant="ghost"

@@ -1,31 +1,46 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import type { EnrichedGoalType, ID, PlanItem } from "@/types/GoalTypes";
+import type { EnrichedGoalType, ID, PlanItem, YearGoal } from "@/types/GoalTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Slider } from "./ui/slider";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
 import { Button } from "./ui/button";
 import { useTranslation } from "react-i18next";
+import { getTextColorForBg } from "@/utils/colors";
 
 type GoalCardProps = {
   goal: EnrichedGoalType;
   showParentGoals?: boolean;
   onEditWeeklyProgress?: (goalId: ID, done: number) => void;
+  onDelete?: (goalId: ID) => void;
+  canDelete?: boolean;
+  deleteWarning?: string;
+  parentYearGoal?: YearGoal;
 };
 
 export default function GoalCard({
   goal,
   onEditWeeklyProgress,
   showParentGoals = true,
+  onDelete,
+  canDelete = true,
+  deleteWarning,
+  parentYearGoal,
 }: GoalCardProps) {
   const { t } = useTranslation()
   const [showWoop, setShowWoop] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showNotes, setShowNotes] = useState(false);
 
-  const hasOutcome = goal.outcome && goal.outcome.length > 0;
-  const hasObstacles = goal.obstacles && goal.obstacles.length > 0;
-  const hasPlan = goal.plan && goal.plan.length > 0;
+  // For year goals, use own WOOP. For quarter/week goals, use parent's WOOP
+  const woopSource = goal.type === 'year' ? goal : parentYearGoal;
+
+  const hasOutcome = woopSource?.outcome && woopSource.outcome.length > 0;
+  const hasObstacles = woopSource?.obstacles && woopSource.obstacles.length > 0;
+  const hasPlan = woopSource?.plan && woopSource.plan.length > 0;
   const hasWoopContent = hasOutcome || hasObstacles || hasPlan;
+  const hasNotes = goal.notes && goal.notes.trim().length > 0;
 
   const defaultTab = hasOutcome ? "outcome" : hasObstacles ? "obstacles" : "plan";
 
@@ -36,10 +51,17 @@ export default function GoalCard({
 
   const editPath = `/${goal.type}/edit/${goal.id}`;
 
+  const handleDelete = () => {
+    if (canDelete && onDelete) {
+      onDelete(goal.id);
+      setShowDeleteConfirm(false);
+    }
+  };
+
   return (
-    <Card className="h-full flex flex-col bg-card hover:shadow-md transition-all duration-200">
-      <CardHeader className="pb-3 space-y-3">
-        {/* Badges and Edit Button Row */}
+    <Card className="bg-card hover:shadow-md transition-all duration-200">
+      <CardHeader className="pb-2 space-y-2">
+        {/* Badges and Actions Row */}
         <div className="flex justify-between items-start gap-2">
           <div className="flex gap-1.5 flex-wrap">
             {goal.category && (
@@ -47,8 +69,8 @@ export default function GoalCard({
                 variant="secondary"
                 className="text-xs font-medium px-2.5 py-0.5 border"
                 style={{
-                  backgroundColor: `${goal.category.color}15`,
-                  color: goal.category.color,
+                  backgroundColor: goal.category.color,
+                  color: getTextColorForBg(goal.category.color),
                   borderColor: `${goal.category.color}30`
                 }}
               >
@@ -60,8 +82,8 @@ export default function GoalCard({
                 variant="secondary"
                 className="text-xs font-medium px-2.5 py-0.5 border"
                 style={{
-                  backgroundColor: `${goal.identity.color}15`,
-                  color: goal.identity.color,
+                  backgroundColor: goal.identity.color,
+                  color: getTextColorForBg(goal.identity.color),
                   borderColor: `${goal.identity.color}30`
                 }}
               >
@@ -69,20 +91,75 @@ export default function GoalCard({
               </Badge>
             )}
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            asChild
-            className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0"
-          >
-            <Link to={editPath}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                <path d="m15 5 4 4"/>
-              </svg>
-            </Link>
-          </Button>
+          <div className="flex gap-1">
+            <Button
+              variant="ghost"
+              size="icon"
+              asChild
+              className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0"
+            >
+              <Link to={editPath}>
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
+                  <path d="m15 5 4 4"/>
+                </svg>
+              </Link>
+            </Button>
+            {onDelete && (
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M3 6h18"/>
+                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
+                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
+                </svg>
+              </Button>
+            )}
+          </div>
         </div>
+
+        {/* Delete Confirmation */}
+        {showDeleteConfirm && (
+          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 space-y-2">
+            {!canDelete && deleteWarning ? (
+              <>
+                <p className="text-sm text-destructive font-medium">{t('goals.cannotDelete')}</p>
+                <p className="text-xs text-destructive/80">{deleteWarning}</p>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setShowDeleteConfirm(false)}
+                >
+                  {t('common.cancel')}
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-destructive">{t('goals.deleteConfirm')}</p>
+                <div className="flex gap-2">
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDelete}
+                  >
+                    {t('common.delete')}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowDeleteConfirm(false)}
+                  >
+                    {t('common.cancel')}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
 
         {/* Goal Title */}
         <CardTitle className="text-xl font-bold leading-snug">
@@ -90,10 +167,10 @@ export default function GoalCard({
         </CardTitle>
       </CardHeader>
 
-      <CardContent className="pt-0 flex-1 flex flex-col">
+      <CardContent className="pt-0 space-y-3">
         {/* Parent Goals */}
         {showParentGoals && (goal.parentQuarterGoalWish || goal.parentYearGoalWish) && (
-          <div className="mb-4 p-3 rounded-lg bg-muted/50 space-y-2 text-sm">
+          <div className="p-2.5 rounded-lg bg-muted/50 space-y-1.5 text-sm">
             {goal.parentYearGoalWish && (
               <div className="flex items-start gap-2">
                 <span className="text-xs text-muted-foreground shrink-0 pt-0.5 font-medium">{t('goals.parentYear')}</span>
@@ -109,9 +186,31 @@ export default function GoalCard({
           </div>
         )}
 
+        {/* Notes Section */}
+        {hasNotes && (
+          <div>
+            <button
+              type="button"
+              onClick={() => setShowNotes(!showNotes)}
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+                <polyline points="14 2 14 8 20 8"/>
+              </svg>
+              <span className="text-xs font-medium">{t('goalCard.notes')}</span>
+            </button>
+            {showNotes && (
+              <div className="mt-2 p-3 rounded-lg bg-muted/30 border">
+                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{goal.notes}</p>
+              </div>
+            )}
+          </div>
+        )}
+
         {/* Weekly Progress Slider */}
         {goal.type === "week" && (
-          <div className="mt-auto pt-3">
+          <div>
             <Slider
               defaultValue={[goal.done || 0]}
               max={goal.planned}
@@ -130,7 +229,7 @@ export default function GoalCard({
         {(goal.type === "quarter" || goal.type === "year") &&
           !goal.emptyProgress &&
           goal.doneAveragePercent !== undefined && (
-            <div className="mt-auto pt-3">
+            <div>
               <Slider
                 value={[Math.round(Number(goal.doneAveragePercent))]}
                 max={100}
@@ -143,9 +242,9 @@ export default function GoalCard({
             </div>
           )}
 
-        {/* WOOP Section */}
+        {/* WOOP Section - Show parent's WOOP for quarter/week goals */}
         {hasWoopContent && (
-          <div className="mt-4 pt-3 border-t">
+          <div className="pt-2 border-t">
             <button
               type="button"
               onClick={() => setShowWoop(!showWoop)}
@@ -166,14 +265,17 @@ export default function GoalCard({
                 <path d="m9 18 6-6-6-6"/>
               </svg>
               <span className="text-xs font-medium">
-                {showWoop ? t('goalCard.hideDetails') : t('goalCard.showDetails')}
+                {goal.type !== 'year' && parentYearGoal
+                  ? `${showWoop ? t('goalCard.hideWOOP') : t('goalCard.showWOOP')} (${t('goals.parentGoalDetails')})`
+                  : (showWoop ? t('goalCard.hideWOOP') : t('goalCard.showWOOP'))
+                }
               </span>
             </button>
 
-            {showWoop && (
+            {showWoop && woopSource && (
               <div className="mt-3 border rounded-lg overflow-hidden">
                 <Tabs defaultValue={defaultTab}>
-                  <TabsList className="w-full justify-start rounded-none border-b bg-muted/30 p-0 h-auto">
+                  <TabsList className="w-full rounded-none border-b bg-muted/30 p-0 h-auto">
                     {hasOutcome && (
                       <TabsTrigger
                         value="outcome"
@@ -211,39 +313,35 @@ export default function GoalCard({
 
                   {hasOutcome && (
                     <TabsContent value="outcome" className="p-3 mt-0">
-                      <div className="space-y-2">
-                        {goal.outcome!.map((item, index) => (
-                          <div key={index} className="flex items-start gap-2">
-                            <span className="w-4 h-4 rounded-full bg-green-500/10 text-green-600 dark:text-green-400 flex items-center justify-center text-[10px] font-medium shrink-0 mt-0.5">
-                              {index + 1}
-                            </span>
+                      <ul className="space-y-2">
+                        {woopSource.outcome!.map((item, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0 mt-1.5"></span>
                             <p className="text-xs text-muted-foreground">{item}</p>
-                          </div>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     </TabsContent>
                   )}
 
                   {hasObstacles && (
                     <TabsContent value="obstacles" className="p-3 mt-0">
-                      <div className="space-y-2">
-                        {goal.obstacles!.map((item, index) => (
-                          <div key={index} className="flex items-start gap-2">
-                            <span className="w-4 h-4 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 flex items-center justify-center text-[10px] font-medium shrink-0 mt-0.5">
-                              {index + 1}
-                            </span>
+                      <ul className="space-y-2">
+                        {woopSource.obstacles!.map((item, index) => (
+                          <li key={index} className="flex items-start gap-2">
+                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 mt-1.5"></span>
                             <p className="text-xs text-muted-foreground">{item}</p>
-                          </div>
+                          </li>
                         ))}
-                      </div>
+                      </ul>
                     </TabsContent>
                   )}
 
                   {hasPlan && (
                     <TabsContent value="plan" className="p-3 mt-0">
-                      <div className="space-y-2">
-                        {isPlanItemArray(goal.plan) ? (
-                          goal.plan.map((item, index) => (
+                      {isPlanItemArray(woopSource.plan) ? (
+                        <div className="space-y-2">
+                          {woopSource.plan.map((item, index) => (
                             <div key={index} className="p-2.5 rounded-lg bg-blue-500/5 border border-blue-500/10">
                               <div className="flex items-start gap-2 mb-1.5">
                                 <span className="text-[10px] font-bold text-orange-500 shrink-0">{t('goalCard.if')}</span>
@@ -254,19 +352,19 @@ export default function GoalCard({
                                 <p className="text-xs font-medium">{item.action || <span className="text-muted-foreground italic">{t('goalCard.noActionDefined')}</span>}</p>
                               </div>
                             </div>
-                          ))
-                        ) : (
-                          // Fallback for old string[] format
-                          (goal.plan as unknown as string[]).map((item, index) => (
-                            <div key={index} className="flex items-start gap-2">
-                              <span className="w-4 h-4 rounded-full bg-blue-500/10 text-blue-600 dark:text-blue-400 flex items-center justify-center text-[10px] font-medium shrink-0 mt-0.5">
-                                {index + 1}
-                              </span>
+                          ))}
+                        </div>
+                      ) : (
+                        // Fallback for old string[] format
+                        <ul className="space-y-2">
+                          {(woopSource.plan as unknown as string[]).map((item, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5"></span>
                               <p className="text-xs text-muted-foreground">{item}</p>
-                            </div>
-                          ))
-                        )}
-                      </div>
+                            </li>
+                          ))}
+                        </ul>
+                      )}
                     </TabsContent>
                   )}
                 </Tabs>

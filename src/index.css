@@ -154,10 +154,15 @@ html[dir="rtl"] {
 }
 
 /* Form elements RTL */
-[dir="rtl"] input,
+[dir="rtl"] input:not([type="checkbox"]):not([type="radio"]),
 [dir="rtl"] textarea,
 [dir="rtl"] select {
   text-align: right;
+}
+
+/* Checkbox RTL - keep native appearance */
+[dir="rtl"] input[type="checkbox"] {
+  margin: 0;
 }
 
 /* Select dropdown RTL */

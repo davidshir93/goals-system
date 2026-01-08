@@ -3,10 +3,14 @@ import { GoalGrid } from "@/components/GoalGrid";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext"
-import { useCategories, useIdentities, useYearlyGoals, useYears } from "@/data/queries";
+import { useCategories, useIdentities, useYearlyGoals, useYears, useQuarters, useDeleteYearlyGoal, useUpdateYearNotes } from "@/data/queries";
+import { PeriodNotes } from "@/components/PeriodNotes";
+import type { ID, QuarterGoal } from "@/types/GoalTypes";
 import { enrichGoal } from "@/utils/goalsUtils";
 import { useNavigate } from "react-router-dom";
 import { useTranslation } from "react-i18next";
+import { useQueries } from "@tanstack/react-query";
+import { QuarterlyGoals } from "@/data/repos";
 
 export default function Year() {
     const { t } = useTranslation()
@@ -23,6 +27,46 @@ export default function Year() {
     const { data: identities, isLoading: idLoading, error: idErr } = useIdentities(user?.uid || "");
     const { data: yearlyGoals, isLoading: yearlyGoalsLoading, error: yearlyGoalsErr } = useYearlyGoals(user?.uid || "", selectedYear);
     const { data: years } = useYears(user?.uid || "");
+    const { data: quarters } = useQuarters(user?.uid || "", selectedYear);
+
+    const deleteYearlyGoal = useDeleteYearlyGoal();
+
+    // Fetch all quarterly goals across all quarters to check for children
+    const quarterlyGoalsQueries = useQueries({
+        queries: (quarters || []).map((quarter) => ({
+            queryKey: ['quarterlyGoals', user?.uid, selectedYear, quarter.id],
+            queryFn: () => QuarterlyGoals.listAll(user!.uid, selectedYear, quarter.id),
+            enabled: !!user?.uid && !!selectedYear && !!quarter.id,
+        })),
+    });
+
+    // Flatten all quarterly goals to check for parent links
+    const allQuarterlyGoals: QuarterGoal[] = quarterlyGoalsQueries
+        .filter(q => q.data)
+        .flatMap(q => q.data as QuarterGoal[]);
+
+    // Check if a yearly goal has quarterly children
+    const hasQuarterlyChildren = (yearGoalId: ID): boolean => {
+        return allQuarterlyGoals.some(qg => qg.parentYearGoalId === yearGoalId);
+    };
+
+    const handleDeleteYearlyGoal = (goalId: ID) => {
+        deleteYearlyGoal.mutate({
+            uid: user!.uid,
+            yearId: selectedYear,
+            goalId,
+        });
+    };
+
+    const updateYearNotes = useUpdateYearNotes();
+
+    const handleSaveYearNotes = (notes: string) => {
+        updateYearNotes.mutate({
+            uid: user!.uid,
+            yearId: selectedYear,
+            notes,
+        });
+    };
 
     const currentYear = years?.find(y => y.id === selectedYear);
 
@@ -66,12 +110,18 @@ export default function Year() {
             {/* Goals Grid */}
             {yearlyGoals && yearlyGoals.length > 0 ? (
                 <GoalGrid>
-                    {yearlyGoals.map(goal => (
-                        <GoalCard
-                            key={goal.id}
-                            goal={enrichGoal(goal, [], yearlyGoals!, categories!, identities!)}
-                        />
-                    ))}
+                    {yearlyGoals.map(goal => {
+                        const hasChildren = hasQuarterlyChildren(goal.id);
+                        return (
+                            <GoalCard
+                                key={goal.id}
+                                goal={enrichGoal(goal, [], yearlyGoals!, categories!, identities!)}
+                                onDelete={handleDeleteYearlyGoal}
+                                canDelete={!hasChildren}
+                                deleteWarning={hasChildren ? t('goals.deleteYearlyWarning') : undefined}
+                            />
+                        );
+                    })}
                 </GoalGrid>
             ) : (
                 <div className="text-center py-12">
@@ -88,6 +138,13 @@ export default function Year() {
                     <Button onClick={newClick}>{t('goals.addFirstGoal')}</Button>
                 </div>
             )}
+
+            {/* Period Notes */}
+            <PeriodNotes
+                notes={currentYear?.notes}
+                onSave={handleSaveYearNotes}
+                isPending={updateYearNotes.isPending}
+            />
         </div>
     )
 }

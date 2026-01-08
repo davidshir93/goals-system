@@ -1,8 +1,8 @@
 {
   "common": {
-    "loading": "...טוען",
-    "loadingGoals": "...טוען מטרות",
-    "loadingData": "...טוען נתונים",
+    "loading": "טוען...",
+    "loadingGoals": "טוען מטרות...",
+    "loadingData": "טוען נתונים...",
     "error": "שגיאה",
     "failedToLoad": "טעינת הנתונים נכשלה.",
     "tryRefreshing": "נסה לרענן את הדף.",
@@ -15,7 +15,10 @@
     "show": "הצג",
     "hide": "הסתר",
     "details": "פרטים",
-    "preview": "תצוגה מקדימה"
+    "preview": "תצוגה מקדימה",
+    "confirm": "אישור",
+    "notes": "הערות",
+    "notesPlaceholder": "הוסף הערות..."
   },
   "nav": {
     "brand": "מטרות",
@@ -46,7 +49,11 @@
     "newWeek": "שבוע חדש",
     "year": "שנה",
     "quarter": "רבעון",
-    "week": "שבוע"
+    "week": "שבוע",
+    "copyFromLast": "העתק משבוע קודם",
+    "periodNotes": "הערות לתקופה",
+    "periodNotesPlaceholder": "סכם את התקופה...",
+    "savePeriodNotes": "שמור הערות"
   },
   "goals": {
     "addGoal": "הוסף מטרה",
@@ -64,17 +71,25 @@
     "weeklySummary": "סיכום שבועי",
     "percentComplete": "{{percent}}% הושלם",
     "parentYear": "שנה:",
-    "parentQuarter": "רבעון:"
+    "parentQuarter": "רבעון:",
+    "deleteGoal": "מחק מטרה",
+    "deleteConfirm": "האם אתה בטוח שברצונך למחוק את המטרה הזו?",
+    "deleteYearlyWarning": "למטרה שנתית זו יש מטרות רבעוניות מקושרות. מחק אותן קודם.",
+    "deleteQuarterlyWarning": "למטרה רבעונית זו יש מטרות שבועיות מקושרות. מחק אותן קודם.",
+    "cannotDelete": "לא ניתן למחוק",
+    "viewParentGoal": "צפה במטרת האב",
+    "parentGoalDetails": "פרטי מטרת האב"
   },
   "goalCard": {
     "outcomes": "תוצאות",
     "obstacles": "מכשולים",
     "plan": "תוכנית",
-    "showDetails": "הצג פרטים",
-    "hideDetails": "הסתר פרטים",
+    "showWOOP": "הצג WOOP",
+    "hideWOOP": "הסתר WOOP",
     "if": "אם",
     "then": "אז",
-    "noActionDefined": "לא הוגדרה פעולה"
+    "noActionDefined": "לא הוגדרה פעולה",
+    "notes": "הערות"
   },
   "goalForm": {
     "editGoal": "עריכת מטרה",
@@ -94,7 +109,7 @@
     "parentYearGoal": "מטרת אב שנתית",
     "selectParentYear": "בחר מטרה שנתית.",
     "goalTitle": "כותרת המטרה",
-    "goalPlaceholder": "מה אתה רוצה להשיג {{period}} הזה/הזאת?",
+    "goalPlaceholder": "מה אתה רוצה להשיג ב{{period}} הזה/הזאת?",
     "mentalContrasting": "ניגודיות מנטלית",
     "outcomes": "תוצאות",
     "outcomesOptional": "תוצאות (אופציונלי)",
@@ -117,7 +132,10 @@
     "effortQuestion": "כמה יחידות זמן (שעות/פגישות) תקדיש למטרה זו?",
     "sessions": "יחידות",
     "saveChanges": "שמור שינויים",
-    "createGoal": "צור מטרה"
+    "createGoal": "צור מטרה",
+    "deleteGoal": "מחק מטרה",
+    "notes": "הערות",
+    "notesHelp": "הוסף הערות נוספות או הקשר למטרה זו."
   },
   "validation": {
     "wishRequired": "הצעד הראשון להשגת מטרה הוא לכתוב משאלה!",
@@ -154,7 +172,7 @@
     "identityNumber": "זהות {{number}}"
   },
   "periodForm": {
-    "newPeriod": "{{type}} חדש"
+    "newPeriod": "{{type}} חדש/חדשה"
   },
   "language": {
     "english": "English",

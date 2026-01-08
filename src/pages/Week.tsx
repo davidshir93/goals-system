@@ -15,7 +15,11 @@ import {
   useWeeks,
   useYearlyGoals,
   useYears,
+  useDeleteWeeklyGoal,
+  useCopyWeeklyGoals,
+  useUpdateWeekNotes,
 } from "@/data/queries";
+import { PeriodNotes } from "@/components/PeriodNotes";
 import type { ID } from "@/types/GoalTypes";
 import { enrichGoal } from "@/utils/goalsUtils";
 import { useMemo, useState } from "react";
@@ -76,6 +80,7 @@ export default function Week() {
   }, [weeklyGoals]);
 
   const useEditWeeklyGoal = UseEditWeeklyGoal();
+  const deleteWeeklyGoal = useDeleteWeeklyGoal();
 
   const onEditWeeklyProgress = (goalId: ID, done: number) => {
     useEditWeeklyGoal.mutate({
@@ -87,6 +92,95 @@ export default function Week() {
       updatedFields: { done },
     });
     return;
+  };
+
+  // Get the parent yearly goal for a weekly goal (via its parent quarterly goal)
+  const getParentYearGoal = (parentQuarterGoalId: ID | undefined) => {
+    if (!parentQuarterGoalId || !quarterlyGoals || !yearlyGoals) return undefined;
+    const quarterGoal = quarterlyGoals.find(qg => qg.id === parentQuarterGoalId);
+    if (!quarterGoal?.parentYearGoalId) return undefined;
+    return yearlyGoals.find(yg => yg.id === quarterGoal.parentYearGoalId);
+  };
+
+  const handleDeleteWeeklyGoal = (goalId: ID) => {
+    deleteWeeklyGoal.mutate({
+      uid: user!.uid,
+      yearId: selectedYear,
+      quarterId: selectedQuarter,
+      weekId: selectedWeek,
+      goalId,
+    });
+  };
+
+  const copyWeeklyGoals = useCopyWeeklyGoals();
+
+  // Find previous week (in same quarter or previous quarter)
+  const getPreviousWeek = () => {
+    if (!weeks || !quarters) return null;
+
+    // Sort weeks by name (W1, W2, ..., W13)
+    const sortedWeeks = [...weeks].sort((a, b) => {
+      const aNum = parseInt(a.name.replace('W', ''));
+      const bNum = parseInt(b.name.replace('W', ''));
+      return aNum - bNum;
+    });
+
+    const currentWeekIndex = sortedWeeks.findIndex(w => w.id === selectedWeek);
+
+    if (currentWeekIndex > 0) {
+      // Previous week is in the same quarter
+      return {
+        quarterId: selectedQuarter,
+        weekId: sortedWeeks[currentWeekIndex - 1].id,
+      };
+    }
+
+    // Need to look in previous quarter
+    const sortedQuarters = [...quarters].sort((a, b) => {
+      const aNum = parseInt(a.name.replace('Q', ''));
+      const bNum = parseInt(b.name.replace('Q', ''));
+      return aNum - bNum;
+    });
+
+    const currentQuarterIndex = sortedQuarters.findIndex(q => q.id === selectedQuarter);
+
+    if (currentQuarterIndex > 0) {
+      // Get last week of previous quarter (W13)
+      const prevQuarter = sortedQuarters[currentQuarterIndex - 1];
+      return {
+        quarterId: prevQuarter.id,
+        weekId: `${prevQuarter.id}-13`, // Assuming week ID format
+      };
+    }
+
+    return null; // No previous week found
+  };
+
+  const previousWeek = getPreviousWeek();
+
+  const handleCopyFromLastWeek = () => {
+    if (!previousWeek || !user) return;
+
+    copyWeeklyGoals.mutate({
+      uid: user.uid,
+      yearId: selectedYear,
+      sourceQuarterId: previousWeek.quarterId,
+      sourceWeekId: previousWeek.weekId,
+      targetQuarterId: selectedQuarter,
+      targetWeekId: selectedWeek,
+    });
+  };
+
+  const updateWeekNotes = useUpdateWeekNotes();
+
+  const handleSaveWeekNotes = (notes: string) => {
+    updateWeekNotes.mutate({
+      uid: user!.uid,
+      yearId: selectedYear,
+      quarterId: selectedQuarter,
+      weekId: selectedWeek,
+      notes,
+    });
   };
 
   if (weeklyGoalsErr || quarterlyGoalsErr || yearlyGoalsErr || catErr || idErr) {
@@ -109,10 +203,10 @@ export default function Week() {
           <h1 className="text-2xl font-bold tracking-tight">{t('periods.week')} {currentWeek?.name || ''}</h1>
         </div>
         <div className="flex items-center gap-4">
-          <label className="flex items-center gap-2 text-sm cursor-pointer">
+          <label className="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
             <input
               type="checkbox"
-              className="rounded border-input h-4 w-4"
+              className="rounded border-input h-4 w-4 accent-primary shrink-0"
               checked={showParentsGoals}
               onChange={() => setShowParentGoals((prev) => !prev)}
             />
@@ -131,20 +225,27 @@ export default function Week() {
       {/* Goals Grid */}
       {weeklyGoals && weeklyGoals.length > 0 ? (
         <GoalGrid>
-          {weeklyGoals.map((goal) => (
-            <GoalCard
-              key={goal.id}
-              goal={enrichGoal(
-                goal,
-                quarterlyGoals!,
-                yearlyGoals!,
-                categories!,
-                identities!
-              )}
-              onEditWeeklyProgress={onEditWeeklyProgress}
-              showParentGoals={showParentsGoals}
-            />
-          ))}
+          {weeklyGoals.map((goal) => {
+            const enrichedGoal = enrichGoal(
+              goal,
+              quarterlyGoals!,
+              yearlyGoals!,
+              categories!,
+              identities!
+            );
+            const parentYearGoal = getParentYearGoal(goal.parentQuarterGoalId);
+            return (
+              <GoalCard
+                key={goal.id}
+                goal={enrichedGoal}
+                onEditWeeklyProgress={onEditWeeklyProgress}
+                showParentGoals={showParentsGoals}
+                onDelete={handleDeleteWeeklyGoal}
+                canDelete={true}
+                parentYearGoal={parentYearGoal}
+              />
+            );
+          })}
         </GoalGrid>
       ) : (
         <div className="text-center py-12">
@@ -158,7 +259,31 @@ export default function Week() {
           <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
             {t('goals.noWeeklyGoalsDesc')}
           </p>
-          <Button onClick={newClick}>{t('goals.addFirstGoal')}</Button>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Button onClick={newClick}>{t('goals.addFirstGoal')}</Button>
+            {previousWeek && (
+              <Button
+                variant="outline"
+                onClick={handleCopyFromLastWeek}
+                disabled={copyWeeklyGoals.isPending}
+              >
+                {copyWeeklyGoals.isPending ? (
+                  <span className="flex items-center gap-2">
+                    <span className="animate-spin rounded-full h-4 w-4 border-b-2 border-current"></span>
+                    {t('common.loading')}
+                  </span>
+                ) : (
+                  <>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ltr:mr-2 rtl:ml-2">
+                      <rect width="14" height="14" x="8" y="8" rx="2" ry="2"/>
+                      <path d="M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"/>
+                    </svg>
+                    {t('periods.copyFromLast')}
+                  </>
+                )}
+              </Button>
+            )}
+          </div>
         </div>
       )}
 
@@ -184,6 +309,13 @@ export default function Week() {
           </CardContent>
         </Card>
       )}
+
+      {/* Period Notes */}
+      <PeriodNotes
+        notes={currentWeek?.notes}
+        onSave={handleSaveWeekNotes}
+        isPending={updateWeekNotes.isPending}
+      />
     </div>
   );
 }

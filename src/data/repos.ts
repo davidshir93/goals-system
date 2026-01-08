@@ -9,12 +9,16 @@ import {
   doc,
   setDoc,
   writeBatch,
-  // updateDoc,
+  deleteDoc,
+  deleteField,
 } from "firebase/firestore";
 import { paths } from "../lib/paths";
 import { db } from "@/firebase";
 import type {
   Category,
+  DeleteQuarterlyGoalPayload,
+  DeleteWeeklyGoalPayload,
+  DeleteYearlyGoalPayload,
   EditQuarterlyGoalPayload,
   EditWeeklyGoalPayload,
   EditYearlyGoalPayload,
@@ -169,6 +173,14 @@ export const YearsRepo = {
     // return mapDoc<Period>(docSnap);
     return uid;
   },
+
+  async updateNotes(uid: ID, yearId: ID, notes: string): Promise<{ uid: ID; yearId: ID; notes: string }> {
+    const yearRef = doc(db, paths.years(uid), yearId);
+    const batch = writeBatch(db);
+    batch.update(yearRef, { notes });
+    await batch.commit();
+    return { uid, yearId, notes };
+  },
 };
 
 export const YearlyGoals = {
@@ -207,6 +219,16 @@ export const YearlyGoals = {
 
     return { uid, yearId, goalId, updatedFields };
   },
+
+  async deleteYearlyGoal(
+    uid: ID,
+    yearId: ID,
+    goalId: ID
+  ): Promise<DeleteYearlyGoalPayload> {
+    const yearlyGoalRef = doc(db, paths.yearlyGoals(uid, yearId), goalId);
+    await deleteDoc(yearlyGoalRef);
+    return { uid, yearId, goalId };
+  },
 };
 
 export const QuartersRepo = {
@@ -227,6 +249,14 @@ export const QuartersRepo = {
     await setDoc(docRef, newQuarterData);
 
     return { uid, selectedYear };
+  },
+
+  async updateNotes(uid: ID, yearId: ID, quarterId: ID, notes: string): Promise<{ uid: ID; yearId: ID; quarterId: ID; notes: string }> {
+    const quarterRef = doc(db, paths.quarters(uid, yearId), quarterId);
+    const batch = writeBatch(db);
+    batch.update(quarterRef, { notes });
+    await batch.commit();
+    return { uid, yearId, quarterId, notes };
   },
 };
 
@@ -279,6 +309,41 @@ export const QuarterlyGoals = {
 
     return { uid, yearId, quarterId, goalId, updatedFields };
   },
+
+  async deleteQuarterlyGoal(
+    uid: ID,
+    yearId: ID,
+    quarterId: ID,
+    goalId: ID
+  ): Promise<DeleteQuarterlyGoalPayload> {
+    const quarterlyGoalRef = doc(
+      db,
+      paths.quarterlyGoals(uid, yearId, quarterId),
+      goalId
+    );
+
+    // Get the quarterly goal to find the parent year goal
+    const quarterDocSnap = await getDoc(quarterlyGoalRef);
+    const quarterGoal = mapDoc<QuarterGoal>(quarterDocSnap);
+
+    const batch = writeBatch(db);
+
+    // Delete the quarterly goal
+    batch.delete(quarterlyGoalRef);
+
+    // Remove this quarter goal's progress from parent yearly goal
+    const yearlyGoalRef = doc(
+      db,
+      paths.yearlyGoals(uid, yearId),
+      quarterGoal.parentYearGoalId
+    );
+    batch.update(yearlyGoalRef, {
+      [`quarterProgress.${goalId}`]: deleteField(),
+    });
+
+    await batch.commit();
+    return { uid, yearId, quarterId, goalId };
+  },
 };
 
 export const WeeksRepo = {
@@ -305,6 +370,14 @@ export const WeeksRepo = {
     await setDoc(docRef, newWeekData);
 
     return { uid, selectedYear, selectedQuarter };
+  },
+
+  async updateNotes(uid: ID, yearId: ID, quarterId: ID, weekId: ID, notes: string): Promise<{ uid: ID; yearId: ID; quarterId: ID; weekId: ID; notes: string }> {
+    const weekRef = doc(db, paths.weeks(uid, yearId, quarterId), weekId);
+    const batch = writeBatch(db);
+    batch.update(weekRef, { notes });
+    await batch.commit();
+    return { uid, yearId, quarterId, weekId, notes };
   },
 };
 
@@ -437,5 +510,121 @@ export const WeeklyGoals = {
       goalId,
       updatedFields,
     };
+  },
+
+  async deleteWeeklyGoal(
+    uid: ID,
+    yearId: ID,
+    quarterId: ID,
+    weekId: ID,
+    goalId: ID
+  ): Promise<DeleteWeeklyGoalPayload> {
+    const weeklyGoalRef = doc(
+      db,
+      paths.weeklyGoals(uid, yearId, quarterId, weekId),
+      goalId
+    );
+
+    // Get the weekly goal to find parent quarter goal
+    const weekDocSnap = await getDoc(weeklyGoalRef);
+    const weekGoal = mapDoc<WeekGoal>(weekDocSnap);
+
+    const quarterlyGoalRef = doc(
+      db,
+      paths.quarterlyGoals(uid, yearId, quarterId),
+      weekGoal.parentQuarterGoalId
+    );
+
+    // Get the quarterly goal to find parent yearly goal and current weekly progress
+    const quarterDocSnap = await getDoc(quarterlyGoalRef);
+    const quarterGoal = mapDoc<QuarterGoal>(quarterDocSnap);
+
+    const batch = writeBatch(db);
+
+    // Delete the weekly goal
+    batch.delete(weeklyGoalRef);
+
+    // Remove this week goal's progress from parent quarterly goal
+    batch.update(quarterlyGoalRef, {
+      [`weeklyProgress.${goalId}`]: deleteField(),
+    });
+
+    // Recalculate quarterly totals (excluding the deleted goal)
+    const weeklyProgress = quarterGoal.weeklyProgress || {};
+    const progressValues = Object.entries(weeklyProgress)
+      .filter(([id]) => id !== goalId)
+      .map(([, prog]) => prog);
+
+    const totalPlanned = progressValues.reduce((acc, p) => acc + p.planned, 0);
+    const totalDone = progressValues.reduce((acc, p) => acc + p.done, 0);
+
+    // Update parent yearly goal's quarterProgress with recalculated totals
+    const yearlyGoalRef = doc(
+      db,
+      paths.yearlyGoals(uid, yearId),
+      quarterGoal.parentYearGoalId
+    );
+
+    if (progressValues.length === 0) {
+      // No more weekly goals, remove the quarter progress entry
+      batch.update(yearlyGoalRef, {
+        [`quarterProgress.${weekGoal.parentQuarterGoalId}`]: deleteField(),
+      });
+    } else {
+      batch.update(yearlyGoalRef, {
+        [`quarterProgress.${weekGoal.parentQuarterGoalId}`]: {
+          planned: totalPlanned,
+          done: totalDone,
+        },
+      });
+    }
+
+    await batch.commit();
+    return { uid, yearId, quarterId, weekId, goalId };
+  },
+
+  async copyFromWeek(
+    uid: ID,
+    yearId: ID,
+    sourceQuarterId: ID,
+    sourceWeekId: ID,
+    targetQuarterId: ID,
+    targetWeekId: ID
+  ): Promise<WeekGoal[]> {
+    // Fetch source week goals
+    const sourceGoals = await this.listAll(uid, yearId, sourceQuarterId, sourceWeekId);
+
+    if (sourceGoals.length === 0) {
+      return [];
+    }
+
+    const batch = writeBatch(db);
+    const createdGoals: WeekGoal[] = [];
+
+    for (const goal of sourceGoals) {
+      // Create new goal with reset progress
+      const newGoalData: Omit<WeekGoal, "id"> = {
+        type: "week",
+        wish: goal.wish,
+        yearId: yearId,
+        quarterId: targetQuarterId,
+        weekId: targetWeekId,
+        parentQuarterGoalId: goal.parentQuarterGoalId,
+        planned: goal.planned,
+        done: 0, // Reset progress to 0
+        notes: goal.notes,
+      };
+
+      const newDocRef = doc(collection(db, paths.weeklyGoals(uid, yearId, targetQuarterId, targetWeekId)));
+      batch.set(newDocRef, newGoalData);
+
+      createdGoals.push({
+        ...newGoalData,
+        id: newDocRef.id,
+      } as WeekGoal);
+    }
+
+    await batch.commit();
+    return createdGoals;
   },
 };
