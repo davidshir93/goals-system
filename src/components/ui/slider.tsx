@@ -1,32 +1,99 @@
 import * as React from "react"
-import * as SliderPrimitive from "@radix-ui/react-slider"
-
 import { cn } from "@/lib/utils"
-export interface SliderProps
-  extends React.ComponentPropsWithoutRef<typeof SliderPrimitive.Root> {
+import { getTextColorForBg } from "@/utils/colors"
+
+export interface SliderProps {
+  value?: number[]
+  defaultValue?: number[]
+  max?: number
+  step?: number
   doneColor?: string
   isSummary?: boolean
+  disabled?: boolean
+  className?: string
+  onValueChange?: (value: number[]) => void
 }
 
-const Slider = React.forwardRef<
-  React.ElementRef<typeof SliderPrimitive.Root>,
-  SliderProps
->(({ className, ...props }, ref) => (
-  <SliderPrimitive.Root
-    ref={ref}
-    className={cn(
-      "relative flex w-full touch-none select-none items-center",
-      className
-    )}
-    {...props}
-  >
-    <SliderPrimitive.Track className="relative h-10 w-full grow overflow-hidden rounded-full bg-muted flex items-center justify-center">
-      <SliderPrimitive.Range className="absolute h-full bg-primary/80" style={{ backgroundColor: props.doneColor }} />
-      <p className='text-xl font-bold text-center z-5'>{props.value || props.defaultValue}{!props.isSummary ? ` / ${props.max}` : '%'}{Number(props.value || props.defaultValue) >= Number(props.max || 0) && ' 🏆'}</p>
-    </SliderPrimitive.Track>
-    <SliderPrimitive.Thumb className="block h-4 w-4 rounded-full border border-primary/50 bg-background shadow transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:pointer-events-none disabled:opacity-50 opacity-0" />
-  </SliderPrimitive.Root>
-))
-Slider.displayName = SliderPrimitive.Root.displayName
+const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
+  ({ className, doneColor = "#000", isSummary, disabled, max = 100, ...props }, ref) => {
+    const currentValue = props.value?.[0] ?? props.defaultValue?.[0] ?? 0
+    const percentage = max > 0 ? (currentValue / max) * 100 : 0
+    const isComplete = currentValue >= max
+
+    const handleDecrement = () => {
+      if (disabled || currentValue <= 0) return
+      props.onValueChange?.([currentValue - 1])
+    }
+
+    const handleIncrement = () => {
+      if (disabled || currentValue >= max) return
+      props.onValueChange?.([currentValue + 1])
+    }
+
+    const textColor = getTextColorForBg(doneColor)
+
+    return (
+      <div
+        ref={ref}
+        dir="ltr"
+        className={cn(
+          "flex w-full items-center gap-2",
+          className
+        )}
+      >
+        {/* Minus Button */}
+        {!disabled && (
+          <button
+            type="button"
+            onClick={handleDecrement}
+            disabled={currentValue <= 0}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Decrease progress"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14"/>
+            </svg>
+          </button>
+        )}
+
+        {/* Progress Bar */}
+        <div className="relative h-10 flex-1 overflow-hidden rounded-full bg-muted flex items-center justify-center">
+          <div
+            className="absolute left-0 h-full transition-all duration-150"
+            style={{
+              width: `${percentage}%`,
+              backgroundColor: doneColor
+            }}
+          />
+          <p
+            className="text-xl font-bold text-center z-10 relative"
+            style={{ color: percentage > 40 ? textColor : undefined }}
+          >
+            {currentValue}
+            {!isSummary ? ` / ${max}` : '%'}
+            {isComplete && ' 🏆'}
+          </p>
+        </div>
+
+        {/* Plus Button */}
+        {!disabled && (
+          <button
+            type="button"
+            onClick={handleIncrement}
+            disabled={currentValue >= max}
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            aria-label="Increase progress"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M5 12h14"/>
+              <path d="M12 5v14"/>
+            </svg>
+          </button>
+        )}
+      </div>
+    )
+  }
+)
+Slider.displayName = "Slider"
 
 export { Slider }
