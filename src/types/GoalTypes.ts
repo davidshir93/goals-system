@@ -83,6 +83,8 @@ export type EnrichedGoalType = Goal & {
   identity?: Identity;
   parentQuarterGoalWish?: string;
   parentYearGoalWish?: string;
+done?: number;
+planned?: number;
 };
 
 export type NewYearlyGoalPayload = {

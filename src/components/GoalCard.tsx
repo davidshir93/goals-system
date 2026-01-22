@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import type { EnrichedGoalType, ID, PlanItem, YearGoal } from "@/types/GoalTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
@@ -32,6 +32,12 @@ export default function GoalCard({
   const [showWoop, setShowWoop] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
+  const [localDone, setLocalDone] = useState(goal.done || 0);
+
+  // Sync local state when goal.done changes (from server updates or other sources)
+  useEffect(() => {
+    setLocalDone(goal.done || 0);
+  }, [goal.done]);
 
   // For year goals, use own WOOP. For quarter/week goals, use parent's WOOP
   const woopSource = goal.type === 'year' ? goal : parentYearGoal;
@@ -109,7 +115,7 @@ export default function GoalCard({
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0"
+                className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0 cursor-pointer"
                 onClick={() => setShowDeleteConfirm(true)}
               >
                 <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -212,14 +218,14 @@ export default function GoalCard({
         {goal.type === "week" && (
           <div>
             <Slider
-              defaultValue={[goal.done || 0]}
+              value={[localDone]}
               max={goal.planned}
               step={1}
-              className="cursor-pointer"
               doneColor={goal.category?.color || "black"}
               onValueChange={(val) => {
                 const [done] = val;
-                onEditWeeklyProgress?.(goal.id, done);
+                setLocalDone(done); // Update UI immediately
+                onEditWeeklyProgress?.(goal.id, done); // Persist to server
               }}
             />
           </div>
@@ -248,7 +254,7 @@ export default function GoalCard({
             <button
               type="button"
               onClick={() => setShowWoop(!showWoop)}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full"
+              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full cursor-pointer"
             >
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -264,7 +270,7 @@ export default function GoalCard({
               >
                 <path d="m9 18 6-6-6-6"/>
               </svg>
-              <span className="text-xs font-medium">
+              <span className="text-xs font-medium cursor-pointer">
                 {goal.type !== 'year' && parentYearGoal
                   ? `${showWoop ? t('goalCard.hideWOOP') : t('goalCard.showWOOP')} (${t('goals.parentGoalDetails')})`
                   : (showWoop ? t('goalCard.hideWOOP') : t('goalCard.showWOOP'))

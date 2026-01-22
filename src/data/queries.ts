@@ -841,6 +841,8 @@ export function UseEditWeeklyGoal() {
       yearId,
       quarterId,
       weekId,
+      goalId,
+      updatedFields,
     }: EditWeeklyGoalPayload) => {
       await qc.cancelQueries({
         queryKey: qk.weeklyGoals(uid, yearId, quarterId, weekId),
@@ -852,7 +854,9 @@ export function UseEditWeeklyGoal() {
       qc.setQueryData(
         qk.weeklyGoals(uid, yearId, quarterId, weekId),
         (prevWeeklyGoals: WeekGoal[]) => {
-          return [...prevWeeklyGoals];
+          return prevWeeklyGoals.map((goal) =>
+            goal.id === goalId ? { ...goal, ...updatedFields } : goal
+          );
         }
       );
 

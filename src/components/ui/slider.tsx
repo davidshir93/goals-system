@@ -47,7 +47,7 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
             type="button"
             onClick={handleDecrement}
             disabled={currentValue <= 0}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
             aria-label="Decrease progress"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -81,7 +81,7 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
             type="button"
             onClick={handleIncrement}
             disabled={currentValue >= max}
-            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-muted hover:bg-muted/80 transition-colors disabled:opacity-30 disabled:cursor-not-allowed cursor-pointer"
             aria-label="Increase progress"
           >
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

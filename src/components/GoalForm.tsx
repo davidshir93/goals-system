@@ -770,7 +770,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                     type="button"
                                                     variant="outline"
                                                     size="icon"
-                                                    className="h-14 w-14 rounded-xl text-2xl font-bold border-2 border-primary/30 hover:bg-primary/10 hover:border-primary"
+                                                    className="h-14 w-14 rounded-xl text-2xl font-bold border-2 border-primary/30 hover:bg-primary/10 hover:border-primary cursor-pointer"
                                                     onClick={handleDecrement}
                                                     disabled={parseInt(String(field.value)) <= 1}
                                                 >
@@ -788,7 +788,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                     type="button"
                                                     variant="outline"
                                                     size="icon"
-                                                    className="h-14 w-14 rounded-xl text-2xl font-bold border-2 border-primary/30 hover:bg-primary/10 hover:border-primary"
+                                                    className="h-14 w-14 rounded-xl text-2xl font-bold border-2 border-primary/30 hover:bg-primary/10 hover:border-primary cursor-pointer"
                                                     onClick={handleIncrement}
                                                 >
                                                     +
