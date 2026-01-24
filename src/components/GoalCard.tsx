@@ -31,7 +31,6 @@ export default function GoalCard({
   const { t } = useTranslation()
   const [showWoop, setShowWoop] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const [showNotes, setShowNotes] = useState(false);
   const [localDone, setLocalDone] = useState(goal.done || 0);
 
   // Sync local state when goal.done changes (from server updates or other sources)
@@ -187,28 +186,6 @@ export default function GoalCard({
               <div className="flex items-start gap-2">
                 <span className="text-xs text-muted-foreground shrink-0 pt-0.5 font-medium">{t('goals.parentQuarter')}</span>
                 <p className="text-muted-foreground">{goal.parentQuarterGoalWish}</p>
-              </div>
-            )}
-          </div>
-        )}
-
-        {/* Notes Section */}
-        {hasNotes && (
-          <div>
-            <button
-              type="button"
-              onClick={() => setShowNotes(!showNotes)}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-            >
-              <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-                <polyline points="14 2 14 8 20 8"/>
-              </svg>
-              <span className="text-xs font-medium">{t('goalCard.notes')}</span>
-            </button>
-            {showNotes && (
-              <div className="mt-2 p-3 rounded-lg bg-muted/30 border">
-                <p className="text-sm text-muted-foreground whitespace-pre-wrap">{goal.notes}</p>
               </div>
             )}
           </div>
@@ -376,6 +353,16 @@ export default function GoalCard({
                 </Tabs>
               </div>
             )}
+          </div>
+        )}
+
+        
+        {/* Notes Section */}
+        {hasNotes && (
+          <div>
+              <div className="mt-2 p-3 rounded-lg bg-muted/30 border">
+                <p className="text-sm text-foreground whitespace-pre-wrap">{goal.notes}</p>
+              </div>
           </div>
         )}
       </CardContent>

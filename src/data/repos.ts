@@ -662,7 +662,7 @@ export const WeeklyGoals = {
 
     for (const goal of sourceGoals) {
       // Create new goal with reset progress
-      const newGoalData: Omit<WeekGoal, "id"> = {
+      const newGoalData: Omit<WeekGoal, "id" | "notes" > = {
         type: "week",
         wish: goal.wish,
         yearId: yearId,
@@ -671,7 +671,6 @@ export const WeeklyGoals = {
         parentQuarterGoalId: goal.parentQuarterGoalId,
         planned: goal.planned,
         done: 0, // Reset progress to 0
-        notes: goal.notes,
       };
 
       const newDocRef = doc(collection(db, paths.weeklyGoals(uid, yearId, targetQuarterId, targetWeekId)));

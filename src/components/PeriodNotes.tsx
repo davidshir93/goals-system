@@ -90,7 +90,7 @@ export function PeriodNotes({ notes = "", onSave, isPending }: PeriodNotesProps)
           </div>
         ) : (
           <div className="space-y-2">
-            <p className="text-sm text-muted-foreground whitespace-pre-wrap">{notes}</p>
+            <p className="text-md text-muted-foreground whitespace-pre-wrap">{notes}</p>
             <Button
               size="sm"
               variant="ghost"
