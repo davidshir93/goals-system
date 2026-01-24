@@ -67,7 +67,7 @@ export default function GoalCard({
     <Card className="bg-card hover:shadow-md transition-all duration-200 h-full">
       <CardHeader className="pb-2 space-y-2">
         {/* Badges and Actions Row */}
-        <div className="flex justify-between items-start gap-2">
+        <div className="flex justify-between items-center gap-2">
           <div className="flex gap-1.5 flex-wrap">
             {goal.category && (
               <Badge
