@@ -173,7 +173,7 @@ export default function GoalCard({
 
         {/* Description - Only for yearly goals */}
         {goal.type === 'year' && goal.description && (
-          <p className="text-sm text-muted-foreground mt-1">
+          <p className="text-md text-foreground mt-1">
             {goal.description}
           </p>
         )}
@@ -234,7 +234,7 @@ export default function GoalCard({
 
         {/* WOOP Section - Show parent's WOOP for quarter/week goals */}
         {hasWoopContent && (
-          <div className="pt-2 border-t">
+          <div className="pt-2 border-t mt-5">
             <button
               type="button"
               onClick={() => setShowWoop(!showWoop)}
