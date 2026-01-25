@@ -54,6 +54,7 @@ export type YearGoal = Omit<BaseGoal, "outcome" | "obstacles" | "plan"> & {
   type: "year";
   categoryId: ID;
   identityId: ID;
+  description?: string;
   outcome: string[];
   obstacles: string[];
   plan: PlanItem[];

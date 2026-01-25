@@ -52,6 +52,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
         type: z.literal('year'),
         categoryId: Id.min(1, t('validation.categoryRequired')),
         identityId: Id.min(1, t('validation.identityRequired')),
+        description: z.string().trim().max(500).optional().default(""),
         outcome: z.array(z.string().trim()).min(1, t('validation.outcomeRequired')),
         obstacles: z.array(z.string().trim()).min(1, t('validation.obstacleRequired')),
         plan: z.array(PlanItemSchema).min(1, t('validation.planRequired')),
@@ -95,6 +96,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                     plan: existingGoal.plan || [],
                     categoryId: existingGoal.categoryId,
                     identityId: existingGoal.identityId,
+                    description: existingGoal.description || '',
                     notes: existingGoal.notes || ''
                 }
             }
@@ -125,7 +127,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
 
         // Default values for new goals
         if (type === 'year') {
-            return { type: 'year', wish: '', outcome: [], obstacles: [], plan: [], categoryId: '', identityId: '', notes: '' }
+            return { type: 'year', wish: '', outcome: [], obstacles: [], plan: [], categoryId: '', identityId: '', description: '', notes: '' }
         }
         if (type === 'quarter') {
             return { type: 'quarter', wish: '', outcome: [], obstacles: [], plan: [], parentYearGoalId: '', notes: '' }
@@ -171,6 +173,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         plan: data.plan,
                         categoryId: data.categoryId,
                         identityId: data.identityId,
+                        description: data.description,
                         notes: data.notes
                     }
                 })
@@ -217,7 +220,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                 await addYearlyGoal.mutateAsync({
                     uid: user.uid,
                     yearId: selectedYear,
-                    yearlyGoalData: { ...data, type: "year", yearId: selectedYear }
+                    yearlyGoalData: { ...data, type: "year", yearId: selectedYear, description: data.description }
                 })
             }
 
@@ -540,6 +543,29 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                             </FormItem>
                         )}
                     />
+
+                    {/* Description - Only for yearly goals */}
+                    {type === 'year' && (
+                        <FormField
+                            name="description"
+                            key="description"
+                            control={form.control}
+                            render={({ field }) => (
+                                <FormItem>
+                                    <FormLabel>{t('goalForm.description')}</FormLabel>
+                                    <p className="text-xs text-muted-foreground mb-2">{t('goalForm.descriptionHelp')}</p>
+                                    <FormControl>
+                                        <Textarea
+                                            placeholder={t('goalForm.descriptionPlaceholder')}
+                                            className="min-h-[80px] resize-y"
+                                            {...field}
+                                        />
+                                    </FormControl>
+                                    <FormMessage />
+                                </FormItem>
+                            )}
+                        />
+                    )}
 
                     {/* WOOP Section - Only for yearly goals */}
                     {type === 'year' && (

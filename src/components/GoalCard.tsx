@@ -170,6 +170,13 @@ export default function GoalCard({
         <CardTitle className="text-xl font-bold leading-snug">
           {goal.wish}
         </CardTitle>
+
+        {/* Description - Only for yearly goals */}
+        {goal.type === 'year' && goal.description && (
+          <p className="text-sm text-muted-foreground mt-1">
+            {goal.description}
+          </p>
+        )}
       </CardHeader>
 
       <CardContent className="pt-0 space-y-3">
