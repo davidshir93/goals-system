@@ -145,10 +145,11 @@ export default function Quarter() {
     <div className="space-y-6">
       {/* Page Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div>
-          <p className="text-sm text-muted-foreground">{currentYear?.name}</p>
-          <h1 className="text-2xl font-bold tracking-tight">{t('periods.quarter')} {currentQuarter?.name || ''}</h1>
-        </div>
+        <h1 className="text-2xl font-bold tracking-tight flex items-center gap-2">
+          <span>{t('periods.quarter')} {currentQuarter?.name || ''}</span>
+          <span className="text-muted-foreground font-normal">›</span>
+          <span className="text-muted-foreground font-normal">{currentYear?.name}</span>
+        </h1>
         <div className="flex items-center gap-4">
           <label className="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
             <input

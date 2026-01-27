@@ -50,7 +50,7 @@ export function RootLayout() {
     const appLoading = authLoading || yearsLoading || quartersLoading || weeksLoading || weeklyGoalsLoading || quarterlyGoalsLoading || yearlyGoalsLoading || catLoading || idLoading;
 
     if (appLoading) return (
-        <div className="flex items-center justify-center min-h-screen">
+        <div className="flex items-center justify-center min-h-dvh">
             <div className="text-center">
                 <div className="loading-spinner mx-auto mb-4" />
                 <p className="text-muted-foreground">{t('common.loading')}</p>
@@ -63,7 +63,7 @@ export function RootLayout() {
     if (appError) throw new Error('Error in fetching data' + JSON.stringify(yearsErr) + JSON.stringify(quartersErr) + JSON.stringify(weeksErr))
 
     return (
-        <div className="min-h-screen bg-background">
+        <div className="min-h-dvh bg-background">
             <NavBar />
             <ScrollRestoration />
             <main className={`${appLoading ? "loading" : ""}`}>
