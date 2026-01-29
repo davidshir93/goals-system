@@ -183,5 +183,21 @@
     "english": "English",
     "hebrew": "עברית",
     "switchLanguage": "שפה"
+  },
+  "view": {
+    "card": "תצוגת כרטיסים",
+    "table": "תצוגת טבלה"
+  },
+  "table": {
+    "dragHandle": "גרור לסידור מחדש",
+    "expandWoop": "הצג פרטים",
+    "collapseWoop": "הסתר פרטים",
+    "category": "קטגוריה",
+    "categoryIdentity": "קטגוריה וזהות",
+    "goal": "מטרה",
+    "parentGoal": "מטרת אב",
+    "progress": "התקדמות",
+    "notes": "הערות",
+    "actions": "פעולות"
   }
 }

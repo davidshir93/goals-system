@@ -183,5 +183,21 @@
     "english": "English",
     "hebrew": "Hebrew",
     "switchLanguage": "Language"
+  },
+  "view": {
+    "card": "Card view",
+    "table": "Table view"
+  },
+  "table": {
+    "dragHandle": "Drag to reorder",
+    "expandWoop": "Show details",
+    "collapseWoop": "Hide details",
+    "category": "Category",
+    "categoryIdentity": "Category & Identity",
+    "goal": "Goal",
+    "parentGoal": "Parent Goal",
+    "progress": "Progress",
+    "notes": "Notes",
+    "actions": "Actions"
   }
 }

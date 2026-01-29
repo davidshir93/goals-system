@@ -6,7 +6,9 @@
       "Bash(npm run dev:*)",
       "Bash(timeout:*)",
       "mcp__ide__getDiagnostics",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npx eslint:*)"
     ]
   }
 }

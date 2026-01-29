@@ -1,5 +1,8 @@
 import GoalCard from "@/components/GoalCard";
+import { GoalTableRow } from "@/components/GoalTableRow";
 import { SortableGoalGrid } from "@/components/SortableGoalGrid";
+import { SortableGoalTable } from "@/components/SortableGoalTable";
+import { ViewToggle } from "@/components/ViewToggle";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Slider } from "@/components/ui/slider";
@@ -21,6 +24,7 @@ import {
   useReorderWeeklyGoals,
 } from "@/data/queries";
 import { PeriodNotes } from "@/components/PeriodNotes";
+import { useViewPreference } from "@/hooks/useViewPreference";
 import type { ID } from "@/types/GoalTypes";
 import { enrichGoal } from "@/utils/goalsUtils";
 import { useMemo, useState } from "react";
@@ -34,6 +38,7 @@ export default function Week() {
   const { selectedYear, selectedQuarter, selectedWeek } = useGoals();
 
   const [showParentsGoals, setShowParentGoals] = useState(false);
+  const [viewPreference, setViewPreference] = useViewPreference();
 
   const navigate = useNavigate();
 
@@ -235,6 +240,7 @@ export default function Week() {
             />
             <span className="text-muted-foreground">{t('goals.showParentGoals')}</span>
           </label>
+          <ViewToggle view={viewPreference} onViewChange={setViewPreference} />
           <Button onClick={newClick} dir="ltr">
             {t('goals.addGoal')}
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
@@ -245,34 +251,71 @@ export default function Week() {
         </div>
       </div>
 
-      {/* Goals Grid */}
+      {/* Goals Grid/Table */}
       {sortedWeeklyGoals && sortedWeeklyGoals.length > 0 ? (
-        <SortableGoalGrid
-          items={sortedWeeklyGoals}
-          onReorder={handleReorder}
-        >
-          {(item) => {
-            const goal = sortedWeeklyGoals.find((g) => g.id === item.id)!;
-            const enrichedGoal = enrichGoal(
-              goal,
-              quarterlyGoals!,
-              yearlyGoals!,
-              categories!,
-              identities!
-            );
-            const parentYearGoal = getParentYearGoal(goal.parentQuarterGoalId);
-            return (
-              <GoalCard
-                goal={enrichedGoal}
-                onEditWeeklyProgress={onEditWeeklyProgress}
-                showParentGoals={showParentsGoals}
-                onDelete={handleDeleteWeeklyGoal}
-                canDelete={true}
-                parentYearGoal={parentYearGoal}
-              />
-            );
-          }}
-        </SortableGoalGrid>
+        <>
+          {/* Table View - Only on lg screens when table preference is set */}
+          {viewPreference === "table" && (
+            <SortableGoalTable
+              items={sortedWeeklyGoals}
+              onReorder={handleReorder}
+              className="hidden lg:block"
+              showParentGoals={showParentsGoals}
+            >
+              {(item, _index, dragHandleProps, isDragging) => {
+                const goal = sortedWeeklyGoals.find((g) => g.id === item.id)!;
+                const enrichedGoal = enrichGoal(
+                  goal,
+                  quarterlyGoals!,
+                  yearlyGoals!,
+                  categories!,
+                  identities!
+                );
+                const parentYearGoal = getParentYearGoal(goal.parentQuarterGoalId);
+                return (
+                  <GoalTableRow
+                    goal={enrichedGoal}
+                    showParentGoals={showParentsGoals}
+                    onEditWeeklyProgress={onEditWeeklyProgress}
+                    onDelete={handleDeleteWeeklyGoal}
+                    canDelete={true}
+                    parentYearGoal={parentYearGoal}
+                    dragHandleProps={dragHandleProps}
+                    isDragging={isDragging}
+                  />
+                );
+              }}
+            </SortableGoalTable>
+          )}
+          {/* Card View - Always on mobile, or on desktop when card preference is set */}
+          <SortableGoalGrid
+            items={sortedWeeklyGoals}
+            onReorder={handleReorder}
+            className={viewPreference === "table" ? "lg:hidden" : ""}
+          >
+            {(item) => {
+              const goal = sortedWeeklyGoals.find((g) => g.id === item.id)!;
+              const enrichedGoal = enrichGoal(
+                goal,
+                quarterlyGoals!,
+                yearlyGoals!,
+                categories!,
+                identities!
+              );
+              const parentYearGoal = getParentYearGoal(goal.parentQuarterGoalId);
+              return (
+                <GoalCard
+                  goal={enrichedGoal}
+                  onEditWeeklyProgress={onEditWeeklyProgress}
+                  showParentGoals={showParentsGoals}
+                  onDelete={handleDeleteWeeklyGoal}
+                  canDelete={true}
+                  parentYearGoal={parentYearGoal}
+                />
+              );
+            }}
+          </SortableGoalGrid>
+        </>
       ) : (
         <div className="text-center py-12">
           <div className="rounded-full bg-muted p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">

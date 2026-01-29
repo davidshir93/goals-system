@@ -1,10 +1,14 @@
 import GoalCard from "@/components/GoalCard";
+import { GoalTableRow } from "@/components/GoalTableRow";
 import { SortableGoalGrid } from "@/components/SortableGoalGrid";
+import { SortableGoalTable } from "@/components/SortableGoalTable";
+import { ViewToggle } from "@/components/ViewToggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext"
 import { useCategories, useIdentities, useYearlyGoals, useYears, useQuarters, useDeleteYearlyGoal, useUpdateYearNotes, useReorderYearlyGoals } from "@/data/queries";
 import { PeriodNotes } from "@/components/PeriodNotes";
+import { useViewPreference } from "@/hooks/useViewPreference";
 import type { ID, QuarterGoal } from "@/types/GoalTypes";
 import { enrichGoal } from "@/utils/goalsUtils";
 import { useMemo } from "react";
@@ -18,6 +22,8 @@ export default function Year() {
     const { user } = useAuth()
 
     const { selectedYear } = useGoals();
+
+    const [viewPreference, setViewPreference] = useViewPreference();
 
     const navigate = useNavigate();
 
@@ -119,34 +125,64 @@ export default function Year() {
                 <div>
                     <h1 className="text-2xl font-bold tracking-tight">{t('periods.year')} {currentYear?.name || ''}</h1>
                 </div>
-                <Button onClick={newClick} dir="ltr">
-                    {t('goals.addGoal')}
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                        <path d="M5 12h14" />
-                        <path d="M12 5v14" />
-                    </svg>
-                </Button>
+                <div className="flex items-center gap-4">
+                    <ViewToggle view={viewPreference} onViewChange={setViewPreference} />
+                    <Button onClick={newClick} dir="ltr">
+                        {t('goals.addGoal')}
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
+                            <path d="M5 12h14" />
+                            <path d="M12 5v14" />
+                        </svg>
+                    </Button>
+                </div>
             </div>
 
-            {/* Goals Grid */}
+            {/* Goals Grid/Table */}
             {sortedYearlyGoals && sortedYearlyGoals.length > 0 ? (
-                <SortableGoalGrid
-                    items={sortedYearlyGoals}
-                    onReorder={handleReorder}
-                >
-                    {(item) => {
-                        const goal = yearlyGoals!.find(g => g.id === item.id)!;
-                        const hasChildren = hasQuarterlyChildren(goal.id);
-                        return (
-                            <GoalCard
-                                goal={enrichGoal(goal, [], yearlyGoals!, categories!, identities!)}
-                                onDelete={handleDeleteYearlyGoal}
-                                canDelete={!hasChildren}
-                                deleteWarning={hasChildren ? t('goals.deleteYearlyWarning') : undefined}
-                            />
-                        );
-                    }}
-                </SortableGoalGrid>
+                <>
+                    {/* Table View - Only on lg screens when table preference is set */}
+                    {viewPreference === "table" && (
+                        <SortableGoalTable
+                            items={sortedYearlyGoals}
+                            onReorder={handleReorder}
+                            className="hidden lg:block"
+                        >
+                            {(item, _index, dragHandleProps, isDragging) => {
+                                const goal = yearlyGoals!.find(g => g.id === item.id)!;
+                                const hasChildren = hasQuarterlyChildren(goal.id);
+                                return (
+                                    <GoalTableRow
+                                        goal={enrichGoal(goal, [], yearlyGoals!, categories!, identities!)}
+                                        onDelete={handleDeleteYearlyGoal}
+                                        canDelete={!hasChildren}
+                                        deleteWarning={hasChildren ? t('goals.deleteYearlyWarning') : undefined}
+                                        dragHandleProps={dragHandleProps}
+                                        isDragging={isDragging}
+                                    />
+                                );
+                            }}
+                        </SortableGoalTable>
+                    )}
+                    {/* Card View - Always on mobile, or on desktop when card preference is set */}
+                    <SortableGoalGrid
+                        items={sortedYearlyGoals}
+                        onReorder={handleReorder}
+                        className={viewPreference === "table" ? "lg:hidden" : ""}
+                    >
+                        {(item) => {
+                            const goal = yearlyGoals!.find(g => g.id === item.id)!;
+                            const hasChildren = hasQuarterlyChildren(goal.id);
+                            return (
+                                <GoalCard
+                                    goal={enrichGoal(goal, [], yearlyGoals!, categories!, identities!)}
+                                    onDelete={handleDeleteYearlyGoal}
+                                    canDelete={!hasChildren}
+                                    deleteWarning={hasChildren ? t('goals.deleteYearlyWarning') : undefined}
+                                />
+                            );
+                        }}
+                    </SortableGoalGrid>
+                </>
             ) : (
                 <div className="text-center py-12">
                     <div className="rounded-full bg-muted p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">

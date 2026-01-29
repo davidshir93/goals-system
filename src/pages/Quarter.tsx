@@ -1,5 +1,8 @@
 import GoalCard from "@/components/GoalCard";
+import { GoalTableRow } from "@/components/GoalTableRow";
 import { SortableGoalGrid } from "@/components/SortableGoalGrid";
+import { SortableGoalTable } from "@/components/SortableGoalTable";
+import { ViewToggle } from "@/components/ViewToggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext";
@@ -16,6 +19,7 @@ import {
   useReorderQuarterlyGoals,
 } from "@/data/queries";
 import { PeriodNotes } from "@/components/PeriodNotes";
+import { useViewPreference } from "@/hooks/useViewPreference";
 import type { ID, WeekGoal } from "@/types/GoalTypes";
 import { enrichGoal } from "@/utils/goalsUtils";
 import { useMemo, useState } from "react";
@@ -31,6 +35,7 @@ export default function Quarter() {
   const { selectedYear, selectedQuarter } = useGoals();
 
   const [showParentsGoals, setShowParentGoals] = useState(false);
+  const [viewPreference, setViewPreference] = useViewPreference();
 
   const navigate = useNavigate();
 
@@ -160,6 +165,7 @@ export default function Quarter() {
             />
             <span className="text-muted-foreground">{t('goals.showParentGoals')}</span>
           </label>
+          <ViewToggle view={viewPreference} onViewChange={setViewPreference} />
           <Button onClick={newClick} dir="ltr">
             {t('goals.addGoal')}
             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
@@ -170,30 +176,61 @@ export default function Quarter() {
         </div>
       </div>
 
-      {/* Goals Grid */}
+      {/* Goals Grid/Table */}
       {enrichedQuarterlyGoals && enrichedQuarterlyGoals.length > 0 ? (
-        <SortableGoalGrid
-          items={sortedQuarterlyGoals}
-          onReorder={handleReorder}
-        >
-          {(item) => {
-            const goal = enrichedQuarterlyGoals.find((g) => g.id === item.id)!;
-            const hasChildren = hasWeeklyChildren(goal.id);
-            // Get the original goal to access parentYearGoalId (which exists on QuarterGoal type)
-            const originalGoal = quarterlyGoals?.find(qg => qg.id === goal.id);
-            const parentYearGoal = getParentYearGoal(originalGoal?.parentYearGoalId);
-            return (
-              <GoalCard
-                goal={goal}
-                showParentGoals={showParentsGoals}
-                onDelete={handleDeleteQuarterlyGoal}
-                canDelete={!hasChildren}
-                deleteWarning={hasChildren ? t('goals.deleteQuarterlyWarning') : undefined}
-                parentYearGoal={parentYearGoal}
-              />
-            );
-          }}
-        </SortableGoalGrid>
+        <>
+          {/* Table View - Only on lg screens when table preference is set */}
+          {viewPreference === "table" && (
+            <SortableGoalTable
+              items={sortedQuarterlyGoals}
+              onReorder={handleReorder}
+              className="hidden lg:block"
+              showParentGoals={showParentsGoals}
+            >
+              {(item, _index, dragHandleProps, isDragging) => {
+                const goal = enrichedQuarterlyGoals.find((g) => g.id === item.id)!;
+                const hasChildren = hasWeeklyChildren(goal.id);
+                const originalGoal = quarterlyGoals?.find(qg => qg.id === goal.id);
+                const parentYearGoal = getParentYearGoal(originalGoal?.parentYearGoalId);
+                return (
+                  <GoalTableRow
+                    goal={goal}
+                    showParentGoals={showParentsGoals}
+                    onDelete={handleDeleteQuarterlyGoal}
+                    canDelete={!hasChildren}
+                    deleteWarning={hasChildren ? t('goals.deleteQuarterlyWarning') : undefined}
+                    parentYearGoal={parentYearGoal}
+                    dragHandleProps={dragHandleProps}
+                    isDragging={isDragging}
+                  />
+                );
+              }}
+            </SortableGoalTable>
+          )}
+          {/* Card View - Always on mobile, or on desktop when card preference is set */}
+          <SortableGoalGrid
+            items={sortedQuarterlyGoals}
+            onReorder={handleReorder}
+            className={viewPreference === "table" ? "lg:hidden" : ""}
+          >
+            {(item) => {
+              const goal = enrichedQuarterlyGoals.find((g) => g.id === item.id)!;
+              const hasChildren = hasWeeklyChildren(goal.id);
+              const originalGoal = quarterlyGoals?.find(qg => qg.id === goal.id);
+              const parentYearGoal = getParentYearGoal(originalGoal?.parentYearGoalId);
+              return (
+                <GoalCard
+                  goal={goal}
+                  showParentGoals={showParentsGoals}
+                  onDelete={handleDeleteQuarterlyGoal}
+                  canDelete={!hasChildren}
+                  deleteWarning={hasChildren ? t('goals.deleteQuarterlyWarning') : undefined}
+                  parentYearGoal={parentYearGoal}
+                />
+              );
+            }}
+          </SortableGoalGrid>
+        </>
       ) : (
         <div className="text-center py-12">
           <div className="rounded-full bg-muted p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
