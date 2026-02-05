@@ -50,12 +50,14 @@ export function RootLayout() {
     const appLoading = authLoading || yearsLoading || quartersLoading || weeksLoading || weeklyGoalsLoading || quarterlyGoalsLoading || yearlyGoalsLoading || catLoading || idLoading;
 
     if (appLoading) return (
-        <div className="flex items-center justify-center min-h-dvh">
-            <div className="text-center">
-                <div className="loading-spinner mx-auto mb-4" />
-                <p className="text-muted-foreground">{t('common.loading')}</p>
-            </div>
+        <div className="flex items-center flex-col justify-center text-center min-h-dvh bg-background">
+            <div className="loading-dots">
+                <span></span>
+                <span></span>
+                <span></span>
         </div>
+                <p className="mt-2 text-muted-foreground">{t('common.loading')}</p>            
+                </div>
     )
 
     const appError = yearsErr || quartersErr || weeksErr;
