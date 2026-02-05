@@ -38,6 +38,7 @@ export default function Week() {
   const { selectedYear, selectedQuarter, selectedWeek } = useGoals();
 
   const [showParentsGoals, setShowParentGoals] = useState(false);
+  const [hideCompleted, setHideCompleted] = useState(false);
   const [viewPreference, setViewPreference] = useViewPreference();
 
   const navigate = useNavigate();
@@ -82,6 +83,12 @@ export default function Week() {
       return orderA - orderB;
     });
   }, [weeklyGoals]);
+
+  // Filter out completed goals if hideCompleted is true
+  const displayedGoals = useMemo(() => {
+    if (!hideCompleted) return sortedWeeklyGoals;
+    return sortedWeeklyGoals.filter(goal => goal.done < goal.planned);
+  }, [sortedWeeklyGoals, hideCompleted]);
 
   const weeklyAverage = useMemo(() => {
     return (
@@ -240,6 +247,15 @@ export default function Week() {
             />
             <span className="text-muted-foreground">{t('goals.showParentGoals')}</span>
           </label>
+          <label className="inline-flex items-center gap-2 text-sm cursor-pointer select-none">
+            <input
+              type="checkbox"
+              className="rounded border-input h-4 w-4 accent-primary shrink-0"
+              checked={hideCompleted}
+              onChange={() => setHideCompleted((prev) => !prev)}
+            />
+            <span className="text-muted-foreground">{t('goals.hideCompleted')}</span>
+          </label>
           <ViewToggle view={viewPreference} onViewChange={setViewPreference} />
           <Button onClick={newClick} dir="ltr">
             {t('goals.addGoal')}
@@ -252,18 +268,18 @@ export default function Week() {
       </div>
 
       {/* Goals Grid/Table */}
-      {sortedWeeklyGoals && sortedWeeklyGoals.length > 0 ? (
+      {displayedGoals && displayedGoals.length > 0 ? (
         <>
           {/* Table View - Only on lg screens when table preference is set */}
           {viewPreference === "table" && (
             <SortableGoalTable
-              items={sortedWeeklyGoals}
+              items={displayedGoals}
               onReorder={handleReorder}
               className="hidden lg:block"
               showParentGoals={showParentsGoals}
             >
               {(item, _index, dragHandleProps, isDragging) => {
-                const goal = sortedWeeklyGoals.find((g) => g.id === item.id)!;
+                const goal = displayedGoals.find((g) => g.id === item.id)!;
                 const enrichedGoal = enrichGoal(
                   goal,
                   quarterlyGoals!,
@@ -289,12 +305,12 @@ export default function Week() {
           )}
           {/* Card View - Always on mobile, or on desktop when card preference is set */}
           <SortableGoalGrid
-            items={sortedWeeklyGoals}
+            items={displayedGoals}
             onReorder={handleReorder}
             className={viewPreference === "table" ? "lg:hidden" : ""}
           >
             {(item) => {
-              const goal = sortedWeeklyGoals.find((g) => g.id === item.id)!;
+              const goal = displayedGoals.find((g) => g.id === item.id)!;
               const enrichedGoal = enrichGoal(
                 goal,
                 quarterlyGoals!,
@@ -316,6 +332,18 @@ export default function Week() {
             }}
           </SortableGoalGrid>
         </>
+      ) : hideCompleted && sortedWeeklyGoals.length > 0 ? (
+        <div className="text-center py-12">
+          <div className="rounded-full bg-green-100 dark:bg-green-900/30 p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-green-600 dark:text-green-400">
+              <path d="M20 6 9 17l-5-5" />
+            </svg>
+          </div>
+          <h3 className="text-lg font-semibold mb-2">{t('goals.allGoalsCompleted')}</h3>
+          <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+            {t('goals.allGoalsCompletedDesc')}
+          </p>
+        </div>
       ) : (
         <div className="text-center py-12">
           <div className="rounded-full bg-muted p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
