@@ -410,7 +410,7 @@ export const WeeksRepo = {
     const q = query(collection(db, paths.weeks(uid, yearId, quarterId)));
     const snap = await getDocs(q);
 
-    return snap.docs.map(mapDoc<Period>);
+    return snap.docs.map(mapDoc<Period>).sort((a, b) => parseInt(a.name.slice(1)) - parseInt(b.name.slice(1)));
   },
 
   async addWeek(
