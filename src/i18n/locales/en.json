@@ -6,6 +6,8 @@
     "error": "Error",
     "failedToLoad": "Failed to load data.",
     "tryRefreshing": "Please try refreshing the page.",
+    "stillLoading": "This is taking longer than usual.",
+    "reloadPage": "Reload page",
     "save": "Save",
     "cancel": "Cancel",
     "add": "Add",

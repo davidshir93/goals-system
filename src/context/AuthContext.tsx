@@ -44,11 +44,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const [loading, setLoading] = useState(true)
 
     useEffect(() => {
+        // onAuthStateChanged can hang on a stuck first connection instead of firing,
+        // which would leave RootLayout's loading gate spinning forever.
+        const timeout = setTimeout(() => setLoading(false), 10_000)
+
         const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+            clearTimeout(timeout)
             setUser(firebaseUser)
             setLoading(false)
         })
-        return () => unsubscribe()
+        return () => {
+            clearTimeout(timeout)
+            unsubscribe()
+        }
     }, [])
 
     return (

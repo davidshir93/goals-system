@@ -6,6 +6,8 @@
     "error": "שגיאה",
     "failedToLoad": "טעינת הנתונים נכשלה.",
     "tryRefreshing": "נסה לרענן את הדף.",
+    "stillLoading": "הטעינה אורכת יותר זמן מהרגיל.",
+    "reloadPage": "רענן את הדף",
     "save": "שמור",
     "cancel": "ביטול",
     "add": "הוסף",

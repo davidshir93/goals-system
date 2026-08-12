@@ -2,9 +2,11 @@ import { NavBar } from "@/components/NavBar"
 import { useAuth } from "@/context/AuthContext"
 import { useGoals } from "@/context/GoalsContext";
 import { useCategories, useIdentities, useQuarterlyGoals, useQuarters, useWeeklyGoals, useWeeks, useYearlyGoals, useYears } from "@/data/queries";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { Outlet, ScrollRestoration } from "react-router"
 import { useTranslation } from "react-i18next"
+
+const STUCK_LOADING_MS = 15_000
 
 export function RootLayout() {
     const { t } = useTranslation()
@@ -49,6 +51,17 @@ export function RootLayout() {
 
     const appLoading = authLoading || yearsLoading || quartersLoading || weeksLoading || weeklyGoalsLoading || quarterlyGoalsLoading || yearlyGoalsLoading || catLoading || idLoading;
 
+    const [stuck, setStuck] = useState(false);
+
+    useEffect(() => {
+        if (!appLoading) {
+            setStuck(false);
+            return;
+        }
+        const timer = setTimeout(() => setStuck(true), STUCK_LOADING_MS);
+        return () => clearTimeout(timer);
+    }, [appLoading]);
+
     if (appLoading) return (
         <div className="flex items-center flex-col justify-center text-center min-h-dvh bg-background">
             <div className="loading-dots">
@@ -56,7 +69,19 @@ export function RootLayout() {
                 <span></span>
                 <span></span>
         </div>
-                <p className="mt-2 text-muted-foreground">{t('common.loading')}</p>            
+                <p className="mt-2 text-muted-foreground">{t('common.loading')}</p>
+                {stuck && (
+                    <div className="mt-4 flex flex-col items-center gap-2">
+                        <p className="text-sm text-muted-foreground">{t('common.stillLoading')}</p>
+                        <button
+                            type="button"
+                            onClick={() => window.location.reload()}
+                            className="text-sm underline text-foreground"
+                        >
+                            {t('common.reloadPage')}
+                        </button>
+                    </div>
+                )}
                 </div>
     )
 

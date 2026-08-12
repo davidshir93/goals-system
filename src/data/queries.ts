@@ -16,6 +16,7 @@ import {
   UserPreferencesRepo,
   type UserPreferences,
 } from "./repos";
+import { withTimeout } from "@/lib/withTimeout";
 import type {
   Category,
   CopyWeeklyGoalsPayload,
@@ -44,6 +45,11 @@ import type {
   YearGoal,
 } from "@/types/GoalTypes";
 
+// Firestore reads can hang indefinitely on a stuck first connection instead of
+// rejecting, which would leave RootLayout's loading gate spinning forever.
+// Timing them out lets React Query's retry logic recover with a fresh attempt.
+const QUERY_TIMEOUT_MS = 10_000;
+
 const qk = {
   userPreferences: (uid: ID) => ["userPreferences", { uid }] as const,
   categories: (uid: ID) => ["categories", { uid }] as const,
@@ -65,7 +71,8 @@ export function useUserPreferences(uid: ID): UseQueryResult<UserPreferences | nu
 
   return useQuery({
     queryKey: qk.userPreferences(uid),
-    queryFn: () => UserPreferencesRepo.get(uid),
+    queryFn: () =>
+      withTimeout(UserPreferencesRepo.get(uid), QUERY_TIMEOUT_MS, "userPreferences"),
     staleTime: 60_000,
     enabled,
   });
@@ -106,7 +113,7 @@ export function useCategories(uid: ID): UseQueryResult<Category[]> {
 
   return useQuery({
     queryKey: qk.categories(uid),
-    queryFn: () => CategoriesRepo.listAll(uid),
+    queryFn: () => withTimeout(CategoriesRepo.listAll(uid), QUERY_TIMEOUT_MS, "categories"),
     staleTime: 60_000, // 1 min,
     enabled,
   });
@@ -145,7 +152,7 @@ export function useIdentities(uid: ID): UseQueryResult<Identity[]> {
 
   return useQuery({
     queryKey: qk.identities(uid),
-    queryFn: () => IdentitiesRepo.listAll(uid),
+    queryFn: () => withTimeout(IdentitiesRepo.listAll(uid), QUERY_TIMEOUT_MS, "identities"),
     staleTime: 60_000,
     enabled,
   });
@@ -184,7 +191,7 @@ export function useYears(uid: ID): UseQueryResult<Period[]> {
 
   return useQuery({
     queryKey: qk.years(uid),
-    queryFn: () => YearsRepo.listAll(uid),
+    queryFn: () => withTimeout(YearsRepo.listAll(uid), QUERY_TIMEOUT_MS, "years"),
     staleTime: 60_000,
     enabled,
   });
@@ -256,7 +263,7 @@ export function useYearlyGoals(
 
   return useQuery({
     queryKey: qk.yearlyGoals(uid, yearId),
-    queryFn: () => YearlyGoals.listAll(uid, yearId),
+    queryFn: () => withTimeout(YearlyGoals.listAll(uid, yearId), QUERY_TIMEOUT_MS, "yearlyGoals"),
     staleTime: 60_000,
     enabled,
   });
@@ -381,7 +388,7 @@ export function useQuarters(uid: ID, yearId: ID): UseQueryResult<Period[]> {
 
   return useQuery({
     queryKey: qk.quarters(uid, yearId),
-    queryFn: () => QuartersRepo.listAll(uid, yearId),
+    queryFn: () => withTimeout(QuartersRepo.listAll(uid, yearId), QUERY_TIMEOUT_MS, "quarters"),
     staleTime: 60_000,
     enabled,
   });
@@ -468,7 +475,12 @@ export function useQuarterlyGoals(
 
   return useQuery({
     queryKey: qk.quarterlyGoals(uid, yearId, quarterId),
-    queryFn: () => QuarterlyGoals.listAll(uid, yearId, quarterId),
+    queryFn: () =>
+      withTimeout(
+        QuarterlyGoals.listAll(uid, yearId, quarterId),
+        QUERY_TIMEOUT_MS,
+        "quarterlyGoals"
+      ),
     enabled,
     staleTime: 60_000,
   });
@@ -640,7 +652,8 @@ export function useWeeks(
 
   return useQuery({
     queryKey: qk.weeks(uid, yearId, quarterId),
-    queryFn: () => WeeksRepo.listAll(uid, yearId, quarterId),
+    queryFn: () =>
+      withTimeout(WeeksRepo.listAll(uid, yearId, quarterId), QUERY_TIMEOUT_MS, "weeks"),
     staleTime: 60_000,
     enabled,
   });
@@ -744,7 +757,12 @@ export function useWeeklyGoals(
 
   return useQuery({
     queryKey: qk.weeklyGoals(uid, yearId, quarterId, weekId),
-    queryFn: () => WeeklyGoals.listAll(uid, yearId, quarterId, weekId),
+    queryFn: () =>
+      withTimeout(
+        WeeklyGoals.listAll(uid, yearId, quarterId, weekId),
+        QUERY_TIMEOUT_MS,
+        "weeklyGoals"
+      ),
     enabled,
     staleTime: 60_000,
   });
