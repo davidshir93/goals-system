@@ -1,0 +1,14 @@
+/**
+ * Design tokens — color primitives
+ * Source: Goals 1 palette (Coolors)
+ * These are raw brand values. Semantic tokens (background, primary, etc.
+ * in index.css) should reference these rather than hardcoding hex values.
+ */
+
+:root {
+  --color-pine: #002626;   /* near-black deep teal, darkest */
+  --color-teal: #0e4749;   /* dark teal */
+  --color-lime: #95c623;   /* yellow-green */
+  --color-ember: #e55812;  /* burnt orange */
+  --color-sand: #efe7da;   /* warm off-white */
+}

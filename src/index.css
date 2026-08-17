@@ -1,5 +1,6 @@
 @import "tailwindcss";
 @import "tw-animate-css";
+@import "./styles/tokens.css";
 
 @custom-variant dark (&:is(.dark *));
 @tailwind base;
@@ -7,6 +8,11 @@
 @tailwind utilities;
 
 @theme inline {
+  --color-pine: var(--color-pine);
+  --color-teal: var(--color-teal);
+  --color-lime: var(--color-lime);
+  --color-ember: var(--color-ember);
+  --color-sand: var(--color-sand);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
