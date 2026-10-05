@@ -1,0 +1,13 @@
+{
+  "name": "Goals System — Colour Tokens",
+  "id": "goals-system-colour-tokens",
+  "api": "1.0.0",
+  "main": "code.js",
+  "ui": "ui.html",
+  "editorType": ["figma"],
+  "networkAccess": { "allowedDomains": ["none"] },
+  "menu": [
+    { "name": "Generate colour tokens", "command": "generate" },
+    { "name": "Export tokens to JSON", "command": "export" }
+  ]
+}

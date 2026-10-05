@@ -1,0 +1,47 @@
+<style>
+  body { margin: 0; font: 12px/1.4 Inter, system-ui, sans-serif; color: var(--figma-color-text, #222);
+         background: var(--figma-color-bg, #fff); display: flex; flex-direction: column; height: 100vh; }
+  header { padding: 12px 16px 8px; }
+  header p { margin: 4px 0 0; color: var(--figma-color-text-secondary, #777); }
+  textarea { flex: 1; margin: 0 16px; padding: 8px; resize: none; font: 11px/1.45 ui-monospace, Menlo, monospace;
+             border: 1px solid var(--figma-color-border, #e5e5e5); border-radius: 6px;
+             background: var(--figma-color-bg-secondary, #f7f7f7); color: inherit; }
+  footer { display: flex; gap: 8px; justify-content: flex-end; padding: 12px 16px; }
+  button { font: inherit; padding: 6px 12px; border-radius: 6px; cursor: pointer;
+           border: 1px solid var(--figma-color-border, #e5e5e5); background: transparent; color: inherit; }
+  button.primary { background: var(--figma-color-bg-brand, #0d99ff); border-color: transparent;
+                   color: var(--figma-color-text-onbrand, #fff); }
+</style>
+<header>
+  <strong>tokens/figma.json</strong>
+  <p id="summary">Reading the file…</p>
+</header>
+<textarea id="out" readonly spellcheck="false"></textarea>
+<footer>
+  <button id="close">Close</button>
+  <button id="download">Download</button>
+  <button id="copy" class="primary">Copy JSON</button>
+</footer>
+<script>
+  var out = document.getElementById("out");
+  onmessage = function (e) {
+    var m = e.data.pluginMessage;
+    out.value = m.json;
+    document.getElementById("summary").textContent = m.summary;
+  };
+  // navigator.clipboard is blocked inside plugin iframes; select + execCommand still works
+  document.getElementById("copy").onclick = function () {
+    out.select();
+    document.execCommand("copy");
+    parent.postMessage({ pluginMessage: "copied" }, "*");
+  };
+  document.getElementById("download").onclick = function () {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([out.value], { type: "application/json" }));
+    a.download = "figma.json";
+    a.click();
+  };
+  document.getElementById("close").onclick = function () {
+    parent.postMessage({ pluginMessage: "close" }, "*");
+  };
+</script>

@@ -84,6 +84,55 @@
   --signal-ember-text-dark: #ff8854;
 }
 
+/* ── Layer 1 · type ───────────────────────────────────
+   Derived from a 12px base on a 1.3333 ratio.
+   No theme: a font size does not change between light and dark, so
+   these appear once and never in the .dark block.
+
+   Named --type-* rather than --text-*, which is Tailwind v4's own
+   font-size namespace — colliding with it would silently redefine
+   utilities the app already uses. */
+:root {
+  /* families */
+  --font-display: "Bitter", Georgia, "Times New Roman", serif;
+  --font-text: "Google Sans Flex", system-ui, -apple-system, "Segoe UI", sans-serif;
+
+  /* display — 28px */
+  --type-display-family: var(--font-display);
+  --type-display-size: 1.75rem;
+  --type-display-leading: 1.15;
+  --type-display-weight: 800;
+  --type-display: 800 1.75rem/1.15 var(--font-display);
+
+  /* main-title — 21px */
+  --type-main-title-family: var(--font-display);
+  --type-main-title-size: 1.3125rem;
+  --type-main-title-leading: 1.25;
+  --type-main-title-weight: 700;
+  --type-main-title: 700 1.3125rem/1.25 var(--font-display);
+
+  /* body-title — 16px */
+  --type-body-title-family: var(--font-text);
+  --type-body-title-size: 1rem;
+  --type-body-title-leading: 1.4;
+  --type-body-title-weight: 600;
+  --type-body-title: 600 1rem/1.4 var(--font-text);
+
+  /* body-text — 16px */
+  --type-body-text-family: var(--font-text);
+  --type-body-text-size: 1rem;
+  --type-body-text-leading: 1.5;
+  --type-body-text-weight: 400;
+  --type-body-text: 400 1rem/1.5 var(--font-text);
+
+  /* caption — 12px */
+  --type-caption-family: var(--font-text);
+  --type-caption-size: 0.75rem;
+  --type-caption-leading: 1.45;
+  --type-caption-weight: 400;
+  --type-caption: 400 0.75rem/1.45 var(--font-text);
+}
+
 /* ── Layer 2 · semantic, light ─────────────────────────────────
    What components use. Each one points at a primitive. */
 :root {

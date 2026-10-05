@@ -69,6 +69,81 @@ export const SIGNALS = [
   { role: "danger",  name: "ember", hue: 43  }
 ];
 
+/* ------------------------------------------------------------------ */
+/* Type                                                                */
+/* ------------------------------------------------------------------ */
+
+/* Same discipline as the colour ramp: the sizes are derived, not typed out.
+ * A perfect fourth (4:3) from a 12px base reproduces every size in the Figma
+ * file exactly, once rounded — 12, 16, 21, 28, and the 38 that used to sit
+ * above Display. build.mjs asserts that against TYPE.figma below, so retuning
+ * the ratio fails the build unless Figma moved too.
+ *
+ * Five roles, named after the Figma text styles. Nothing else is a role — a
+ * one-off size in a component is a bug in the component, not a missing token.
+ *
+ * Type carries no theme. There is no dark variant of a font size, so this
+ * lives in :root only and never appears in the .dark block. */
+
+export const TYPE = {
+  base: 12,          // Caption — the floor of the system, not a middle
+  ratio: 4 / 3,      // perfect fourth
+  rootSize: 16,      // px per rem; sizes ship in rem so the scale still
+                     // responds to the reader's own browser text size
+
+  families: {
+    display: '"Bitter", Georgia, "Times New Roman", serif',
+    text: '"Google Sans Flex", system-ui, -apple-system, "Segoe UI", sans-serif'
+  },
+
+  /* step is an exponent on the ratio, never a size. leading is unitless so it
+   * scales with the size instead of being re-stated per role.
+   *
+   * Leading falls as size rises: large type on short lines needs less help
+   * finding the next line, and 1.5 on a 28px heading reads as two separate
+   * headings rather than one wrapped title. Body Text keeps 1.5 — it is the
+   * only role doing long-form reading. Caption barely moves; at 12px it needs
+   * the air.
+   *
+   * NOTE: the five Figma text styles still carry 1.5 across the board. These
+   * values are the accepted design; Figma is what has not caught up yet. */
+  roles: [
+    { name: "display",    step: 3, family: "display", weight: 800, leading: 1.15 },
+    { name: "main-title", step: 2, family: "display", weight: 700, leading: 1.25 },
+    { name: "body-title", step: 1, family: "text",    weight: 600, leading: 1.4  },
+    { name: "body-text",  step: 1, family: "text",    weight: 400, leading: 1.5  },
+    { name: "caption",    step: 0, family: "text",    weight: 400, leading: 1.45 }
+  ],
+
+  /* The designed spec, transcribed from the Figma text styles.
+   *
+   * This deliberately repeats what `roles` above already says. That repetition
+   * is the entire point: a guard is only worth having when it compares two
+   * statements that are maintained independently. Derive this block from
+   * `roles` and the check becomes a tautology that passes no matter what
+   * either side does.
+   *
+   * It is a transcript, not a live read — it guards the code from drifting,
+   * not Figma. Regenerating it from the file is what would close that gap. */
+  designed: {
+    "display":    { size: 28, leading: 1.15, weight: 800, family: "display" },
+    "main-title": { size: 21, leading: 1.25, weight: 700, family: "display" },
+    "body-title": { size: 16, leading: 1.4,  weight: 600, family: "text"    },
+    "body-text":  { size: 16, leading: 1.5,  weight: 400, family: "text"    },
+    "caption":    { size: 12, leading: 1.45, weight: 400, family: "text"    }
+  }
+};
+
+export const typeSize = (step) => Math.round(TYPE.base * TYPE.ratio ** step);
+export const rem = (px) => +(px / TYPE.rootSize).toFixed(4) + "rem";
+
+export function typeRoles() {
+  return TYPE.roles.map((r) => {
+    const px = typeSize(r.step);
+    return { ...r, px, size: rem(px), stack: TYPE.families[r.family] };
+  });
+}
+
 /* Semantic layer: token -> primitive, per theme. */
 export function semanticMap(dark) {
   const m = dark

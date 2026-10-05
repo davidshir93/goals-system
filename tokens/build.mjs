@@ -17,7 +17,8 @@ import { writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import {
-  NEUTRAL, CATEGORIES, SIGNALS, semanticMap, primitives, cssName, contrast
+  NEUTRAL, CATEGORIES, SIGNALS, TYPE, semanticMap, primitives, cssName, contrast,
+  typeRoles, typeSize
 } from "./recipe.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -59,6 +60,37 @@ for (const s of SIGNALS) {
   }
 }
 l1.push("}");
+
+/* ---------------------------------------------------------------- */
+/* Layer 1 — type                                                    */
+/* ---------------------------------------------------------------- */
+
+const ROLES = typeRoles();
+
+const lt = [];
+lt.push("/* \u2500\u2500 Layer 1 \u00b7 type \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500");
+lt.push("   Derived from a " + TYPE.base + "px base on a " + TYPE.ratio.toFixed(4) + " ratio.");
+lt.push("   No theme: a font size does not change between light and dark, so");
+lt.push("   these appear once and never in the .dark block.");
+lt.push("");
+lt.push("   Named --type-* rather than --text-*, which is Tailwind v4's own");
+lt.push("   font-size namespace \u2014 colliding with it would silently redefine");
+lt.push("   utilities the app already uses. */");
+lt.push(":root {");
+lt.push("  /* families */");
+for (const [k, v] of Object.entries(TYPE.families)) lt.push(`  --font-${k}: ${v};`);
+lt.push("");
+for (const r of ROLES) {
+  lt.push(`  /* ${r.name} \u2014 ${r.px}px */`);
+  lt.push(`  --type-${r.name}-family: var(--font-${r.family});`);
+  lt.push(`  --type-${r.name}-size: ${r.size};`);
+  lt.push(`  --type-${r.name}-leading: ${r.leading};`);
+  lt.push(`  --type-${r.name}-weight: ${r.weight};`);
+  lt.push(`  --type-${r.name}: ${r.weight} ${r.size}/${r.leading} var(--font-${r.family});`);
+  lt.push("");
+}
+lt.pop();
+lt.push("}");
 
 /* ---------------------------------------------------------------- */
 /* Layers 2 and 3 — semantic                                         */
@@ -103,7 +135,7 @@ const l3 = [
   "}"
 ];
 
-const css = [BANNER, l1.join("\n"), "", l2.join("\n"), "", l3.join("\n"), ""].join("\n");
+const css = [BANNER, l1.join("\n"), "", lt.join("\n"), "", l2.join("\n"), "", l3.join("\n"), ""].join("\n");
 
 /* ---------------------------------------------------------------- */
 /* shadcn bridge — optional                                          */
@@ -273,6 +305,31 @@ for (const [theme, map] of [["light", LIGHT], ["dark", DARK]]) {
   }
 }
 
+/* The recipe is only allowed to stand in for the design for as long as it
+ * reproduces it exactly \u2014 every property, not just the derived one. Retuning
+ * base or ratio, or nudging a leading or a weight, fails here rather than
+ * quietly shipping a scale nobody designed. */
+const FIELDS = [
+  ["size", (r) => r.px, "px"],
+  ["leading", (r) => r.leading, ""],
+  ["weight", (r) => r.weight, ""],
+  ["family", (r) => r.family, ""]
+];
+
+const typeDrift = [];
+for (const r of ROLES) {
+  const d = TYPE.designed[r.name];
+  if (!d) { typeDrift.push(`${r.name} \u2014 not in TYPE.designed`); continue; }
+  for (const [key, read, unit] of FIELDS) {
+    const mine = read(r), theirs = d[key];
+    if (theirs === undefined) typeDrift.push(`${r.name}.${key} \u2014 missing from TYPE.designed`);
+    else if (mine !== theirs) typeDrift.push(`${r.name}.${key} \u2014 recipe ${mine}${unit}, designed ${theirs}${unit}`);
+  }
+}
+for (const name of Object.keys(TYPE.designed)) {
+  if (!ROLES.some((r) => r.name === name)) typeDrift.push(`${name} \u2014 designed, but missing from TYPE.roles`);
+}
+
 const failed = checks.filter((c) => c.ratio < c.min);
 
 const written = [
@@ -284,6 +341,13 @@ const written = [
 
 for (const w of written) console.log("  wrote " + w);
 console.log(`  ${checks.length - failed.length}/${checks.length} contrast checks pass`);
+console.log(`  ${ROLES.length * FIELDS.length - typeDrift.length}/${ROLES.length * FIELDS.length} type properties match the design`);
+
+if (typeDrift.length) {
+  console.error("\nTYPE DRIFTED FROM THE DESIGN:");
+  for (const t of typeDrift) console.error("  " + t);
+  process.exit(1);
+}
 
 if (failed.length) {
   console.error("\nFAILED:");
