@@ -38,7 +38,7 @@
       "azure": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#1b3c4e"
+          "$value": "#1f536d"
         },
         "bg-light": {
           "$type": "color",
@@ -56,7 +56,7 @@
       "cobalt": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#0f284d"
+          "$value": "#304d78"
         },
         "bg-light": {
           "$type": "color",
@@ -74,7 +74,7 @@
       "crimson": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#441629"
+          "$value": "#6f394e"
         },
         "bg-light": {
           "$type": "color",
@@ -92,7 +92,7 @@
       "fern": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#173005"
+          "$value": "#395728"
         },
         "bg-light": {
           "$type": "color",
@@ -110,7 +110,7 @@
       "fuchsia": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#482e43"
+          "$value": "#643e5d"
         },
         "bg-light": {
           "$type": "color",
@@ -128,7 +128,7 @@
       "iris": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#373450"
+          "$value": "#4b4771"
         },
         "bg-light": {
           "$type": "color",
@@ -146,7 +146,7 @@
       "jade": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#1c4031"
+          "$value": "#205943"
         },
         "bg-light": {
           "$type": "color",
@@ -164,7 +164,7 @@
       "lagoon": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#003336"
+          "$value": "#005a5d"
         },
         "bg-light": {
           "$type": "color",
@@ -182,7 +182,7 @@
       "ochre": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#411f00"
+          "$value": "#6a4316"
         },
         "bg-light": {
           "$type": "color",
@@ -200,7 +200,7 @@
       "olive": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#3d3918"
+          "$value": "#554e1c"
         },
         "bg-light": {
           "$type": "color",
@@ -218,7 +218,7 @@
       "orchid": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#351c43"
+          "$value": "#5c3f6d"
         },
         "bg-light": {
           "$type": "color",
@@ -236,7 +236,7 @@
       "poppy": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#4f2d2b"
+          "$value": "#6e3d3a"
         },
         "bg-light": {
           "$type": "color",

@@ -52,8 +52,11 @@ var NEUTRAL = {
 };
 
 var TIERS = {
-  bright: { fillL: 56, fillD: 74, bgL: [95, 0.035], bgD: [34, 0.05] },
-  deep:   { fillL: 48, fillD: 64, bgL: [90, 0.060], bgD: [28, 0.075] }
+  // Dark backgrounds sit at L42 for both tiers: well above the dark card
+  // (neutral-800, L28) so a chip reads as a chip, and still far below the
+  // fills so it never competes with the progress bar.
+  bright: { fillL: 56, fillD: 74, bgL: [95, 0.035], bgD: [42, 0.07] },
+  deep:   { fillL: 48, fillD: 64, bgL: [90, 0.060], bgD: [42, 0.08] }
 };
 
 var CHROMA_CAP = 0.18;      // ceiling on fill saturation

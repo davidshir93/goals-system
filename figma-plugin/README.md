@@ -1,6 +1,12 @@
 # Goals System — Colour Tokens
 
-A Figma plugin that generates the whole colour system into the Goals System file.
+A Figma plugin for the Goals System design tokens.
+
+**Figma is the source of truth.** Colours, text styles, spacing and radius are
+decided here, exported to `tokens/figma.json`, and `npm run tokens` builds the
+CSS from that file. The build checks contrast and fails if a change in Figma
+breaks it. Designers can change any value by hand; the generator below is a
+starting point, not a rule.
 
 ## Run it
 
@@ -8,9 +14,12 @@ A Figma plugin that generates the whole colour system into the Goals System file
    pick `figma-plugin/manifest.json` in the goals-system repo.
 2. Open the Goals System file → **Plugins → Development → Goals System — Colour Tokens**.
    It has two commands:
-   - **Generate colour tokens** — code → Figma. Builds the variables and the swatch page.
+   - **Generate colour tokens** — creates a starting palette from the OKLCH
+     recipe in `code.js` (hues, tiers, neutral ramp). Only adds variables that
+     are missing, so values you have tuned by hand are kept.
    - **Export tokens to JSON** — Figma → code. Shows every variable and text
-     style as DTCG JSON. Copy it into `tokens/figma.json` and commit.
+     style as DTCG JSON. Copy it into `tokens/figma.json`, run
+     `npm run tokens`, and commit both.
 
 Generate reports what it did in the toast at the bottom. Safe to run again — existing
 collections are reused, only missing variables are added, and the swatch page is
