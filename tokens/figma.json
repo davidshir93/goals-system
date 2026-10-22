@@ -1,35 +1,139 @@
 {
   "Dimensions": {
     "radius": {
-      "md": {
+      "6": {
         "$type": "number",
-        "$value": 16
+        "$value": 6
       },
-      "sm": {
+      "8": {
         "$type": "number",
         "$value": 8
       },
-      "xl": {
+      "10": {
         "$type": "number",
-        "$value": 32
-      }
-    },
-    "spacing": {
-      "lg": {
+        "$value": 10
+      },
+      "12": {
+        "$type": "number",
+        "$value": 12
+      },
+      "16": {
+        "$type": "number",
+        "$value": 16
+      },
+      "20": {
+        "$type": "number",
+        "$value": 20
+      },
+      "24": {
         "$type": "number",
         "$value": 24
       },
+      "32": {
+        "$type": "number",
+        "$value": 32
+      },
+      "full": {
+        "$type": "number",
+        "$value": 999
+      },
+      "lg": {
+        "$type": "number",
+        "$value": "{Dimensions.radius.24}"
+      },
       "md": {
         "$type": "number",
-        "$value": 16
+        "$value": "{Dimensions.radius.16}"
       },
       "sm": {
         "$type": "number",
-        "$value": 8
+        "$value": "{Dimensions.radius.8}"
       },
       "xl": {
         "$type": "number",
+        "$value": "{Dimensions.radius.32}"
+      }
+    },
+    "spacing": {
+      "2": {
+        "$type": "number",
+        "$value": 2
+      },
+      "4": {
+        "$type": "number",
+        "$value": 4
+      },
+      "6": {
+        "$type": "number",
+        "$value": 6
+      },
+      "8": {
+        "$type": "number",
+        "$value": 8
+      },
+      "10": {
+        "$type": "number",
+        "$value": 10
+      },
+      "12": {
+        "$type": "number",
+        "$value": 12
+      },
+      "16": {
+        "$type": "number",
+        "$value": 16
+      },
+      "20": {
+        "$type": "number",
+        "$value": 20
+      },
+      "24": {
+        "$type": "number",
+        "$value": 24
+      },
+      "32": {
+        "$type": "number",
         "$value": 32
+      },
+      "40": {
+        "$type": "number",
+        "$value": 40
+      },
+      "48": {
+        "$type": "number",
+        "$value": 48
+      },
+      "120": {
+        "$type": "number",
+        "$value": 120
+      },
+      "2xl": {
+        "$type": "number",
+        "$value": "{Dimensions.spacing.48}"
+      },
+      "lg": {
+        "$type": "number",
+        "$value": "{Dimensions.spacing.24}"
+      },
+      "md": {
+        "$type": "number",
+        "$value": "{Dimensions.spacing.16}"
+      },
+      "page": {
+        "$type": "number",
+        "$value": "{Dimensions.spacing.120}"
+      },
+      "sm": {
+        "$type": "number",
+        "$value": "{Dimensions.spacing.8}"
+      },
+      "xl": {
+        "$type": "number",
+        "$value": "{Dimensions.spacing.32}"
+      },
+      "xs": {
+        "$type": "number",
+        "$value": "{Dimensions.spacing.4}"
       }
     }
   },
@@ -158,7 +262,7 @@
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#188964"
+          "$value": "#178461"
         }
       },
       "lagoon": {
@@ -363,6 +467,10 @@
         "$type": "color",
         "$value": "{Primitives.neutral.600}"
       },
+      "overlay": {
+        "$type": "color",
+        "$value": "{Primitives.neutral.600}"
+      },
       "subtle": {
         "$type": "color",
         "$value": "{Primitives.neutral.700}"
@@ -525,6 +633,10 @@
         "$type": "color",
         "$value": "{Primitives.neutral.900}"
       },
+      "overlay": {
+        "$type": "color",
+        "$value": "{Primitives.neutral.700}"
+      },
       "raised": {
         "$type": "color",
         "$value": "{Primitives.neutral.800}"
@@ -543,6 +655,11 @@
         "$type": "color",
         "$value": "{Primitives.neutral.300}"
       },
+      "on-fill": {
+        "$description": "Text on a solid category fill (progress count). Must pass 4.5:1 on all 12 categories.",
+        "$type": "color",
+        "$value": "{Primitives.neutral.900}"
+      },
       "primary": {
         "$type": "color",
         "$value": "{Primitives.neutral.50}"
@@ -558,6 +675,10 @@
       "default": {
         "$type": "color",
         "$value": "{Primitives.neutral.300}"
+      },
+      "overlay": {
+        "$type": "color",
+        "$value": "{Primitives.neutral.200}"
       },
       "subtle": {
         "$type": "color",
@@ -721,6 +842,10 @@
         "$type": "color",
         "$value": "{Primitives.neutral.100}"
       },
+      "overlay": {
+        "$type": "color",
+        "$value": "{Primitives.neutral.25}"
+      },
       "raised": {
         "$type": "color",
         "$value": "{Primitives.neutral.25}"
@@ -738,6 +863,11 @@
       "muted": {
         "$type": "color",
         "$value": "{Primitives.neutral.600}"
+      },
+      "on-fill": {
+        "$description": "Text on a solid category fill (progress count). Must pass 4.5:1 on all 12 categories.",
+        "$type": "color",
+        "$value": "{Primitives.neutral.25}"
       },
       "primary": {
         "$type": "color",
@@ -813,6 +943,28 @@
         "lineHeight": 1.45
       }
     },
+    "Caption Strong": {
+      "$description": "Caption at 600 weight: category chips and small labels",
+      "$extensions": {
+        "com.figma": {
+          "fontStyle": "SemiBold"
+        }
+      },
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "Google Sans Flex",
+        "fontSize": {
+          "unit": "px",
+          "value": 12
+        },
+        "fontWeight": 600,
+        "letterSpacing": {
+          "unit": "em",
+          "value": 0
+        },
+        "lineHeight": 1.45
+      }
+    },
     "Display": {
       "$extensions": {
         "com.figma": {
@@ -853,6 +1005,27 @@
           "value": 0
         },
         "lineHeight": 1.25
+      }
+    },
+    "Page Title": {
+      "$extensions": {
+        "com.figma": {
+          "fontStyle": "ExtraBold"
+        }
+      },
+      "$type": "typography",
+      "$value": {
+        "fontFamily": "Bitter",
+        "fontSize": {
+          "unit": "px",
+          "value": 40
+        },
+        "fontWeight": 800,
+        "letterSpacing": {
+          "unit": "em",
+          "value": 0
+        },
+        "lineHeight": 1.15
       }
     }
   }
