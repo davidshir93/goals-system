@@ -6,10 +6,13 @@
  *                       never edited by hand.
  *   tokens/config.mjs   the few things Figma cannot know: stable category ids,
  *                       font fallback stacks, rem base.
+ *   tokens/motion.mjs   durations and easing. Code-owned: Figma cannot preview
+ *                       or check an easing curve.
  *
  * Outputs
  *   src/styles/tokens.css        primitives, type, dimensions, light + dark
  *   src/tokens/categories.ts     typed category list for app code
+ *   src/tokens/motion.ts         typed motion values + getMotion() for JS animation
  *   src/styles/shadcn-bridge.css optional — points shadcn's variables at the
  *                                system. Not imported by default.
  *
@@ -23,6 +26,7 @@ import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { CATEGORY_IDS, FONTS, ROOT_SIZE, BRIDGE } from "./config.mjs";
+import { MOTION, MOTION_REDUCED } from "./motion.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 const write = (rel, body) => {
@@ -110,11 +114,67 @@ for (const [style, t] of Object.entries(FIGMA["Text styles"] ?? {})) {
 
 /* Dimensions — spacing and radius in px. */
 const DIMENSIONS = {};
-for (const [k, t] of Object.entries(flatten(FIGMA["Dimensions"]))) {
+const DIM_TOKENS = flatten(FIGMA["Dimensions"]);
+/* t-shirt sizes (sm, md…) are aliases like {Dimensions.spacing.8} — resolve
+ * them to the number they point at, or they ship as NaN. */
+function dimValue(k, seen = []) {
+  const v = DIM_TOKENS[k]?.$value;
+  if (typeof v === "number") return v;
+  const m = typeof v === "string" && v.match(/^\{Dimensions\.(.+)\}$/);
+  const target = m && m[1].replace(/\./g, "/");
+  if (target && target in DIM_TOKENS && !seen.includes(target)) return dimValue(target, [...seen, k]);
+  errors.push(`dimension ${k} — "${v}" is neither a number nor an alias to another dimension`);
+  return 0;
+}
+for (const k of Object.keys(DIM_TOKENS)) {
   const [group, step] = k.split("/");
-  (DIMENSIONS[group] ??= {})[step] = t.$value;
+  (DIMENSIONS[group] ??= {})[step] = dimValue(k);
 }
 const DIM_PREFIX = { spacing: "space", radius: "corner" };   // avoids Tailwind's --spacing and shadcn's --radius-*
+
+/* ---------------------------------------------------------------- */
+/* Motion — code-owned, see tokens/motion.mjs                        */
+/* ---------------------------------------------------------------- */
+
+const kebab = (s) => s.replace(/[A-Z]/g, (c) => "-" + c.toLowerCase());
+const bezier = (e) => `cubic-bezier(${e.join(", ")})`;
+const MOTION_FIELDS = ["duration", "easing", "scale"];
+
+/* A broken cubic-bezier() never throws — the browser drops it and falls back
+ * to its default ease, so the motion just feels slightly off. Catch it here. */
+function checkMotion(name, spec, where) {
+  for (const f of Object.keys(spec)) if (!MOTION_FIELDS.includes(f)) errors.push(`${where} ${name} — unknown field "${f}"`);
+  if ("duration" in spec && !(Number.isFinite(spec.duration) && spec.duration >= 0))
+    errors.push(`${where} ${name} — duration ${spec.duration} must be a number of ms, 0 or more`);
+  if ("easing" in spec) {
+    const e = spec.easing;
+    if (!Array.isArray(e) || e.length !== 4 || !e.every(Number.isFinite))
+      errors.push(`${where} ${name} — easing must be four numbers [x1, y1, x2, y2]`);
+    else if (e[0] < 0 || e[0] > 1 || e[2] < 0 || e[2] > 1)
+      errors.push(`${where} ${name} — easing x1 and x2 must be between 0 and 1, or the browser ignores the curve`);
+  }
+  if ("scale" in spec && !(Number.isFinite(spec.scale) && spec.scale > 0))
+    errors.push(`${where} ${name} — scale ${spec.scale} must be a positive number`);
+}
+for (const [name, spec] of Object.entries(MOTION)) {
+  if (!("duration" in spec)) errors.push(`motion ${name} — has no duration`);
+  checkMotion(name, spec, "motion");
+  /* Anything that animates must say what it does under reduced motion.
+   * Pure waits (no easing) are exempt. */
+  if ("easing" in spec && !(name in MOTION_REDUCED))
+    errors.push(`motion ${name} — animates, but has no entry in MOTION_REDUCED`);
+}
+for (const [name, spec] of Object.entries(MOTION_REDUCED)) {
+  if (!(name in MOTION)) { errors.push(`reduced motion ${name} — not a motion token`); continue; }
+  checkMotion(name, spec, "reduced motion");
+  if ("scale" in spec && !("scale" in MOTION[name])) errors.push(`reduced motion ${name} — sets a scale the full token does not have`);
+}
+
+const motionVars = (map) => Object.entries(map).flatMap(([name, s]) => [
+  ...("duration" in s ? [`  --motion-${kebab(name)}-duration: ${s.duration}ms;`] : []),
+  ...("easing" in s ? [`  --motion-${kebab(name)}-easing: ${bezier(s.easing)};`] : []),
+  ...("scale" in s ? [`  --motion-${kebab(name)}-scale: ${s.scale};`] : [])
+]);
 
 /* ---------------------------------------------------------------- */
 /* tokens.css                                                        */
@@ -169,6 +229,21 @@ for (const [group, scale] of Object.entries(DIMENSIONS))
   for (const [step, px] of Object.entries(scale)) lt.push(`  --${DIM_PREFIX[group] ?? group}-${step}: ${rem(px)};`);
 lt.push("}");
 
+const lm = [
+  "/* ── Layer 1 · motion ──────────────────────────────────────────",
+  "   From tokens/motion.mjs, not Figma. No theme. Under reduced motion",
+  "   nothing moves or scales; values update instantly or fade. */",
+  ":root {",
+  ...motionVars(MOTION),
+  "}",
+  "",
+  "@media (prefers-reduced-motion: reduce) {",
+  "  :root {",
+  ...motionVars(MOTION_REDUCED).map((l) => "  " + l),
+  "  }",
+  "}"
+];
+
 const GROUPS = [
   ["chrome — everything the app owns, no hue of its own",
     (t) => t.startsWith("surface/") || t.startsWith("border/") || t.startsWith("text/")],
@@ -190,6 +265,7 @@ const css = [
   BANNER,
   l1.join("\n"), "",
   lt.join("\n"), "",
+  lm.join("\n"), "",
   ["/* ── Layer 2 · semantic, light ─────────────────────────────────",
    "   What components use. Each one points at a primitive. */",
    ":root {", ...body(LIGHT), "}"].join("\n"), "",
@@ -263,6 +339,50 @@ export function categoryVar(
 `;
 
 /* ---------------------------------------------------------------- */
+/* motion.ts                                                         */
+/* ---------------------------------------------------------------- */
+
+const tsSpec = (s) => ({ ...s, ...(s.easing ? { easing: bezier(s.easing) } : {}) });
+const tsFull = Object.fromEntries(Object.entries(MOTION).map(([k, s]) => [k, { easing: "linear", ...tsSpec(s) }]));
+const tsReduced = Object.fromEntries(Object.entries(MOTION_REDUCED).map(([k, s]) => [k, tsSpec(s)]));
+
+const motionTs = `/* Generated by tokens/build.mjs from tokens/motion.mjs — do not edit by hand.
+   Change the values in tokens/motion.mjs and run \`npm run tokens\`. */
+
+export interface MotionSpec {
+  /** milliseconds */
+  duration: number;
+  /** CSS easing, ready for the Web Animations API */
+  easing: string;
+  /** only on motions that scale something */
+  scale?: number;
+}
+
+export type MotionName = ${Object.keys(MOTION).map((k) => JSON.stringify(k)).join(" | ")};
+
+export const MOTION: Readonly<Record<MotionName, MotionSpec>> = ${JSON.stringify(tsFull, null, 2)};
+
+/** Overrides applied under prefers-reduced-motion. */
+export const MOTION_REDUCED: Readonly<Partial<Record<MotionName, Partial<MotionSpec>>>> = ${JSON.stringify(tsReduced, null, 2)};
+
+export const REDUCED_MOTION_QUERY = "(prefers-reduced-motion: reduce)";
+
+export function prefersReducedMotion(): boolean {
+  return typeof window !== "undefined" && window.matchMedia?.(REDUCED_MOTION_QUERY).matches === true;
+}
+
+/** The motion to use right now. Call it when an animation starts, not once at
+ *  import, so a change in the reader's system setting applies without a reload. */
+export function getMotion(reduced: boolean = prefersReducedMotion()): Readonly<Record<MotionName, MotionSpec>> {
+  if (!reduced) return MOTION;
+  const out = { ...MOTION } as Record<MotionName, MotionSpec>;
+  for (const [name, override] of Object.entries(MOTION_REDUCED) as [MotionName, Partial<MotionSpec>][])
+    out[name] = { ...MOTION[name], ...override };
+  return out;
+}
+`;
+
+/* ---------------------------------------------------------------- */
 /* Contrast guardrails                                               */
 /* ---------------------------------------------------------------- */
 
@@ -309,7 +429,7 @@ const failed = checks.filter((c) => c.ratio < c.min);
 /* ---------------------------------------------------------------- */
 
 if (errors.length) {
-  console.error("\ntokens/figma.json IS INCOMPLETE OR INCONSISTENT:");
+  console.error("\nTOKENS ARE INCOMPLETE OR INCONSISTENT (tokens/figma.json, tokens/motion.mjs):");
   for (const e of errors) console.error("  " + e);
   process.exit(1);
 }
@@ -317,11 +437,13 @@ if (errors.length) {
 for (const w of [
   write("src/styles/tokens.css", css),
   write("src/styles/shadcn-bridge.css", bridge),
-  write("src/tokens/categories.ts", ts)
+  write("src/tokens/categories.ts", ts),
+  write("src/tokens/motion.ts", motionTs)
 ]) console.log("  wrote " + w);
 
 const dims = Object.values(DIMENSIONS).reduce((n, s) => n + Object.keys(s).length, 0);
 console.log(`  ${Object.keys(P).length} primitives, ${Object.keys(LIGHT).length} semantic tokens per theme, ${ROLES.length} text styles, ${dims} dimensions`);
+console.log(`  ${Object.keys(MOTION).length} motion tokens, ${Object.keys(MOTION_REDUCED).length} reduced-motion overrides, all valid`);
 console.log(`  ${checks.length - failed.length}/${checks.length} contrast checks pass`);
 
 if (failed.length) {

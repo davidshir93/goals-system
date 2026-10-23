@@ -155,10 +155,10 @@
   --corner-24: 1.5rem;
   --corner-32: 2rem;
   --corner-full: 62.4375rem;
-  --corner-lg: NaNrem;
-  --corner-md: NaNrem;
-  --corner-sm: NaNrem;
-  --corner-xl: NaNrem;
+  --corner-lg: 1.5rem;
+  --corner-md: 1rem;
+  --corner-sm: 0.5rem;
+  --corner-xl: 2rem;
   --space-2: 0.125rem;
   --space-4: 0.25rem;
   --space-6: 0.375rem;
@@ -172,13 +172,60 @@
   --space-40: 2.5rem;
   --space-48: 3rem;
   --space-120: 7.5rem;
-  --space-2xl: NaNrem;
-  --space-lg: NaNrem;
-  --space-md: NaNrem;
-  --space-page: NaNrem;
-  --space-sm: NaNrem;
-  --space-xl: NaNrem;
-  --space-xs: NaNrem;
+  --space-2xl: 3rem;
+  --space-lg: 1.5rem;
+  --space-md: 1rem;
+  --space-page: 7.5rem;
+  --space-sm: 0.5rem;
+  --space-xl: 2rem;
+  --space-xs: 0.25rem;
+}
+
+/* ── Layer 1 · motion ──────────────────────────────────────────
+   From tokens/motion.mjs, not Figma. No theme. Under reduced motion
+   nothing moves or scales; values update instantly or fade. */
+:root {
+  --motion-progress-duration: 250ms;
+  --motion-progress-easing: cubic-bezier(0, 0, 0.2, 1);
+  --motion-count-duration: 125ms;
+  --motion-count-easing: cubic-bezier(0, 0, 0.2, 1);
+  --motion-trophy-duration: 350ms;
+  --motion-trophy-easing: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --motion-wave-duration: 560ms;
+  --motion-wave-easing: cubic-bezier(0, 0, 0.2, 1);
+  --motion-complete-hold-duration: 150ms;
+  --motion-lift-duration: 250ms;
+  --motion-lift-easing: cubic-bezier(0.2, 0, 0, 1);
+  --motion-lift-scale: 1.1;
+  --motion-move-duration: 480ms;
+  --motion-move-easing: cubic-bezier(0.3, 0, 0, 1);
+  --motion-settle-duration: 240ms;
+  --motion-settle-easing: cubic-bezier(0, 0, 0.2, 1);
+  --motion-woop-open-duration: 300ms;
+  --motion-woop-open-easing: cubic-bezier(0, 0, 0.2, 1);
+  --motion-woop-close-duration: 180ms;
+  --motion-woop-close-easing: cubic-bezier(0.3, 0, 1, 1);
+  --motion-woop-expand-duration: 260ms;
+  --motion-woop-expand-easing: cubic-bezier(0.2, 0, 0, 1);
+  --motion-woop-collapse-duration: 195ms;
+  --motion-woop-collapse-easing: cubic-bezier(0.3, 0, 1, 1);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion-progress-duration: 0ms;
+    --motion-count-duration: 0ms;
+    --motion-trophy-duration: 140ms;
+    --motion-wave-duration: 0ms;
+    --motion-lift-duration: 0ms;
+    --motion-lift-scale: 1;
+    --motion-move-duration: 140ms;
+    --motion-settle-duration: 0ms;
+    --motion-woop-open-duration: 140ms;
+    --motion-woop-close-duration: 140ms;
+    --motion-woop-expand-duration: 0ms;
+    --motion-woop-collapse-duration: 0ms;
+  }
 }
 
 /* ── Layer 2 · semantic, light ─────────────────────────────────
