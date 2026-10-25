@@ -23,7 +23,31 @@ export const FONTS = {
   /* Suez One covers Hebrew: Bitter has no Hebrew glyphs, so Hebrew falls
    * through to it while Latin letters and digits stay in Bitter. */
   "Bitter": { key: "display", stack: '"Bitter", "Suez One", Georgia, "Times New Roman", serif' },
-  "Google Sans Flex": { key: "text", stack: '"Google Sans Flex", system-ui, -apple-system, "Segoe UI", sans-serif' }
+  /* IBM Plex Sans Hebrew covers Hebrew body text the same way. */
+  "Google Sans Flex": { key: "text", stack: '"Google Sans Flex", "IBM Plex Sans Hebrew", system-ui, -apple-system, "Segoe UI", sans-serif' }
+};
+
+/* Hebrew partner faces. Figma keeps them as "Hebrew/<Style>" text styles
+ * (e.g. Hebrew/Display) so mockups render Hebrew correctly. They are not
+ * separate tokens: in code the Hebrew face sits in the Latin face's stack
+ * above, and the browser picks it per glyph.
+ *
+ * Hebrew reads smaller than Latin at the same size (no capitals, no
+ * ascenders), so the Hebrew styles in Figma are set larger. The build takes
+ * that ratio from Figma, checks every style agrees on it, and emits it as
+ * size-adjust on a self-hosted @font-face limited to Hebrew characters —
+ * Latin letters and digits stay in the Latin face at the style's size.
+ * Line height is checked in px: a Hebrew line is as tall as a Latin one.
+ * Weight is checked when the Hebrew face has more than one weight. A face
+ * at 100% still gets its own @font-face, so all Hebrew loads the same way. */
+export const HEBREW_FONTS = {
+  /* One weight: every Hebrew title style uses it, weight is not checked. */
+  "Bitter": { family: "Suez One", files: { 400: "/fonts/suez-one-hebrew-400.woff2" } },
+  /* Same weights as the Latin body styles, so the build checks they match. */
+  "Google Sans Flex": { family: "IBM Plex Sans Hebrew", files: {
+    400: "/fonts/ibm-plex-sans-hebrew-400.woff2",
+    600: "/fonts/ibm-plex-sans-hebrew-600.woff2"
+  } }
 };
 
 /* px per rem. Sizes ship in rem so they still respond to the reader's own

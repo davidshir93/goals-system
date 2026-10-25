@@ -25,7 +25,7 @@
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
-import { CATEGORY_IDS, FONTS, ROOT_SIZE, BRIDGE } from "./config.mjs";
+import { CATEGORY_IDS, FONTS, HEBREW_FONTS, ROOT_SIZE, BRIDGE } from "./config.mjs";
 import { MOTION, MOTION_REDUCED } from "./motion.mjs";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
@@ -97,18 +97,54 @@ const CATEGORIES = Object.entries(CATEGORY_IDS)
 
 const SIGNAL_ROLES = [...new Set(Object.keys(LIGHT).filter((k) => k.startsWith("signal/")).map((k) => k.split("/")[1]))];
 
-/* Type — one role per Figma text style. */
-const ROLES = [];
-for (const [style, t] of Object.entries(FIGMA["Text styles"] ?? {})) {
-  const v = t.$value;
-  const font = FONTS[v.fontFamily];
-  if (!font) { errors.push(`text style "${style}" — font "${v.fontFamily}" has no fallback stack in tokens/config.mjs`); continue; }
+/* Type — one role per Figma text style. "Hebrew/…" styles are checked
+ * against their Latin style below instead of becoming roles. */
+function leadingOf(style, v) {
   const px = v.fontSize?.value ?? v.fontSize;
   const lh = v.lineHeight;
   const leading = typeof lh === "number" ? lh
     : lh?.unit === "px" ? +(lh.value / px).toFixed(3)
     : lh?.unit === "%" ? lh.value / 100 : undefined;
   if (leading === undefined) errors.push(`text style "${style}" — line height ${JSON.stringify(lh)} is not unitless, px or %`);
+  return leading;
+}
+const { Hebrew: HEBREW_STYLES = {}, ...LATIN_STYLES } = FIGMA["Text styles"] ?? {};
+const sizeOf = (x) => x.fontSize?.value ?? x.fontSize;
+const HEBREW_SCALE = {};   // Latin family → [ratio per style]
+for (const [style, t] of Object.entries(LATIN_STYLES)) {
+  const he = HEBREW_FONTS[t.$value.fontFamily];
+  if (!he) continue;
+  const h = HEBREW_STYLES[style]?.$value;
+  if (!h) { errors.push(`text style "${style}" — no "Hebrew/${style}" partner in Figma (${t.$value.fontFamily} has no Hebrew; expected ${he.family})`); continue; }
+  if (h.fontFamily !== he.family) errors.push(`text style "Hebrew/${style}" — font is ${h.fontFamily}, expected ${he.family} (tokens/config.mjs HEBREW_FONTS)`);
+  if (!FONTS[t.$value.fontFamily]?.stack.includes(`"${he.family}"`)) errors.push(`font ${t.$value.fontFamily} — its stack in tokens/config.mjs is missing "${he.family}", so Hebrew would not render in it`);
+  const lpx = sizeOf(t.$value), hpx = sizeOf(h);
+  (HEBREW_SCALE[t.$value.fontFamily] ??= []).push({ style, ratio: hpx / lpx });
+  if (Object.keys(he.files).length > 1 && h.fontWeight !== t.$value.fontWeight)
+    errors.push(`text style "Hebrew/${style}" — weight ${h.fontWeight}, "${style}" is ${t.$value.fontWeight}`);
+  if (!he.files[h.fontWeight] && Object.keys(he.files).length > 1)
+    errors.push(`text style "Hebrew/${style}" — weight ${h.fontWeight} has no file in tokens/config.mjs HEBREW_FONTS`);
+  const lineL = leadingOf(style, t.$value) * lpx, lineH = leadingOf(`Hebrew/${style}`, h) * hpx;
+  if (Math.abs(lineL - lineH) > 0.5) errors.push(`text style "Hebrew/${style}" — line height ${lineH.toFixed(1)}px, "${style}" is ${lineL.toFixed(1)}px; set it in px to match`);
+}
+for (const style of Object.keys(HEBREW_STYLES)) if (!(style in LATIN_STYLES)) errors.push(`text style "Hebrew/${style}" — has no Latin "${style}" style to partner`);
+/* One size-adjust per Hebrew face: every style must use the same ratio
+ * (±0.5%, Figma sizes are rounded to 0.1px). */
+const HEBREW_FACES = [];
+for (const [latin, ratios] of Object.entries(HEBREW_SCALE)) {
+  const pct = Math.round((ratios.reduce((a, r) => a + r.ratio, 0) / ratios.length) * 100);
+  for (const r of ratios) if (Math.abs(r.ratio * 100 - pct) > 0.5)
+    errors.push(`text style "Hebrew/${r.style}" — ${(r.ratio * 100).toFixed(1)}% of "${r.style}", the other Hebrew styles are ${pct}%`);
+  HEBREW_FACES.push({ ...HEBREW_FONTS[latin], pct });
+}
+
+const ROLES = [];
+for (const [style, t] of Object.entries(LATIN_STYLES)) {
+  const v = t.$value;
+  const font = FONTS[v.fontFamily];
+  if (!font) { errors.push(`text style "${style}" — font "${v.fontFamily}" has no fallback stack in tokens/config.mjs`); continue; }
+  const px = v.fontSize?.value ?? v.fontSize;
+  const leading = leadingOf(style, v);
   ROLES.push({ name: slug(style), px, size: rem(px), leading, weight: v.fontWeight, family: font.key });
 }
 
@@ -201,6 +237,20 @@ for (const name of [...new Set(byKind("signal/").map((k) => k.split("/")[1]))].s
 l1.push("}");
 
 const lt = [
+  "/* Hebrew faces. Self-hosted so they can carry size-adjust, taken from the",
+  "   Hebrew/ text styles in Figma. unicode-range keeps each to Hebrew; digits",
+  "   and Latin stay in the Latin face at the style's size. */",
+  ...HEBREW_FACES.flatMap((f) => Object.entries(f.files).flatMap(([weight, src]) => [
+    "@font-face {",
+    `  font-family: "${f.family}";`,
+    `  src: url("${src}") format("woff2");`,
+    `  font-weight: ${weight};`,
+    "  font-display: swap;",
+    "  unicode-range: U+0590-05FF, U+FB1D-FB4F;",
+    `  size-adjust: ${f.pct}%;`,
+    "}"
+  ])),
+  "",
   "/* ── Layer 1 · type and dimensions ─────────────────────────────",
   "   No theme: sizes do not change between light and dark, so these",
   "   appear once and never in the .dark block.",
