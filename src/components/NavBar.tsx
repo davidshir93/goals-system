@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next"
  * Moving between Year, Quarter and Week happens in each page's breadcrumb. */
 export const NavBar = () => {
     const { t } = useTranslation()
-    const { user } = useAuth()
+    const { user, loading } = useAuth()
 
     return (
         <header className="sticky top-0 z-40 w-full border-b border-[var(--border-subtle)] bg-background">
@@ -23,7 +23,7 @@ export const NavBar = () => {
                     <div className="flex items-center gap-2">
                         <LanguageSwitcher />
                         <ThemeToggle />
-                        {user ? (
+                        {loading ? null : user ? (
                             <AccountMenu />
                         ) : (
                             <div className="flex items-center gap-2">

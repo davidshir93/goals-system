@@ -1,4 +1,5 @@
 import { NavBar } from "@/components/NavBar"
+import { WeekSkeleton } from "@/components/WeekSkeleton"
 import { useAuth } from "@/context/AuthContext"
 import { useGoals } from "@/context/GoalsContext";
 import { useCategories, useQuarterlyGoals, useQuarters, useWeeklyGoals, useWeeks, useYearlyGoals, useYears } from "@/data/queries";
@@ -62,26 +63,26 @@ export function RootLayout() {
     }, [appLoading]);
 
     if (appLoading) return (
-        <div className="flex items-center flex-col justify-center text-center min-h-dvh bg-background">
-            <div className="loading-dots">
-                <span></span>
-                <span></span>
-                <span></span>
-        </div>
-                <p className="mt-2 text-muted-foreground">{t('common.loading')}</p>
-                {stuck && (
-                    <div className="mt-4 flex flex-col items-center gap-2">
-                        <p className="type-body-text text-muted-foreground">{t('common.stillLoading')}</p>
-                        <button
-                            type="button"
-                            onClick={() => window.location.reload()}
-                            className="type-body-text underline text-foreground"
-                        >
-                            {t('common.reloadPage')}
-                        </button>
-                    </div>
-                )}
+        <div className="min-h-dvh bg-background">
+            <NavBar />
+            <main>
+                <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
+                    <WeekSkeleton />
+                    {stuck && (
+                        <div className="mt-6 flex flex-col items-center gap-2 text-center">
+                            <p className="type-body-text text-[var(--text-secondary)]">{t('common.stillLoading')}</p>
+                            <button
+                                type="button"
+                                onClick={() => window.location.reload()}
+                                className="type-body-text underline text-foreground"
+                            >
+                                {t('common.reloadPage')}
+                            </button>
+                        </div>
+                    )}
                 </div>
+            </main>
+        </div>
     )
 
     const appError = yearsErr || quartersErr || weeksErr;
@@ -92,7 +93,7 @@ export function RootLayout() {
         <div className="min-h-dvh bg-background">
             <NavBar />
             <ScrollRestoration />
-            <main className={`${appLoading ? "loading" : ""}`}>
+            <main>
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
                     {!appLoading && <Outlet />}
                 </div>
