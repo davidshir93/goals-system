@@ -1,5 +1,6 @@
 import { NavBar } from "@/components/NavBar"
 import { WeekSkeleton } from "@/components/WeekSkeleton"
+import { Button } from "@/components/ui/button"
 import { useAuth } from "@/context/AuthContext"
 import { useGoals } from "@/context/GoalsContext";
 import { useCategories, useQuarterlyGoals, useQuarters, useWeeklyGoals, useWeeks, useYearlyGoals, useYears } from "@/data/queries";
@@ -7,7 +8,7 @@ import { useEffect, useState } from "react";
 import { Outlet, ScrollRestoration } from "react-router"
 import { useTranslation } from "react-i18next"
 
-const STUCK_LOADING_MS = 15_000
+const STUCK_LOADING_MS = 5_000
 
 export function RootLayout() {
     const { t } = useTranslation()
@@ -71,13 +72,9 @@ export function RootLayout() {
                     {stuck && (
                         <div className="mt-6 flex flex-col items-center gap-2 text-center">
                             <p className="type-body-text text-[var(--text-secondary)]">{t('common.stillLoading')}</p>
-                            <button
-                                type="button"
-                                onClick={() => window.location.reload()}
-                                className="type-body-text underline text-foreground"
-                            >
+                            <Button variant="outline" onClick={() => window.location.reload()}>
                                 {t('common.reloadPage')}
-                            </button>
+                            </Button>
                         </div>
                     )}
                 </div>

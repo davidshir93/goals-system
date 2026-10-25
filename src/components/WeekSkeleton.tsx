@@ -87,10 +87,14 @@ export function WeekSkeleton() {
               <Arrow d="m9 18 6-6-6-6" />
             </div>
           </div>
-          <span className={`${buttonVariants()} pointer-events-none hidden sm:inline-flex`}>
-            <PlusIcon />
-            {t("goals.addGoal")}
-          </span>
+          {/* Desktop only. The wrapper does the hiding: buttonVariants() sets
+              inline-flex, which would override a `hidden` on the button itself. */}
+          <div className="hidden sm:block">
+            <span className={`${buttonVariants()} pointer-events-none`}>
+              <PlusIcon />
+              {t("goals.addGoal")}
+            </span>
+          </div>
         </div>
 
         {/* Toolbar: "Up next" (count unknown yet) · Parent goals · Period notes */}
