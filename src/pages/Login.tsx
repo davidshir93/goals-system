@@ -57,7 +57,7 @@ export default function Login() {
         <Card className="max-w-md mx-auto">
             <form onSubmit={handleSubmit}>
                 <CardHeader>
-                    <CardTitle className="text-2xl text-center mb-4">{t('auth.title')}</CardTitle>
+                    <CardTitle className="type-display text-center mb-4">{t('auth.title')}</CardTitle>
                 </CardHeader>
                 <CardContent className="flex flex-col gap-4">
                     <div className="grid gap-6">
@@ -75,7 +75,7 @@ export default function Login() {
                         <div className="absolute inset-0 flex items-center">
                             <span className="w-full border-t" />
                         </div>
-                        <div className="relative flex justify-center text-xs uppercase">
+                        <div className="type-caption relative flex justify-center uppercase">
                             <span className="bg-card text-muted-foreground px-2">
                                 {t('common.or')}
                             </span>
@@ -99,7 +99,7 @@ export default function Login() {
                 </CardContent>
                 <CardFooter className="flex flex-col">
                     <Button className="w-full mt-4">{t('auth.loginButton')}</Button>
-                    <p className="mt-3 text-sm text-center">{t('auth.noAccount')} <Link to="/signup" className="underline">{t('nav.signUp')}</Link></p>
+                    <p className="type-body-text mt-3 text-center">{t('auth.noAccount')} <Link to="/signup" className="underline">{t('nav.signUp')}</Link></p>
                 </CardFooter>
             </form>
         </Card>

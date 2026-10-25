@@ -209,6 +209,17 @@
   --motion-woop-expand-easing: cubic-bezier(0.2, 0, 0, 1);
   --motion-woop-collapse-duration: 195ms;
   --motion-woop-collapse-easing: cubic-bezier(0.3, 0, 1, 1);
+  --motion-segment-duration: 240ms;
+  --motion-segment-easing: cubic-bezier(0.2, 0, 0, 1);
+  --motion-woop-tab-content-duration: 160ms;
+  --motion-woop-tab-content-easing: cubic-bezier(0, 0, 0.2, 1);
+  --motion-menu-open-duration: 150ms;
+  --motion-menu-open-easing: cubic-bezier(0, 0, 0.2, 1);
+  --motion-menu-close-duration: 90ms;
+  --motion-menu-close-easing: cubic-bezier(0.3, 0, 1, 1);
+  --motion-page-in-duration: 210ms;
+  --motion-page-in-easing: cubic-bezier(0, 0, 0.2, 1);
+  --motion-page-in-scale: 0.98;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -225,6 +236,12 @@
     --motion-woop-close-duration: 140ms;
     --motion-woop-expand-duration: 0ms;
     --motion-woop-collapse-duration: 0ms;
+    --motion-segment-duration: 0ms;
+    --motion-woop-tab-content-duration: 140ms;
+    --motion-menu-open-duration: 0ms;
+    --motion-menu-close-duration: 0ms;
+    --motion-page-in-duration: 140ms;
+    --motion-page-in-scale: 1;
   }
 }
 

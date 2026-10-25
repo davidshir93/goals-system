@@ -23,7 +23,6 @@ import type {
   EditWeeklyGoalPayload,
   EditYearlyGoalPayload,
   ID,
-  Identity,
   NewQuarterlyGoalPayload,
   NewWeeklyGoalPayload,
   NewYearlyGoalPayload,
@@ -88,66 +87,6 @@ export const CategoriesRepo = {
       const batch = writeBatch(db);
 
       const colRef = collection(db, paths.categories(uid));
-
-      // 1. Fetch existing docs
-      const snapshot = await getDocs(colRef);
-      const existingIds = snapshot.docs.map((doc) => doc.id);
-
-      // 2. Build new set of IDs from form
-      const newIds = items.map((item) => item.id);
-
-      // 3. Queue deletes for docs that are no longer in the form
-      existingIds.forEach((id) => {
-        if (!newIds.includes(id)) {
-          batch.delete(doc(colRef, id));
-        }
-      });
-
-      // 4. Queue set for current items
-      items.forEach((item) => {
-        const ref = doc(colRef, item.id);
-
-        batch.set(ref, {
-          id: item.id,
-          name: item.name.trim(),
-          color: item.color,
-        });
-      });
-
-      // 5. Commit all changes atomically
-      await batch.commit();
-    } catch (error) {
-      console.error("Error saving items:", error);
-    }
-    return uid;
-  },
-};
-
-export const IdentitiesRepo = {
-  async listAll(uid: ID): Promise<Identity[]> {
-    const q = query(
-      collection(db, paths.identities(uid)),
-      orderBy("name", "asc")
-    );
-    const snap = await getDocs(q);
-    return snap.docs.map(mapDoc<Identity>);
-  },
-
-  async addIdentity(uid: ID, newIdentityData: Identity): Promise<Identity> {
-    const docRef = await addDoc(
-      collection(db, paths.identities(uid)),
-      newIdentityData
-    );
-
-    const docSnap = await getDoc(docRef);
-    return mapDoc<Identity>(docSnap);
-  },
-
-  async addIdentities(uid: ID, items: Category[]): Promise<ID> {
-    try {
-      const batch = writeBatch(db);
-
-      const colRef = collection(db, paths.identities(uid));
 
       // 1. Fetch existing docs
       const snapshot = await getDocs(colRef);

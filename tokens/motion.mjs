@@ -35,7 +35,13 @@ export const MOTION = {
   woopOpen:     { duration: 300, easing: DECELERATE },   // desktop modal, grows from the card
   woopClose:    { duration: 180, easing: ACCELERATE },
   woopExpand:   { duration: 260, easing: STANDARD },     // mobile, in place
-  woopCollapse: { duration: 195, easing: ACCELERATE }
+  woopCollapse: { duration: 195, easing: ACCELERATE },
+  // Proposed 25 Oct, not yet tuned in the Motion Lab:
+  segment:        { duration: 240, easing: STANDARD },   // selected segment slides: WOOP tabs, Week / Quarter / Year
+  woopTabContent: { duration: 160, easing: DECELERATE }, // new tab's content fades in
+  menuOpen:       { duration: 150, easing: DECELERATE },  // ••• / avatar menu grows in — half of woopOpen
+  menuClose:      { duration: 90,  easing: ACCELERATE },  // and fades out — half of woopClose
+  pageIn:         { duration: 210, easing: DECELERATE, scale: 0.98 } // Week / Quarter / Year: the goals fade in (header and tools stay still)
 };
 
 /* prefers-reduced-motion: no movement, no scale. Values update instantly,
@@ -51,5 +57,10 @@ export const MOTION_REDUCED = {
   woopOpen:     { duration: 140 },
   woopClose:    { duration: 140 },
   woopExpand:   { duration: 0 },
-  woopCollapse: { duration: 0 }
+  woopCollapse: { duration: 0 },
+  segment:      { duration: 0 },     // segment jumps
+  woopTabContent: { duration: 140 }, // still fades in
+  menuOpen:     { duration: 0 },     // appears at once
+  menuClose:    { duration: 0 },     // disappears at once
+  pageIn:       { duration: 140, scale: 1 }  // plain fade
 };

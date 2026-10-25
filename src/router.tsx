@@ -10,6 +10,7 @@ import ProtectedRoutes from './components/ProtectedRoutes'
 import GoalForm from './components/GoalForm'
 import EditGoal from './components/EditGoal'
 import SmartRedirect from './components/SmartRedirect'
+import { LevelGuard } from './components/LevelGuard'
 
 export const router = createBrowserRouter([
     {
@@ -43,15 +44,15 @@ export const router = createBrowserRouter([
                                 children: [
                                     {
                                         index: true,
-                                        element: <Year />
+                                        element: <LevelGuard level="year"><Year /></LevelGuard>
                                     },
                                     {
                                         path: 'new',
-                                        element: <GoalForm type='year' />
+                                        element: <LevelGuard level="year" adding><GoalForm type='year' /></LevelGuard>
                                     },
                                     {
                                         path: 'edit/:goalId',
-                                        element: <EditGoal type='year' />
+                                        element: <LevelGuard level="year"><EditGoal type='year' /></LevelGuard>
                                     }
                                 ]
                             },
@@ -60,15 +61,15 @@ export const router = createBrowserRouter([
                                 children: [
                                     {
                                         index: true,
-                                        element: <Quarter />
+                                        element: <LevelGuard level="quarter"><Quarter /></LevelGuard>
                                     },
                                     {
                                         path: 'new',
-                                        element: <GoalForm type='quarter' />
+                                        element: <LevelGuard level="quarter" adding><GoalForm type='quarter' /></LevelGuard>
                                     },
                                     {
                                         path: 'edit/:goalId',
-                                        element: <EditGoal type='quarter' />
+                                        element: <LevelGuard level="quarter"><EditGoal type='quarter' /></LevelGuard>
                                     }
                                 ]
                             },
@@ -77,15 +78,15 @@ export const router = createBrowserRouter([
                                 children: [
                                     {
                                         index: true,
-                                        element: <Week />
+                                        element: <LevelGuard level="week"><Week /></LevelGuard>
                                     },
                                     {
                                         path: 'new',
-                                        element: <GoalForm type='week' />
+                                        element: <LevelGuard level="week" adding><GoalForm type='week' /></LevelGuard>
                                     },
                                     {
                                         path: 'edit/:goalId',
-                                        element: <EditGoal type='week' />
+                                        element: <LevelGuard level="week"><EditGoal type='week' /></LevelGuard>
                                     }
                                 ]
                             }

@@ -1,13 +1,17 @@
-import { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
+import { useState, useEffect, useId, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import type { EnrichedGoalType, ID, PlanItem, YearGoal } from "@/types/GoalTypes";
 import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
-import { Badge } from "./ui/badge";
 import { Slider } from "./ui/slider";
-import { Tabs, TabsList, TabsTrigger, TabsContent } from "./ui/tabs";
+import { ProgressStepper } from "./ui/progress-stepper";
+import { GoalExpansionDialog } from "./GoalExpansionDialog";
+import { ActionMenu } from "./ActionMenu";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { Tabs, TabsTrigger, TabsContent } from "./ui/tabs";
+import { SlidingTabsList } from "./ui/sliding-tabs-list";
 import { Button } from "./ui/button";
 import { useTranslation } from "react-i18next";
-import { getTextColorForBg } from "@/utils/colors";
+import { categoryColorVar } from "@/tokens/categories";
 
 type GoalCardProps = {
   goal: EnrichedGoalType;
@@ -17,6 +21,9 @@ type GoalCardProps = {
   canDelete?: boolean;
   deleteWarning?: string;
   parentYearGoal?: YearGoal;
+  /** Names for the parent-goal tags (e.g. "Q3", "2026"); the page looks them up once for all cards. */
+  quarterName?: string;
+  yearName?: string;
 };
 
 export default function GoalCard({
@@ -27,11 +34,30 @@ export default function GoalCard({
   canDelete = true,
   deleteWarning,
   parentYearGoal,
+  quarterName: quarterNameProp,
+  yearName: yearNameProp,
 }: GoalCardProps) {
   const { t } = useTranslation()
   const [showWoop, setShowWoop] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [localDone, setLocalDone] = useState(goal.done || 0);
+  // Two or more columns (sm and up): WOOP opens in a modal so the grid never stretches.
+  // One column (mobile): it expands inside the card.
+  const isDesktop = useMediaQuery("(min-width: 640px)");
+  const cardRef = useRef<HTMLDivElement>(null);
+  const woopToggleRef = useRef<HTMLButtonElement>(null);
+  const woopPanelId = useId();
+  const woopHeadingId = useId();
+  const navigate = useNavigate();
+  const confirmCancelRef = useRef<HTMLButtonElement>(null);
+  // Delete chosen from the menu: move focus into the confirmation (on Cancel, the safe choice).
+  useEffect(() => {
+    if (showDeleteConfirm) confirmCancelRef.current?.focus();
+  }, [showDeleteConfirm]);
+  const cancelDelete = () => {
+    setShowDeleteConfirm(false);
+    cardRef.current?.querySelector<HTMLElement>('[aria-haspopup="menu"]')?.focus();
+  };
 
   // Sync local state when goal.done changes (from server updates or other sources)
   useEffect(() => {
@@ -47,7 +73,10 @@ export default function GoalCard({
   const hasWoopContent = hasOutcome || hasObstacles || hasPlan;
   const hasNotes = goal.notes && goal.notes.trim().length > 0;
 
-  const defaultTab = hasOutcome ? "outcome" : hasObstacles ? "obstacles" : "plan";
+  // Open on the plan: it's what the card's WOOP line previews, and the part you act on.
+  const defaultTab = hasPlan ? "plan" : hasOutcome ? "outcome" : "obstacles";
+  // Controlled, so the sliding pill knows the active tab; reset to Plan each time WOOP opens.
+  const [woopTab, setWoopTab] = useState(defaultTab);
 
   // Type guard for PlanItem
   const isPlanItemArray = (plan: unknown): plan is PlanItem[] => {
@@ -63,156 +92,141 @@ export default function GoalCard({
     }
   };
 
-  return (
-    <Card className="bg-card hover:shadow-md transition-all duration-200 h-full">
-      <CardHeader className="pb-2 space-y-2">
-        {/* Badges and Actions Row */}
-        <div className="flex justify-between items-center gap-2">
-          <div className="flex gap-1.5 flex-wrap">
-            {goal.category && (
-              <Badge
-                variant="secondary"
-                className="text-xs font-medium px-2.5 py-0.5 border"
-                style={{
-                  backgroundColor: goal.category.color,
-                  color: getTextColorForBg(goal.category.color),
-                  borderColor: `${goal.category.color}30`
-                }}
-              >
-                {goal.category.name}
-              </Badge>
-            )}
-            {goal.identity && (
-              <Badge
-                variant="secondary"
-                className="text-xs font-medium px-2.5 py-0.5 border"
-                style={{
-                  backgroundColor: goal.identity.color,
-                  color: getTextColorForBg(goal.identity.color),
-                  borderColor: `${goal.identity.color}30`
-                }}
-              >
-                {goal.identity.name}
-              </Badge>
-            )}
-          </div>
-          <div className="flex gap-1">
-            <Button
-              variant="ghost"
-              size="icon"
-              asChild
-              className="h-8 w-8 text-muted-foreground hover:text-foreground shrink-0"
-            >
-              <Link to={editPath}>
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
-                  <path d="m15 5 4 4"/>
-                </svg>
-              </Link>
-            </Button>
-            {onDelete && (
-              <Button
-                variant="ghost"
-                size="icon"
-                className="h-8 w-8 text-muted-foreground hover:text-destructive shrink-0 cursor-pointer"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M3 6h18"/>
-                  <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/>
-                  <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/>
-                </svg>
-              </Button>
-            )}
-          </div>
-        </div>
 
-        {/* Delete Confirmation */}
-        {showDeleteConfirm && (
-          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 space-y-2">
-            {!canDelete && deleteWarning ? (
-              <>
-                <p className="text-sm text-destructive font-medium">{t('goals.cannotDelete')}</p>
-                <p className="text-xs text-destructive/80">{deleteWarning}</p>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => setShowDeleteConfirm(false)}
-                >
-                  {t('common.cancel')}
-                </Button>
-              </>
-            ) : (
-              <>
-                <p className="text-sm text-destructive">{t('goals.deleteConfirm')}</p>
-                <div className="flex gap-2">
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={handleDelete}
-                  >
-                    {t('common.delete')}
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setShowDeleteConfirm(false)}
-                  >
-                    {t('common.cancel')}
-                  </Button>
+  /* The card shows the start of the WOOP itself (Figma), not a generic
+   * "Show WOOP" line: the first plan pair as "If … → …", else the first
+   * outcome, else the first obstacle. Quarter and week goals show their
+   * year goal's WOOP. */
+  const woopPreview = (() => {
+    const plan = woopSource?.plan;
+    if (isPlanItemArray(plan)) {
+      const first = plan[0];
+      return t("goalCard.planPreview", {
+        obstacle: first.obstacle,
+        action: first.action || "…",
+        interpolation: { escapeValue: false },
+      });
+    }
+    if (Array.isArray(plan) && typeof plan[0] === "string") return plan[0] as string;
+    return woopSource?.outcome?.[0] ?? woopSource?.obstacles?.[0] ?? "";
+  })();
+
+  const TAB =
+    "type-caption-strong flex flex-1 items-center justify-center gap-1.5 rounded-lg px-3 py-1.5 text-muted-foreground data-[state=active]:text-foreground relative z-10 shadow-none data-[state=active]:bg-transparent data-[state=active]:shadow-none dark:data-[state=active]:bg-transparent dark:data-[state=active]:border-transparent";
+  const OUTCOME = "var(--category-fern-fill)";
+  const OBSTACLE = "var(--category-ochre-fill)";
+  const PLAN = "var(--category-azure-fill)";
+  const dot = (color: string, extra = "") => (
+    <span aria-hidden="true" className={`size-1.5 shrink-0 rounded-full ${extra}`} style={{ background: color }} />
+  );
+  const woopTabs = woopSource ? (
+    <Tabs value={woopTab} onValueChange={setWoopTab}>
+      <SlidingTabsList value={woopTab} className="flex h-auto w-full gap-1 rounded-xl bg-[var(--surface-sunken)] p-1">
+        {hasOutcome && <TabsTrigger value="outcome" className={TAB}>{dot(OUTCOME)}{t('goalCard.outcomes')}</TabsTrigger>}
+        {hasObstacles && <TabsTrigger value="obstacles" className={TAB}>{dot(OBSTACLE)}{t('goalCard.obstacles')}</TabsTrigger>}
+        {hasPlan && <TabsTrigger value="plan" className={TAB}>{dot(PLAN)}{t('goalCard.plan')}</TabsTrigger>}
+      </SlidingTabsList>
+
+      {hasOutcome && (
+        <TabsContent value="outcome" className="mt-4 animate-[woop-tab-in_var(--motion-woop-tab-content-duration)_var(--motion-woop-tab-content-easing)_both]">
+          <ul className="space-y-2">
+            {woopSource.outcome!.map((item, index) => (
+              <li key={index} className="type-body-text flex items-start gap-2">{dot(OUTCOME, "mt-2")}{item}</li>
+            ))}
+          </ul>
+        </TabsContent>
+      )}
+
+      {hasObstacles && (
+        <TabsContent value="obstacles" className="mt-4 animate-[woop-tab-in_var(--motion-woop-tab-content-duration)_var(--motion-woop-tab-content-easing)_both]">
+          <ul className="space-y-2">
+            {woopSource.obstacles!.map((item, index) => (
+              <li key={index} className="type-body-text flex items-start gap-2">{dot(OBSTACLE, "mt-2")}{item}</li>
+            ))}
+          </ul>
+        </TabsContent>
+      )}
+
+      {hasPlan && (
+        <TabsContent value="plan" className="mt-4 animate-[woop-tab-in_var(--motion-woop-tab-content-duration)_var(--motion-woop-tab-content-easing)_both]">
+          {isPlanItemArray(woopSource.plan) ? (
+            <div className="divide-y">
+              {woopSource.plan.map((item, index) => (
+                <div key={index} className="grid grid-cols-[3rem_1fr] gap-x-3 gap-y-1.5 py-3 first:pt-0 last:pb-0">
+                  <span className="type-caption-strong pt-0.5 tracking-wider" style={{ color: OBSTACLE }}>{t('goalCard.if')}</span>
+                  <p className="type-body-text text-muted-foreground">{item.obstacle}</p>
+                  <span className="type-caption-strong pt-0.5 tracking-wider" style={{ color: OUTCOME }}>{t('goalCard.then')}</span>
+                  <p className="type-body-title">
+                    {item.action || <span className="type-body-text italic text-muted-foreground">{t('goalCard.noActionDefined')}</span>}
+                  </p>
                 </div>
-              </>
-            )}
-          </div>
-        )}
+              ))}
+            </div>
+          ) : (
+            // Fallback for old string[] format
+            <ul className="space-y-2">
+              {(woopSource.plan as unknown as string[]).map((item, index) => (
+                <li key={index} className="type-body-text flex items-start gap-2">{dot(PLAN, "mt-2")}{item}</li>
+              ))}
+            </ul>
+          )}
+        </TabsContent>
+      )}
+    </Tabs>
+  ) : null;
 
-        {/* Goal Title */}
-        <CardTitle className="text-xl font-bold leading-snug">
-          {goal.wish}
-        </CardTitle>
+  const categoryChip = goal.category ? (
+    <span className="type-caption-strong inline-flex items-center gap-1.5 text-[var(--text-secondary)]">
+      <span aria-hidden="true" className="size-2 rounded-full" style={{ background: categoryColorVar(goal.category.color) }} />
+      {goal.category.name}
+    </span>
+  ) : null;
 
-        {/* Description - Only for yearly goals */}
-        {goal.type === 'year' && goal.description && (
-          <p className="text-md text-foreground mt-1">
-            {goal.description}
-          </p>
-        )}
-      </CardHeader>
+  /* Parent goals, as in Figma: two quiet lines under the title — the period
+   * as a small tag (Q3, then 2026: Week › Quarter › Year), then the goal on one
+   * line. Same block on the card and in the expanded view. */
+  const periodTag = (label: string) => label.replace(/[:：]\s*$/, "");
+  const quarterName = quarterNameProp ?? periodTag(t("goals.parentQuarter"));
+  const yearName = yearNameProp ?? periodTag(t("goals.parentYear"));
+  const parentRow = (period: string, wish: string) => (
+    <div className="flex min-w-0 items-start gap-2">
+      <dt className="type-caption-strong shrink-0 rounded-md bg-[var(--surface-sunken)] px-1.5 py-0.5 text-[var(--text-secondary)]">
+        {period}
+      </dt>
+      <dd className="type-caption min-w-0 pt-0.5 line-clamp-2 break-words text-[var(--text-secondary)]" title={wish}>
+        {wish}
+      </dd>
+    </div>
+  );
+  // Year goals only. Same block on the card and in the expanded view.
+  const description =
+    goal.type === "year" && goal.description ? (
+      <p className="type-body-text text-[var(--text-secondary)]">{goal.description}</p>
+    ) : null;
 
-      <CardContent className="pt-0 space-y-3">
-        {/* Parent Goals */}
-        {showParentGoals && (goal.parentQuarterGoalWish || goal.parentYearGoalWish) && (
-          <div className="p-2.5 rounded-lg bg-muted/50 space-y-1.5 text-sm">
-            {goal.parentYearGoalWish && (
-              <div className="flex items-start gap-2">
-                <span className="text-xs text-muted-foreground shrink-0 pt-0.5 font-medium">{t('goals.parentYear')}</span>
-                <p className="text-muted-foreground">{goal.parentYearGoalWish}</p>
-              </div>
-            )}
-            {goal.parentQuarterGoalWish && (
-              <div className="flex items-start gap-2">
-                <span className="text-xs text-muted-foreground shrink-0 pt-0.5 font-medium">{t('goals.parentQuarter')}</span>
-                <p className="text-muted-foreground">{goal.parentQuarterGoalWish}</p>
-              </div>
-            )}
-          </div>
-        )}
+  const parentGoals =
+    showParentGoals && (goal.parentQuarterGoalWish || goal.parentYearGoalWish) ? (
+      <dl className="min-w-0 space-y-1">
+        {goal.parentQuarterGoalWish && parentRow(quarterName, goal.parentQuarterGoalWish)}
+        {goal.parentYearGoalWish && parentRow(yearName, goal.parentYearGoalWish)}
+      </dl>
+    ) : null;
 
-        {/* Weekly Progress Slider */}
+  // Shared by the card and the expanded view.
+  const progressControl = (
+    <>
+        {/* Weekly progress: − / bar / + */}
         {goal.type === "week" && (
-          <div>
-            <Slider
-              value={[localDone]}
-              max={goal.planned}
-              step={1}
-              doneColor={goal.category?.color || "black"}
-              onValueChange={(val) => {
-                const [done] = val;
-                setLocalDone(done); // Update UI immediately
-                onEditWeeklyProgress?.(goal.id, done); // Persist to server
-              }}
-            />
-          </div>
+          <ProgressStepper
+            label={goal.wish}
+            value={localDone}
+            max={goal.planned}
+            color={categoryColorVar(goal.category?.color, "fill", "var(--text-primary)")}
+            onChange={(done) => {
+              setLocalDone(done); // Update UI immediately
+              onEditWeeklyProgress?.(goal.id, done); // Persist to server
+            }}
+          />
         )}
 
         {/* Quarter/Year Progress (Read-only) */}
@@ -225,153 +239,239 @@ export default function GoalCard({
                 max={100}
                 step={1}
                 className="cursor-not-allowed"
-                doneColor={goal.category?.color || "lightblue"}
+                doneColor={categoryColorVar(goal.category?.color)}
                 disabled
                 isSummary
               />
             </div>
           )}
+    </>
+  );
+
+  const notesBlock = (
+    <>
+        {/* Notes Section */}
+        {hasNotes && (
+          <div>
+              <div className="mt-2 p-3 rounded-lg bg-muted/30 border">
+                <p className="type-body-text text-foreground whitespace-pre-wrap">{goal.notes}</p>
+              </div>
+          </div>
+        )}
+    </>
+  );
+
+  return (
+    <Card ref={cardRef} data-expanded={isDesktop && showWoop ? "" : undefined} className="h-full gap-4 py-6 transition-shadow duration-200 hover:shadow-md">
+      <CardHeader className="grid-cols-[minmax(0,1fr)] gap-2 px-6">
+        {/* Badges and Actions Row */}
+        <div className="flex justify-between items-center gap-2">
+          <div className="flex gap-1.5 flex-wrap">
+            {categoryChip}
+          </div>
+          <ActionMenu
+            label={t("goalCard.moreActions", { goal: goal.wish })}
+            triggerContent={
+              <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+                <circle cx="5" cy="12" r="1.75" />
+                <circle cx="12" cy="12" r="1.75" />
+                <circle cx="19" cy="12" r="1.75" />
+              </svg>
+            }
+            triggerClassName="size-8 shrink-0 text-[var(--text-secondary)] hover:bg-[var(--surface-sunken)] hover:text-[var(--text-primary)]"
+            items={[
+              {
+                label: t("common.edit"),
+                icon: (
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" />
+                    <path d="m15 5 4 4" />
+                  </svg>
+                ),
+                onSelect: () => navigate(editPath),
+              },
+              ...(onDelete
+                ? [
+                    {
+                      label: t("common.delete"),
+                      tone: "danger" as const,
+                      icon: (
+                        <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M3 6h18" />
+                          <path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" />
+                          <path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" />
+                        </svg>
+                      ),
+                      onSelect: () => setShowDeleteConfirm(true),
+                    },
+                  ]
+                : []),
+            ]}
+          />
+        </div>
+
+        {/* Delete Confirmation */}
+        {showDeleteConfirm && (
+          <div className="p-3 rounded-lg bg-destructive/10 border border-destructive/20 space-y-2">
+            {!canDelete && deleteWarning ? (
+              <>
+                <p className="type-body-title text-destructive">{t('goals.cannotDelete')}</p>
+                <p className="type-caption text-destructive/80">{deleteWarning}</p>
+                <Button
+                  ref={confirmCancelRef}
+                  variant="outline"
+                  size="sm"
+                  onClick={cancelDelete}
+                >
+                  {t('common.cancel')}
+                </Button>
+              </>
+            ) : (
+              <>
+                <p className="type-body-text text-destructive">{t('goals.deleteConfirm')}</p>
+                <div className="flex justify-end gap-2">
+                  <Button
+                    ref={confirmCancelRef}
+                    variant="outline"
+                    size="sm"
+                    onClick={cancelDelete}
+                  >
+                    {t('common.cancel')}
+                  </Button>
+                  <Button
+                    variant="destructive"
+                    size="sm"
+                    onClick={handleDelete}
+                  >
+                    {t('common.delete')}
+                  </Button>
+                </div>
+              </>
+            )}
+          </div>
+        )}
+
+        {/* Goal Title */}
+        <CardTitle className="type-main-title">
+          {goal.wish}
+        </CardTitle>
+
+        {/* Description - Only for yearly goals */}
+        {description}
+
+        {/* Parent goals sit in the heading, 8px under the title (Figma) */}
+        {parentGoals}
+      </CardHeader>
+
+      <CardContent className="flex flex-1 flex-col gap-4 px-6">
+
+        {progressControl}
+
+        {notesBlock}
 
         {/* WOOP Section - Show parent's WOOP for quarter/week goals */}
+        {/* Pinned to the bottom, so WOOP lines up across the cards in a row */}
         {hasWoopContent && (
-          <div className="pt-2 border-t mt-5">
+          <div className="mt-auto">
             <button
+              ref={woopToggleRef}
               type="button"
-              onClick={() => setShowWoop(!showWoop)}
-              className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors w-full cursor-pointer"
+              onClick={() => {
+                if (!showWoop) setWoopTab(defaultTab);
+                setShowWoop(!showWoop);
+              }}
+              {...(isDesktop
+                ? { "aria-haspopup": "dialog" as const }
+                : { "aria-expanded": showWoop, "aria-controls": woopPanelId })}
+              className="flex w-full min-w-0 cursor-pointer items-center gap-2 text-start"
             >
               <svg
-                xmlns="http://www.w3.org/2000/svg"
-                width="14"
-                height="14"
+                width={isDesktop ? 14 : 16}
+                height={isDesktop ? 14 : 16}
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
-                strokeWidth="2"
+                strokeWidth={isDesktop ? 2.25 : 2}
                 strokeLinecap="round"
                 strokeLinejoin="round"
-                className={`transition-transform duration-200 ${showWoop ? "rotate-90" : ""} rtl-flip`}
+                aria-hidden="true"
+                className={`shrink-0 text-[var(--text-secondary)] ${!isDesktop && showWoop ? "rotate-180" : ""}`}
+                style={{
+                  transitionProperty: "transform",
+                  transitionDuration: showWoop ? "var(--motion-woop-expand-duration)" : "var(--motion-woop-collapse-duration)",
+                  transitionTimingFunction: showWoop ? "var(--motion-woop-expand-easing)" : "var(--motion-woop-collapse-easing)",
+                }}
               >
-                <path d="m9 18 6-6-6-6"/>
+                {isDesktop ? (
+                  /* Desktop opens the expanded card in a modal: "open larger", not "expand below" */
+                  <>
+                    <polyline points="15 3 21 3 21 9" />
+                    <polyline points="9 21 3 21 3 15" />
+                    <line x1="21" y1="3" x2="14" y2="10" />
+                    <line x1="3" y1="21" x2="10" y2="14" />
+                  </>
+                ) : (
+                  /* Mobile expands in place, downward */
+                  <path d="m6 9 6 6 6-6" />
+                )}
               </svg>
-              <span className="text-xs font-medium cursor-pointer">
-                {goal.type !== 'year' && parentYearGoal
-                  ? `${showWoop ? t('goalCard.hideWOOP') : t('goalCard.showWOOP')} (${t('goals.parentGoalDetails')})`
-                  : (showWoop ? t('goalCard.hideWOOP') : t('goalCard.showWOOP'))
-                }
-              </span>
+              <span className="type-caption-strong shrink-0 uppercase tracking-wider text-[var(--text-secondary)]">WOOP</span>
+              {woopPreview && (
+                <span className="type-caption min-w-0 truncate text-[var(--text-muted)]">{woopPreview}</span>
+              )}
             </button>
 
-            {showWoop && woopSource && (
-              <div className="mt-3 border rounded-lg overflow-hidden">
-                <Tabs defaultValue={defaultTab}>
-                  <TabsList className="w-full rounded-none border-b bg-muted/30 p-0 h-auto">
-                    {hasOutcome && (
-                      <TabsTrigger
-                        value="outcome"
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-green-500 data-[state=active]:bg-transparent px-3 py-2 text-xs"
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-green-500"></span>
-                          {t('goalCard.outcomes')}
-                        </span>
-                      </TabsTrigger>
-                    )}
-                    {hasObstacles && (
-                      <TabsTrigger
-                        value="obstacles"
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-orange-500 data-[state=active]:bg-transparent px-3 py-2 text-xs"
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-orange-500"></span>
-                          {t('goalCard.obstacles')}
-                        </span>
-                      </TabsTrigger>
-                    )}
-                    {hasPlan && (
-                      <TabsTrigger
-                        value="plan"
-                        className="rounded-none border-b-2 border-transparent data-[state=active]:border-blue-500 data-[state=active]:bg-transparent px-3 py-2 text-xs"
-                      >
-                        <span className="flex items-center gap-1.5">
-                          <span className="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
-                          {t('goalCard.plan')}
-                        </span>
-                      </TabsTrigger>
-                    )}
-                  </TabsList>
-
-                  {hasOutcome && (
-                    <TabsContent value="outcome" className="p-3 mt-0">
-                      <ul className="space-y-2">
-                        {woopSource.outcome!.map((item, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-green-500 shrink-0 mt-1.5"></span>
-                            <p className="text-xs text-muted-foreground">{item}</p>
-                          </li>
-                        ))}
-                      </ul>
-                    </TabsContent>
+            {isDesktop ? (
+              showWoop && woopSource && (
+                <GoalExpansionDialog
+                  originRef={cardRef}
+                  eyebrow={categoryChip}
+                  title={goal.wish}
+                  onClose={() => {
+                    setShowWoop(false);
+                    woopToggleRef.current?.focus({ preventScroll: true });
+                  }}
+                >
+                  {(description || parentGoals) && (
+                    <div className="space-y-2">
+                      {description}
+                      {parentGoals}
+                    </div>
                   )}
-
-                  {hasObstacles && (
-                    <TabsContent value="obstacles" className="p-3 mt-0">
-                      <ul className="space-y-2">
-                        {woopSource.obstacles!.map((item, index) => (
-                          <li key={index} className="flex items-start gap-2">
-                            <span className="w-1.5 h-1.5 rounded-full bg-orange-500 shrink-0 mt-1.5"></span>
-                            <p className="text-xs text-muted-foreground">{item}</p>
-                          </li>
-                        ))}
-                      </ul>
-                    </TabsContent>
+                  {progressControl}
+                  {woopTabs && (
+                    <section aria-labelledby={woopHeadingId} className="space-y-3 border-t pt-6">
+                      <h3 id={woopHeadingId} className="type-caption-strong uppercase tracking-wider text-muted-foreground">
+                        WOOP
+                      </h3>
+                      {woopTabs}
+                    </section>
                   )}
-
-                  {hasPlan && (
-                    <TabsContent value="plan" className="p-3 mt-0">
-                      {isPlanItemArray(woopSource.plan) ? (
-                        <div className="space-y-2">
-                          {woopSource.plan.map((item, index) => (
-                            <div key={index} className="p-2.5 rounded-lg bg-blue-500/5 border border-blue-500/10">
-                              <div className="flex items-start gap-2 mb-1.5">
-                                <span className="text-[10px] font-bold text-orange-500 shrink-0">{t('goalCard.if')}</span>
-                                <p className="text-xs text-muted-foreground">{item.obstacle}</p>
-                              </div>
-                              <div className="flex items-start gap-2">
-                                <span className="text-[10px] font-bold text-green-500 shrink-0">{t('goalCard.then')}</span>
-                                <p className="text-xs font-medium">{item.action || <span className="text-muted-foreground italic">{t('goalCard.noActionDefined')}</span>}</p>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      ) : (
-                        // Fallback for old string[] format
-                        <ul className="space-y-2">
-                          {(woopSource.plan as unknown as string[]).map((item, index) => (
-                            <li key={index} className="flex items-start gap-2">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 shrink-0 mt-1.5"></span>
-                              <p className="text-xs text-muted-foreground">{item}</p>
-                            </li>
-                          ))}
-                        </ul>
-                      )}
-                    </TabsContent>
-                  )}
-                </Tabs>
+                  {notesBlock}
+                </GoalExpansionDialog>
+              )
+            ) : (
+              /* Mobile: expands in place. Always rendered so it can animate;
+                 inert while closed, so it can't be focused or read. */
+              <div
+                id={woopPanelId}
+                inert={!showWoop}
+                className="grid"
+                style={{
+                  gridTemplateRows: showWoop ? "1fr" : "0fr",
+                  transitionProperty: "grid-template-rows",
+                  transitionDuration: showWoop ? "var(--motion-woop-expand-duration)" : "var(--motion-woop-collapse-duration)",
+                  transitionTimingFunction: showWoop ? "var(--motion-woop-expand-easing)" : "var(--motion-woop-collapse-easing)",
+                }}
+              >
+                <div className="min-h-0 overflow-hidden">
+                  <div className="mt-3">{woopTabs}</div>
+                </div>
               </div>
             )}
           </div>
         )}
 
-        
-        {/* Notes Section */}
-        {hasNotes && (
-          <div>
-              <div className="mt-2 p-3 rounded-lg bg-muted/30 border">
-                <p className="text-sm text-foreground whitespace-pre-wrap">{goal.notes}</p>
-              </div>
-          </div>
-        )}
       </CardContent>
     </Card>
   );

@@ -6,7 +6,6 @@ import {
 } from "@tanstack/react-query";
 import {
   CategoriesRepo,
-  IdentitiesRepo,
   QuarterlyGoals,
   QuartersRepo,
   WeeklyGoals,
@@ -27,9 +26,7 @@ import type {
   EditWeeklyGoalPayload,
   EditYearlyGoalPayload,
   ID,
-  Identity,
   NewCategoriesPayload,
-  NewIdentitiesPayload,
   NewQuarterlyGoalPayload,
   NewQuarterPayload,
   NewWeeklyGoalPayload,
@@ -53,7 +50,6 @@ const QUERY_TIMEOUT_MS = 10_000;
 const qk = {
   userPreferences: (uid: ID) => ["userPreferences", { uid }] as const,
   categories: (uid: ID) => ["categories", { uid }] as const,
-  identities: (uid: ID) => ["identities", { uid }] as const,
   years: (uid: ID) => ["years", { uid }] as const,
   yearlyGoals: (uid: ID, yearId: ID) =>
     ["yearlyGoals", { uid, yearId }] as const,
@@ -142,45 +138,6 @@ export function useAddCategories() {
 
     onError(error, { uid }, context) {
       qc.setQueryData(qk.categories(uid), context?.prevCategories);
-      console.log(error);
-    },
-  });
-}
-
-export function useIdentities(uid: ID): UseQueryResult<Identity[]> {
-  const enabled = Boolean(uid);
-
-  return useQuery({
-    queryKey: qk.identities(uid),
-    queryFn: () => withTimeout(IdentitiesRepo.listAll(uid), QUERY_TIMEOUT_MS, "identities"),
-    staleTime: 60_000,
-    enabled,
-  });
-}
-
-export function useAddIdentities() {
-  const qc = useQueryClient();
-
-  return useMutation({
-    mutationFn: ({ uid, items }: NewIdentitiesPayload) =>
-      IdentitiesRepo.addIdentities(uid, items),
-
-    onSuccess: (uid) => {
-      qc.invalidateQueries({ queryKey: qk.identities(uid) });
-    },
-
-    onMutate: async ({ uid, items }: NewIdentitiesPayload) => {
-      await qc.cancelQueries({ queryKey: qk.identities(uid) });
-      const prevIdentities: Category[] =
-        qc.getQueryData(qk.identities(uid)) || [];
-
-      qc.setQueryData(qk.identities(uid), items);
-
-      return { prevIdentities };
-    },
-
-    onError(error, { uid }, context) {
-      qc.setQueryData(qk.identities(uid), context?.prevIdentities);
       console.log(error);
     },
   });

@@ -10,7 +10,7 @@ export interface MotionSpec {
   scale?: number;
 }
 
-export type MotionName = "progress" | "count" | "trophy" | "wave" | "completeHold" | "lift" | "move" | "settle" | "woopOpen" | "woopClose" | "woopExpand" | "woopCollapse";
+export type MotionName = "progress" | "count" | "trophy" | "wave" | "completeHold" | "lift" | "move" | "settle" | "woopOpen" | "woopClose" | "woopExpand" | "woopCollapse" | "segment" | "woopTabContent" | "menuOpen" | "menuClose" | "pageIn";
 
 export const MOTION: Readonly<Record<MotionName, MotionSpec>> = {
   "progress": {
@@ -61,6 +61,27 @@ export const MOTION: Readonly<Record<MotionName, MotionSpec>> = {
   "woopCollapse": {
     "easing": "cubic-bezier(0.3, 0, 1, 1)",
     "duration": 195
+  },
+  "segment": {
+    "easing": "cubic-bezier(0.2, 0, 0, 1)",
+    "duration": 240
+  },
+  "woopTabContent": {
+    "easing": "cubic-bezier(0, 0, 0.2, 1)",
+    "duration": 160
+  },
+  "menuOpen": {
+    "easing": "cubic-bezier(0, 0, 0.2, 1)",
+    "duration": 150
+  },
+  "menuClose": {
+    "easing": "cubic-bezier(0.3, 0, 1, 1)",
+    "duration": 90
+  },
+  "pageIn": {
+    "easing": "cubic-bezier(0, 0, 0.2, 1)",
+    "duration": 210,
+    "scale": 0.98
   }
 };
 
@@ -99,6 +120,22 @@ export const MOTION_REDUCED: Readonly<Partial<Record<MotionName, Partial<MotionS
   },
   "woopCollapse": {
     "duration": 0
+  },
+  "segment": {
+    "duration": 0
+  },
+  "woopTabContent": {
+    "duration": 140
+  },
+  "menuOpen": {
+    "duration": 0
+  },
+  "menuClose": {
+    "duration": 0
+  },
+  "pageIn": {
+    "duration": 140,
+    "scale": 1
   }
 };
 

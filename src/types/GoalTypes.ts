@@ -3,23 +3,15 @@ export type ID = string;
 export type Category = {
   id: ID;
   name: string;
-  color: string;
+  /** Palette id from src/tokens/categories.ts (0–11). Older categories may
+   *  still hold a hex string; it renders as the nearest palette colour and is
+   *  replaced by an id the next time the categories are saved. */
+  color: number | string;
 };
 
 export type NewCategoriesPayload = {
   uid: ID;
   items: Category[];
-};
-
-export type Identity = {
-  id: ID;
-  name: string;
-  color: string;
-};
-
-export type NewIdentitiesPayload = {
-  uid: ID;
-  items: Identity[];
 };
 
 type GoalType = "year" | "quarter" | "week";
@@ -53,7 +45,6 @@ type BaseGoal = {
 export type YearGoal = Omit<BaseGoal, "outcome" | "obstacles" | "plan"> & {
   type: "year";
   categoryId: ID;
-  identityId: ID;
   description?: string;
   outcome: string[];
   obstacles: string[];
@@ -81,7 +72,6 @@ export type Goal = YearGoal | QuarterGoal | WeekGoal;
 
 export type EnrichedGoalType = Goal & {
   category?: Category;
-  identity?: Identity;
   parentQuarterGoalWish?: string;
   parentYearGoalWish?: string;
 done?: number;

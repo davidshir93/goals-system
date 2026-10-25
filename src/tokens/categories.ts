@@ -82,3 +82,68 @@ export function categoryVar(
   const c = resolveCategoryColor(value);
   return c ? `var(--category-${c.name}-${role})` : null;
 }
+
+/** Light fills, used only to match legacy hex colours to the nearest category. */
+const SWATCHES: Record<CategoryColorName, string> = {
+  "poppy": "#c8393c",
+  "ochre": "#84500c",
+  "olive": "#827613",
+  "fern": "#396d0d",
+  "jade": "#178461",
+  "lagoon": "#106b6d",
+  "azure": "#177eab",
+  "cobalt": "#0c58ba",
+  "iris": "#735cd6",
+  "orchid": "#7f33a5",
+  "fuchsia": "#ae42a1",
+  "crimson": "#a5195f"
+};
+
+/** Hue angle of a hex colour in OKLCH (degrees) — perceptual hue, so a light
+ *  blue and a deep blue land on the same angle. */
+function hue(hex: string): number {
+  const lin = [1, 3, 5].map((i) => {
+    const c = parseInt(hex.slice(i, i + 2), 16) / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  const [r, g, b] = lin;
+  const l = Math.cbrt(0.4122214708 * r + 0.5363325363 * g + 0.0514459929 * b);
+  const m = Math.cbrt(0.2119034982 * r + 0.6806995451 * g + 0.1073969566 * b);
+  const s = Math.cbrt(0.0883024619 * r + 0.2817188376 * g + 0.6299787005 * b);
+  const A = 1.9779984951 * l - 2.428592205 * m + 0.4505937099 * s;
+  const B = 0.0259040371 * l + 0.7827717662 * m - 0.808675766 * s;
+  return ((Math.atan2(B, A) * 180) / Math.PI + 360) % 360;
+}
+const distance = (a: string, b: string) => {
+  const d = Math.abs(hue(a) - hue(b)) % 360;
+  return Math.min(d, 360 - d);
+};
+
+/** The category whose palette colour is closest to a legacy hex like "#7c3aed". */
+export function nearestCategoryColor(hex: string): CategoryColor | null {
+  if (!/^#[0-9a-f]{6}$/i.test(hex)) return null;
+  let best: CategoryColor | null = null;
+  let bestD = Infinity;
+  for (const c of CATEGORIES) {
+    const d = distance(hex.toLowerCase(), SWATCHES[c.name]);
+    if (d < bestD) { bestD = d; best = c; }
+  }
+  return best;
+}
+
+/** The category a stored value means: an id or name resolves directly, a
+ *  legacy hex snaps to the nearest category. Null when nothing matches. */
+export function toCategoryColor(value: string | number | null | undefined): CategoryColor | null {
+  return resolveCategoryColor(value) ?? (typeof value === "string" ? nearestCategoryColor(value) : null);
+}
+
+/** Always paints with a design-system colour, in both themes (see
+ *  toCategoryColor). Stored data is never changed. */
+export function categoryColorVar(
+  value: string | number | null | undefined,
+  role: CategoryRole = "fill",
+  fallback = "var(--text-muted)"
+): string {
+  const c = toCategoryColor(value);
+  return c ? `var(--category-${c.name}-${role})` : fallback;
+}

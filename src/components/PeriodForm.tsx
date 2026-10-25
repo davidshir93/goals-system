@@ -131,7 +131,7 @@ export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFor
     return (
         <>
             <Form {...form}>
-                <form onSubmit={(e) => e.preventDefault()} className='mt-4 grid grid-cols-1 gap-4'>
+                <form onSubmit={form.handleSubmit(handleSubmit, (err) => console.error('Validation errors:', err))} className='mt-4 grid grid-cols-1 gap-4'>
 
                     <FormField
                         name="name"
@@ -147,8 +147,10 @@ export default function PeriodForm({ type, existPeriods, closeModal }: PeriodFor
                         )}
                     />
 
-                    <Button type='button' onClick={form.handleSubmit(handleSubmit, (err) => console.error('Validation errors:', err))}>{t('common.add')}</Button>
-                    <Button type='button' onClick={closeModal} variant="outline">{t('common.cancel')}</Button>
+                    <div className="flex justify-end gap-2 pt-2">
+                        <Button type='button' onClick={closeModal} variant="outline">{t('common.cancel')}</Button>
+                        <Button type='submit' className="flex-1">{t('common.add')}</Button>
+                    </div>
                 </form>
             </Form >
         </>

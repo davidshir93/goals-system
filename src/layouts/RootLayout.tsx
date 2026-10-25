@@ -1,7 +1,7 @@
 import { NavBar } from "@/components/NavBar"
 import { useAuth } from "@/context/AuthContext"
 import { useGoals } from "@/context/GoalsContext";
-import { useCategories, useIdentities, useQuarterlyGoals, useQuarters, useWeeklyGoals, useWeeks, useYearlyGoals, useYears } from "@/data/queries";
+import { useCategories, useQuarterlyGoals, useQuarters, useWeeklyGoals, useWeeks, useYearlyGoals, useYears } from "@/data/queries";
 import { useEffect, useState } from "react";
 import { Outlet, ScrollRestoration } from "react-router"
 import { useTranslation } from "react-i18next"
@@ -17,7 +17,6 @@ export function RootLayout() {
     const { data: quarters, isLoading: quartersLoading, error: quartersErr } = useQuarters(user?.uid || '', selectedYear);
     const { data: weeks, isLoading: weeksLoading, error: weeksErr } = useWeeks(user?.uid || '', selectedYear, selectedQuarter);
     const { isLoading: catLoading } = useCategories(user?.uid || "");
-    const { isLoading: idLoading } = useIdentities(user?.uid || "");
     const { isLoading: yearlyGoalsLoading } = useYearlyGoals(user?.uid || "", selectedYear);
     const { isLoading: quarterlyGoalsLoading } = useQuarterlyGoals(user?.uid || "", selectedYear, selectedQuarter);
     const { isLoading: weeklyGoalsLoading } = useWeeklyGoals(user?.uid || "", selectedYear, selectedQuarter, selectedWeek);
@@ -49,7 +48,7 @@ export function RootLayout() {
         }
     }, [weeks, setSelectedWeek])
 
-    const appLoading = authLoading || yearsLoading || quartersLoading || weeksLoading || weeklyGoalsLoading || quarterlyGoalsLoading || yearlyGoalsLoading || catLoading || idLoading;
+    const appLoading = authLoading || yearsLoading || quartersLoading || weeksLoading || weeklyGoalsLoading || quarterlyGoalsLoading || yearlyGoalsLoading || catLoading;
 
     const [stuck, setStuck] = useState(false);
 
@@ -72,11 +71,11 @@ export function RootLayout() {
                 <p className="mt-2 text-muted-foreground">{t('common.loading')}</p>
                 {stuck && (
                     <div className="mt-4 flex flex-col items-center gap-2">
-                        <p className="text-sm text-muted-foreground">{t('common.stillLoading')}</p>
+                        <p className="type-body-text text-muted-foreground">{t('common.stillLoading')}</p>
                         <button
                             type="button"
                             onClick={() => window.location.reload()}
-                            className="text-sm underline text-foreground"
+                            className="type-body-text underline text-foreground"
                         >
                             {t('common.reloadPage')}
                         </button>

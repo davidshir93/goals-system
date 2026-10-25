@@ -1,5 +1,6 @@
 import { useLanguage } from '@/context/LanguageContext';
 import { Button } from './ui/button';
+import { GlobeIcon } from './icons';
 import {
   Select,
   SelectContent,
@@ -39,17 +40,17 @@ export function LanguageSwitcher({ variant = 'button' }: LanguageSwitcherProps) 
     );
   }
 
+  const next = language === 'en' ? 'he' : 'en';
   return (
     <Button
       variant="ghost"
-      size="icon"
-      onClick={() => setLanguage(language === 'en' ? 'he' : 'en')}
+      onClick={() => setLanguage(next)}
+      aria-label={`${t('language.switchLanguage')}: ${next === 'he' ? 'עברית' : 'English'}`}
       title={t('language.switchLanguage')}
-      className="h-9 w-9"
+      className="h-9 gap-1.5 rounded-full px-3 text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
     >
-      <span className="text-sm font-medium">
-        {language === 'en' ? 'HE' : 'EN'}
-      </span>
+      <GlobeIcon />
+      <span className="type-body-title" lang={next}>{next.toUpperCase()}</span>
     </Button>
   );
 }

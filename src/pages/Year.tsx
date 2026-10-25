@@ -1,14 +1,17 @@
+import { EmptyPanel } from "@/components/EmptyPanel";
+import { PageEnter } from "@/components/PageEnter";
+import { NextStepHint } from "@/components/NextStepHint";
+import { NewPeriodButton } from "@/components/NewPeriodButton";
+import { useOnboarding } from "@/hooks/useOnboarding";
+import { PeriodNotesButton } from "@/components/PeriodNotesButton";
+import { PlusIcon } from "@/components/icons";
+import { PeriodHeader } from "@/components/PeriodHeader";
 import GoalCard from "@/components/GoalCard";
-import { GoalTableRow } from "@/components/GoalTableRow";
 import { SortableGoalGrid } from "@/components/SortableGoalGrid";
-import { SortableGoalTable } from "@/components/SortableGoalTable";
-import { ViewToggle } from "@/components/ViewToggle";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/context/AuthContext";
 import { useGoals } from "@/context/GoalsContext"
-import { useCategories, useIdentities, useYearlyGoals, useYears, useQuarters, useDeleteYearlyGoal, useUpdateYearNotes, useReorderYearlyGoals } from "@/data/queries";
-import { PeriodNotes } from "@/components/PeriodNotes";
-import { useViewPreference } from "@/hooks/useViewPreference";
+import { useCategories, useYearlyGoals, useYears, useQuarters, useDeleteYearlyGoal, useUpdateYearNotes, useReorderYearlyGoals } from "@/data/queries";
 import type { ID, QuarterGoal } from "@/types/GoalTypes";
 import { enrichGoal } from "@/utils/goalsUtils";
 import { useMemo } from "react";
@@ -23,15 +26,14 @@ export default function Year() {
 
     const { selectedYear } = useGoals();
 
-    const [viewPreference, setViewPreference] = useViewPreference();
 
     const navigate = useNavigate();
+    const onboarding = useOnboarding();
 
     const newClick = () => {
         navigate("new")
     }
     const { data: categories, isLoading: catLoading, error: catErr } = useCategories(user?.uid || "");
-    const { data: identities, isLoading: idLoading, error: idErr } = useIdentities(user?.uid || "");
     const { data: yearlyGoals, isLoading: yearlyGoalsLoading, error: yearlyGoalsErr } = useYearlyGoals(user?.uid || "", selectedYear);
     const { data: years } = useYears(user?.uid || "");
     const { data: quarters } = useQuarters(user?.uid || "", selectedYear);
@@ -97,8 +99,27 @@ export default function Year() {
 
     const currentYear = years?.find(y => y.id === selectedYear);
 
-    const isLoading = yearlyGoalsLoading || catLoading || idLoading;
-    const hasError = yearlyGoalsErr || catErr || idErr;
+    const yearName = currentYear?.name ?? "";
+    const hasGoals = sortedYearlyGoals.length > 0;
+    // Add goal lives in the header (and the phone FAB) only once there's a list to add to;
+    // before that the empty panel holds the one action.
+    const showAddGoal = onboarding.canAddGoal("year") && hasGoals;
+    const emptyState = !onboarding.hasYear ? (
+        <EmptyPanel
+            title={t('onboarding.createYearTitle')}
+            description={t('onboarding.createYearDesc')}
+            actions={<NewPeriodButton type="year" label={t('onboarding.createYear')} />}
+        />
+    ) : (
+        <EmptyPanel
+            title={t('onboarding.firstYearGoalTitle', { year: yearName })}
+            description={t('onboarding.firstYearGoalDesc')}
+            actions={<Button onClick={newClick}><PlusIcon />{t('onboarding.addYearGoal')}</Button>}
+        />
+    );
+
+    const isLoading = yearlyGoalsLoading || catLoading;
+    const hasError = yearlyGoalsErr || catErr;
 
     if (isLoading) {
         return (
@@ -112,69 +133,45 @@ export default function Year() {
     if (hasError) {
         return (
             <div className="p-4 rounded-lg bg-destructive/10 border border-destructive/20">
-                <p className="text-destructive font-medium">{t('goals.failedYearly')}</p>
-                <p className="text-destructive/80 text-sm mt-1">{t('common.tryRefreshing')}</p>
+                <p className="type-body-title text-destructive">{t('goals.failedYearly')}</p>
+                <p className="type-body-text text-destructive/80 mt-1">{t('common.tryRefreshing')}</p>
             </div>
         );
     }
 
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 max-sm:pb-[calc(5rem+env(safe-area-inset-bottom))]">
             {/* Page Header */}
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold tracking-tight">{t('periods.year')} {currentYear?.name || ''}</h1>
-                </div>
-                <div className="flex items-center gap-4">
-                    <ViewToggle view={viewPreference} onViewChange={setViewPreference} />
-                    <Button onClick={newClick} dir="ltr">
+                <PeriodHeader level="year" />
+                {showAddGoal && <div className="hidden items-center gap-3 sm:flex">
+                    <Button onClick={newClick}>
+                        <PlusIcon />
                         {t('goals.addGoal')}
-                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ml-2">
-                            <path d="M5 12h14" />
-                            <path d="M12 5v14" />
-                        </svg>
                     </Button>
-                </div>
+                </div>}
             </div>
 
-            {/* Goals Grid/Table */}
-            {sortedYearlyGoals && sortedYearlyGoals.length > 0 ? (
+            {/* Toolbar: page tools */}
+            {onboarding.hasYear && <div className="flex items-center justify-end gap-2">
+                <PeriodNotesButton notes={currentYear?.notes} onSave={handleSaveYearNotes} isPending={updateYearNotes.isPending} />
+            </div>}
+
+            {/* Goals — the only part that fades in when you switch period */}
+            <PageEnter level="year" className="space-y-6">
+            {/* Goals */}
+            {hasGoals ? (
                 <>
-                    {/* Table View - Only on lg screens when table preference is set */}
-                    {viewPreference === "table" && (
-                        <SortableGoalTable
-                            items={sortedYearlyGoals}
-                            onReorder={handleReorder}
-                            className="hidden lg:block"
-                        >
-                            {(item, _index, dragHandleProps, isDragging) => {
-                                const goal = yearlyGoals!.find(g => g.id === item.id)!;
-                                const hasChildren = hasQuarterlyChildren(goal.id);
-                                return (
-                                    <GoalTableRow
-                                        goal={enrichGoal(goal, [], yearlyGoals!, categories!, identities!)}
-                                        onDelete={handleDeleteYearlyGoal}
-                                        canDelete={!hasChildren}
-                                        deleteWarning={hasChildren ? t('goals.deleteYearlyWarning') : undefined}
-                                        dragHandleProps={dragHandleProps}
-                                        isDragging={isDragging}
-                                    />
-                                );
-                            }}
-                        </SortableGoalTable>
-                    )}
-                    {/* Card View - Always on mobile, or on desktop when card preference is set */}
-                    <SortableGoalGrid
+                                        <SortableGoalGrid
                         items={sortedYearlyGoals}
                         onReorder={handleReorder}
-                        className={viewPreference === "table" ? "lg:hidden" : ""}
                     >
                         {(item) => {
                             const goal = yearlyGoals!.find(g => g.id === item.id)!;
                             const hasChildren = hasQuarterlyChildren(goal.id);
                             return (
                                 <GoalCard
-                                    goal={enrichGoal(goal, [], yearlyGoals!, categories!, identities!)}
+                                    goal={enrichGoal(goal, [], yearlyGoals!, categories!)}
                                     onDelete={handleDeleteYearlyGoal}
                                     canDelete={!hasChildren}
                                     deleteWarning={hasChildren ? t('goals.deleteYearlyWarning') : undefined}
@@ -183,28 +180,21 @@ export default function Year() {
                         }}
                     </SortableGoalGrid>
                 </>
-            ) : (
-                <div className="text-center py-12">
-                    <div className="rounded-full bg-muted p-4 w-16 h-16 mx-auto mb-4 flex items-center justify-center">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-muted-foreground">
-                            <path d="M5 12h14" />
-                            <path d="M12 5v14" />
-                        </svg>
-                    </div>
-                    <h3 className="text-lg font-semibold mb-2">{t('goals.noYearlyGoals')}</h3>
-                    <p className="text-muted-foreground text-sm max-w-sm mx-auto mb-6">
-                        {t('goals.noYearlyGoalsDesc')}
-                    </p>
-                    <Button onClick={newClick}>{t('goals.addFirstGoal')}</Button>
-                </div>
-            )}
+            ) : emptyState}
 
-            {/* Period Notes */}
-            <PeriodNotes
-                notes={currentYear?.notes}
-                onSave={handleSaveYearNotes}
-                isPending={updateYearNotes.isPending}
-            />
+            {/* Onboarding: where to go next once this page is done */}
+            <NextStepHint level="year" />
+
+            </PageEnter>
+
+            {/* Phone: Add goal floats at the bottom, as in the mobile design */}
+            {showAddGoal && <Button
+                onClick={newClick}
+                className="fixed end-4 bottom-[max(1rem,env(safe-area-inset-bottom))] z-30 h-12 px-5 shadow-lg sm:hidden"
+            >
+                <PlusIcon />
+                {t('goals.addGoal')}
+            </Button>}
         </div>
     )
 }

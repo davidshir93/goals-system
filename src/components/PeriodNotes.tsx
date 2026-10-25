@@ -8,11 +8,15 @@ type PeriodNotesProps = {
   notes?: string;
   onSave: (notes: string) => void;
   isPending?: boolean;
+  /** Inside a dialog: no card around it, and empty notes open straight in edit mode. */
+  bare?: boolean;
+  /** Called when Cancel leaves nothing to show (bare, no notes), so the dialog can close. */
+  onDismiss?: () => void;
 };
 
-export function PeriodNotes({ notes = "", onSave, isPending }: PeriodNotesProps) {
+export function PeriodNotes({ notes = "", onSave, isPending, bare = false, onDismiss }: PeriodNotesProps) {
   const { t } = useTranslation();
-  const [isEditing, setIsEditing] = useState(false);
+  const [isEditing, setIsEditing] = useState(bare && !notes);
   const [editedNotes, setEditedNotes] = useState(notes);
 
   const handleSave = () => {
@@ -22,10 +26,11 @@ export function PeriodNotes({ notes = "", onSave, isPending }: PeriodNotesProps)
 
   const handleCancel = () => {
     setEditedNotes(notes);
+    if (bare && !notes && onDismiss) return onDismiss();
     setIsEditing(false);
   };
 
-  if (!isEditing && !notes) {
+  if (!bare && !isEditing && !notes) {
     return (
       <Button
         variant="outline"
@@ -44,18 +49,8 @@ export function PeriodNotes({ notes = "", onSave, isPending }: PeriodNotesProps)
     );
   }
 
-  return (
-    <Card className="bg-muted/30">
-      <CardHeader className="pb-2">
-        <CardTitle className="text-sm font-medium flex items-center gap-2">
-          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
-            <polyline points="14 2 14 8 20 8"/>
-          </svg>
-          {t('periods.periodNotes')}
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
+  const body = (
+    <>
         {isEditing ? (
           <div className="space-y-3">
             <Textarea
@@ -64,7 +59,15 @@ export function PeriodNotes({ notes = "", onSave, isPending }: PeriodNotesProps)
               placeholder={t('periods.periodNotesPlaceholder')}
               className="min-h-[100px] resize-y"
             />
-            <div className="flex gap-2">
+            <div className="flex justify-end gap-2">
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={handleCancel}
+                disabled={isPending}
+              >
+                {t('common.cancel')}
+              </Button>
               <Button
                 size="sm"
                 onClick={handleSave}
@@ -78,14 +81,6 @@ export function PeriodNotes({ notes = "", onSave, isPending }: PeriodNotesProps)
                   t('periods.savePeriodNotes')
                 )}
               </Button>
-              <Button
-                size="sm"
-                variant="outline"
-                onClick={handleCancel}
-                disabled={isPending}
-              >
-                {t('common.cancel')}
-              </Button>
             </div>
           </div>
         ) : (
@@ -95,7 +90,7 @@ export function PeriodNotes({ notes = "", onSave, isPending }: PeriodNotesProps)
               size="sm"
               variant="ghost"
               onClick={() => setIsEditing(true)}
-              className="h-8 px-2 text-xs"
+              className="type-caption h-8 px-2"
             >
               <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="ltr:mr-1 rtl:ml-1">
                 <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/>
@@ -105,6 +100,24 @@ export function PeriodNotes({ notes = "", onSave, isPending }: PeriodNotesProps)
             </Button>
           </div>
         )}
+    </>
+  );
+
+  if (bare) return body;
+
+  return (
+    <Card className="bg-muted/30">
+      <CardHeader className="pb-2">
+        <CardTitle className="type-body-title flex items-center gap-2">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14.5 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7.5L14.5 2z"/>
+            <polyline points="14 2 14 8 20 8"/>
+          </svg>
+          {t('periods.periodNotes')}
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {body}
       </CardContent>
     </Card>
   );

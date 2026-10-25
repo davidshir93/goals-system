@@ -1,6 +1,5 @@
 import * as React from "react"
 import { cn } from "@/lib/utils"
-import { getTextColorForBg } from "@/utils/colors"
 
 export interface SliderProps {
   value?: number[]
@@ -16,7 +15,7 @@ export interface SliderProps {
 }
 
 const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
-  ({ className, doneColor = "#000", isSummary, disabled, compact, max = 100, ...props }, ref) => {
+  ({ className, doneColor = "var(--text-primary)", isSummary, disabled, compact, max = 100, ...props }, ref) => {
     const currentValue = props.value?.[0] ?? props.defaultValue?.[0] ?? 0
     const percentage = max > 0 ? (currentValue / max) * 100 : 0
     const isComplete = currentValue >= max
@@ -31,11 +30,13 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
       props.onValueChange?.([currentValue + 1])
     }
 
-    const textColor = getTextColorForBg(doneColor)
+    // doneColor is a design-system fill (a CSS variable), so the text on it is
+    // the matching on-fill token, which flips with the theme like the fills do.
+    const textColor = "var(--text-on-fill)"
 
     const buttonSize = compact ? "h-8 w-8" : "h-10 w-10"
     const barHeight = compact ? "h-8" : "h-10"
-    const textSize = compact ? "text-sm" : "text-xl"
+    const textSize = compact ? "type-body-title" : "type-main-title"
     const iconSize = compact ? 16 : 20
 
     return (
@@ -76,7 +77,7 @@ const Slider = React.forwardRef<HTMLDivElement, SliderProps>(
             }}
           />
           <p
-            className={cn("font-bold text-center z-10 relative", textSize)}
+            className={cn("text-center z-10 relative", textSize)}
             style={{ color: percentage > 40 ? textColor : undefined }}
           >
             {currentValue}

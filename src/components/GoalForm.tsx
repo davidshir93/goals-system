@@ -14,7 +14,7 @@ import { Textarea } from './ui/textarea'
 import { Button } from './ui/button'
 import { Id, IntFromInput } from '@/schemas/common'
 import { Select, SelectContent, SelectGroup, SelectItem, SelectTrigger, SelectValue } from './ui/select'
-import { useAddQuarterlyGoal, useAddWeeklyGoal, useAddYearlyGoal, useEditYearlyGoal, useEditQuarterlyGoal, UseEditWeeklyGoal, useCategories, useIdentities, useQuarterlyGoals, useYearlyGoals } from '@/data/queries'
+import { useAddQuarterlyGoal, useAddWeeklyGoal, useAddYearlyGoal, useEditYearlyGoal, useEditQuarterlyGoal, UseEditWeeklyGoal, useCategories, useQuarterlyGoals, useYearlyGoals } from '@/data/queries'
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { useGoals } from '@/context/GoalsContext'
@@ -23,7 +23,7 @@ import { Modal } from './Modal'
 import ItemsListForm from './ItemsListForm'
 import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { getTextColorForBg } from '@/utils/colors'
+import { categoryColorVar } from '@/tokens/categories'
 
 type GoalFormProps = {
     type: 'year' | 'quarter' | 'week'
@@ -51,7 +51,6 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
     const YearlyGoalFormSchema = z.object({
         type: z.literal('year'),
         categoryId: Id.min(1, t('validation.categoryRequired')),
-        identityId: Id.min(1, t('validation.identityRequired')),
         description: z.string().trim().max(500).optional().default(""),
         outcome: z.array(z.string().trim()).min(1, t('validation.outcomeRequired')),
         obstacles: z.array(z.string().trim()).min(1, t('validation.obstacleRequired')),
@@ -81,7 +80,6 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
     type GoalFormOutput = z.output<typeof GoalFormSchema>;
 
     const [editCategoriesModalOpen, setEditCategoriesModalOpen] = useState(false)
-    const [editIdentitiesModalOpen, setEditIdentitiesModalOpen] = useState(false)
 
     const isEditMode = Boolean(goalId && existingGoal)
 
@@ -95,7 +93,6 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                     obstacles: existingGoal.obstacles || [],
                     plan: existingGoal.plan || [],
                     categoryId: existingGoal.categoryId,
-                    identityId: existingGoal.identityId,
                     description: existingGoal.description || '',
                     notes: existingGoal.notes || ''
                 }
@@ -127,7 +124,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
 
         // Default values for new goals
         if (type === 'year') {
-            return { type: 'year', wish: '', outcome: [], obstacles: [], plan: [], categoryId: '', identityId: '', description: '', notes: '' }
+            return { type: 'year', wish: '', outcome: [], obstacles: [], plan: [], categoryId: '', description: '', notes: '' }
         }
         if (type === 'quarter') {
             return { type: 'quarter', wish: '', outcome: [], obstacles: [], plan: [], parentYearGoalId: '', notes: '' }
@@ -142,7 +139,6 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
 
     const { user } = useAuth()
     const { data: categories, isLoading: catLoading, error: catErr } = useCategories(user?.uid || '');
-    const { data: identities, isLoading: idLoading, error: idErr } = useIdentities(user?.uid || '');
     const { selectedYear, selectedQuarter, selectedWeek } = useGoals();
     const { data: yearlyGoals, isLoading: yearlyGoalsLoading, error: yearlyGoalsErr } = useYearlyGoals(user?.uid || '', selectedYear);
     const { data: quarterlyGoals, isLoading: quarterlyGoalsLoading, error: quarterlyGoalsErr } = useQuarterlyGoals(user?.uid || '', selectedYear, selectedQuarter);
@@ -172,7 +168,6 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         obstacles: data.obstacles,
                         plan: data.plan,
                         categoryId: data.categoryId,
-                        identityId: data.identityId,
                         description: data.description,
                         notes: data.notes
                     }
@@ -247,25 +242,32 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
         navigate("..")
     }
 
-    if (catLoading || idLoading || yearlyGoalsLoading || quarterlyGoalsLoading) {
+    if (catLoading || yearlyGoalsLoading || quarterlyGoalsLoading) {
         return <div className="p-3 text-yellow-600">{t('common.loadingData')}</div>;
     }
 
-    if (catErr || idErr || yearlyGoalsErr || quarterlyGoalsErr) {
+    if (catErr || yearlyGoalsErr || quarterlyGoalsErr) {
         return <div className="p-3 text-red-600">{t('common.failedToLoad')}</div>;
     }
+
+    // Category colours: the palette's tinted background with primary text —
+    // a pair the token build contrast-checks in both themes.
+    const categoryPaint = (color: string | number | undefined) =>
+        color === undefined || color === ''
+            ? undefined
+            : { backgroundColor: categoryColorVar(color, 'bg'), color: 'var(--text-primary)' }
 
     function findYearlyGoalCategoryColor(yearlyGoalId: ID) {
         const yearlyGoal = yearlyGoals?.find(goal => goal.id === yearlyGoalId)
         const category = categories?.find(cat => cat.id === yearlyGoal?.categoryId)
-        return category?.color || 'white'
+        return category?.color
     }
 
     function findQuarterGoalCategoryColor(quarterlyGoalId: ID) {
         const quarterlyGoal = quarterlyGoals?.find(goal => goal.id === quarterlyGoalId)
         const yearlyGoal = yearlyGoals?.find(goal => goal.id === quarterlyGoal?.parentYearGoalId)
         const category = categories?.find(cat => cat.id === yearlyGoal?.categoryId)
-        return category?.color || 'white'
+        return category?.color
     }
 
     const getFormTitle = () => {
@@ -288,16 +290,16 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
     return (
         <div className="max-w-2xl mx-auto">
             <div className="mb-6">
-                <h1 className="text-2xl font-bold tracking-tight">
+                <h1 className="type-display tracking-tight">
                     {getFormTitle()}
                 </h1>
-                <p className="text-muted-foreground text-sm mt-1">
+                <p className="type-body-text text-muted-foreground mt-1">
                     {isEditMode ? t('goalForm.editSubtitle') : t('goalForm.newSubtitle')}
                 </p>
             </div>
 
             <Form {...form}>
-                <form onSubmit={form.handleSubmit(handleSubmit, (err) => console.error('Validation errors:', err))} className='grid grid-cols-1 gap-6'>
+                <form onSubmit={form.handleSubmit(handleSubmit, (err) => console.error('Validation errors:', err))} className='grid grid-cols-[minmax(0,1fr)] gap-6'>
 
                     {/* Category */}
                     {type === 'year' && categories &&
@@ -307,7 +309,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                 control={form.control}
                                 render={({ field }) => {
                                     const selectedCategory = categories.find(cat => cat.id === field.value);
-                                    const selectedColor = selectedCategory?.color || '';
+                                    const selectedColor = selectedCategory?.color;
                                     return (
                                         <FormItem>
                                             <FormLabel>{t('goalForm.category')}</FormLabel>
@@ -324,10 +326,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                 >
                                                     <SelectTrigger
                                                         className="w-full"
-                                                        style={{
-                                                            backgroundColor: selectedColor,
-                                                            color: selectedColor ? getTextColorForBg(selectedColor) : undefined
-                                                        }}
+                                                        style={categoryPaint(selectedColor)}
                                                     >
                                                         <SelectValue placeholder={t('goalForm.selectCategory')} />
                                                     </SelectTrigger>
@@ -337,10 +336,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                                 <SelectItem
                                                                     key={category.id}
                                                                     value={category.id}
-                                                                    style={{
-                                                                        backgroundColor: category.color,
-                                                                        color: getTextColorForBg(category.color)
-                                                                    }}
+                                                                    style={categoryPaint(category.color)}
                                                                     className='my-2'
                                                                 >
                                                                     {category.name}
@@ -357,70 +353,9 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                 }}
                             />
                             <Modal isOpen={editCategoriesModalOpen} onClose={() => setEditCategoriesModalOpen(false)}>
-                                <ItemsListForm type='category' currentItems={categories} closeModal={() => setEditCategoriesModalOpen(false)} />
+                                <ItemsListForm currentItems={categories} closeModal={() => setEditCategoriesModalOpen(false)} />
                             </Modal>
                         </>)}
-
-                    {/* Identity */}
-                    {type === 'year' && identities && (<>
-                        <FormField
-                            name="identityId"
-                            control={form.control}
-                            render={({ field }) => {
-                                const selectedIdentity = identities.find(id => id.id === field.value);
-                                const selectedColor = selectedIdentity?.color || '';
-                                return (
-                                    <FormItem>
-                                        <FormLabel>{t('goalForm.identity')}</FormLabel>
-                                        <FormControl>
-                                            <Select
-                                                value={field.value}
-                                                onValueChange={(val) => {
-                                                    if (val === 'edit') {
-                                                        setEditIdentitiesModalOpen(true)
-                                                    } else {
-                                                        field.onChange(val)
-                                                    }
-                                                }}
-                                            >
-                                                <SelectTrigger
-                                                    className="w-full"
-                                                    style={{
-                                                        backgroundColor: selectedColor,
-                                                        color: selectedColor ? getTextColorForBg(selectedColor) : undefined
-                                                    }}
-                                                >
-                                                    <SelectValue placeholder={t('goalForm.selectIdentity')} />
-                                                </SelectTrigger>
-                                                <SelectContent>
-                                                    <SelectGroup>
-                                                        {identities.map(identity => (
-                                                            <SelectItem
-                                                                key={identity.id}
-                                                                value={identity.id}
-                                                                style={{
-                                                                    backgroundColor: identity.color,
-                                                                    color: getTextColorForBg(identity.color)
-                                                                }}
-                                                                className='my-2'
-                                                            >
-                                                                {identity.name}
-                                                            </SelectItem>
-                                                        ))}
-                                                        <SelectItem key='edit' value='edit'>{t('goalForm.editIdentities')}</SelectItem>
-                                                    </SelectGroup>
-                                                </SelectContent>
-                                            </Select>
-                                        </FormControl>
-                                        <FormMessage />
-                                    </FormItem>
-                                );
-                            }}
-                        />
-                        <Modal isOpen={editIdentitiesModalOpen} onClose={() => setEditIdentitiesModalOpen(false)}>
-                            <ItemsListForm type='identity' currentItems={identities} closeModal={() => setEditIdentitiesModalOpen(false)} />
-                        </Modal>
-                    </>)}
 
                     {/* Parent quarter goal */}
                     {type === 'week' && quarterlyGoals && (<FormField
@@ -438,10 +373,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                         >
                                             <SelectTrigger
                                                 className="w-full"
-                                                style={{
-                                                    backgroundColor: selectedColor,
-                                                    color: getTextColorForBg(selectedColor)
-                                                }}
+                                                style={categoryPaint(selectedColor)}
                                             >
                                                 <SelectValue placeholder={t('goalForm.selectParentQuarter')} />
                                             </SelectTrigger>
@@ -454,10 +386,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                                 key={quarterlyGoal.id}
                                                                 value={quarterlyGoal.id}
                                                                 className='my-2'
-                                                                style={{
-                                                                    backgroundColor: itemColor,
-                                                                    color: getTextColorForBg(itemColor)
-                                                                }}
+                                                                style={categoryPaint(itemColor)}
                                                             >
                                                                 {quarterlyGoal.wish}
                                                             </SelectItem>
@@ -489,10 +418,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                         >
                                             <SelectTrigger
                                                 className="w-full"
-                                                style={{
-                                                    backgroundColor: selectedColor,
-                                                    color: getTextColorForBg(selectedColor)
-                                                }}
+                                                style={categoryPaint(selectedColor)}
                                             >
                                                 <SelectValue placeholder={t('goalForm.selectParentYear')} />
                                             </SelectTrigger>
@@ -505,10 +431,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                                 key={yearlyGoal.id}
                                                                 value={yearlyGoal.id}
                                                                 className='my-2'
-                                                                style={{
-                                                                    backgroundColor: itemColor,
-                                                                    color: getTextColorForBg(itemColor)
-                                                                }}
+                                                                style={categoryPaint(itemColor)}
                                                             >
                                                                 {yearlyGoal.wish}
                                                             </SelectItem>
@@ -531,11 +454,11 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         control={form.control}
                         render={({ field }) => (
                             <FormItem className="space-y-3">
-                                <FormLabel className="text-lg font-semibold">{t('goalForm.goalTitle')}</FormLabel>
+                                <FormLabel className="type-main-title">{t('goalForm.goalTitle')}</FormLabel>
                                 <FormControl>
                                     <Input
                                         placeholder={t('goalForm.goalPlaceholder', { period: getPeriodName() })}
-                                        className='text-xl font-bold h-14 px-4 border-2 border-primary/20 focus:border-primary transition-colors'
+                                        className='type-main-title h-14 px-4 border-2 border-primary/20 focus:border-primary transition-colors'
                                         {...field}
                                     />
                                 </FormControl>
@@ -553,7 +476,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>{t('goalForm.description')}</FormLabel>
-                                    <p className="text-xs text-muted-foreground mb-2">{t('goalForm.descriptionHelp')}</p>
+                                    <p className="type-caption text-muted-foreground mb-2">{t('goalForm.descriptionHelp')}</p>
                                     <FormControl>
                                         <Textarea
                                             placeholder={t('goalForm.descriptionPlaceholder')}
@@ -571,7 +494,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                     {type === 'year' && (
                         <div className="space-y-6 p-5 rounded-xl border-2 border-primary/20 bg-gradient-to-br from-primary/5 to-transparent">
                             <div className="flex items-center gap-3">
-                                <h2 className="text-xl font-bold text-primary">{t('goalForm.mentalContrasting')}</h2>
+                                <h2 className="type-main-title text-primary">{t('goalForm.mentalContrasting')}</h2>
                             </div>
 
                             {/* Outcome */}
@@ -581,8 +504,8 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                 control={form.control}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-base font-medium">{t('goalForm.outcomes')}</FormLabel>
-                                        <p className="text-xs text-muted-foreground mb-2">{t('goalForm.outcomesHelp')}</p>
+                                        <FormLabel className="type-body-title">{t('goalForm.outcomes')}</FormLabel>
+                                        <p className="type-caption text-muted-foreground mb-2">{t('goalForm.outcomesHelp')}</p>
                                         <div className="space-y-2">
                                             {(field.value as string[])?.map((item, index) => (
                                                 <div key={index} className="flex gap-2">
@@ -629,8 +552,8 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                 control={form.control}
                                 render={({ field }) => (
                                     <FormItem>
-                                        <FormLabel className="text-base font-medium">{t('goalForm.obstacles')}</FormLabel>
-                                        <p className="text-xs text-muted-foreground mb-2">{t('goalForm.obstaclesHelp')}</p>
+                                        <FormLabel className="type-body-title">{t('goalForm.obstacles')}</FormLabel>
+                                        <p className="type-caption text-muted-foreground mb-2">{t('goalForm.obstaclesHelp')}</p>
                                         <div className="space-y-2">
                                             {(field.value as string[])?.map((item, index) => (
                                                 <div key={index} className="flex gap-2">
@@ -694,13 +617,13 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
 
                                     return (
                                         <FormItem>
-                                            <FormLabel className="text-base font-medium">{t('goalForm.implementationIntentions')}</FormLabel>
-                                            <p className="text-xs text-muted-foreground mb-3">
+                                            <FormLabel className="type-body-title">{t('goalForm.implementationIntentions')}</FormLabel>
+                                            <p className="type-caption text-muted-foreground mb-3">
                                                 {t('goalForm.implementationHelp')}
                                             </p>
 
                                             {syncedPlan.length === 0 ? (
-                                                <div className="p-4 rounded-lg border border-dashed text-center text-sm text-muted-foreground">
+                                                <div className="type-body-text p-4 rounded-lg border border-dashed text-center text-muted-foreground">
                                                     {t('goalForm.addObstaclesFirst')}
                                                 </div>
                                             ) : (
@@ -708,13 +631,13 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                     {syncedPlan.map((item, index) => (
                                                         <div key={index} className="p-4 rounded-lg border bg-muted/30 space-y-2">
                                                             <div className="flex items-start gap-2">
-                                                                <span className="text-sm font-medium text-orange-600 shrink-0 pt-0.5">{t('goalForm.if')}</span>
-                                                                <p className="text-sm italic text-muted-foreground flex-1">
+                                                                <span className="type-body-title text-orange-600 shrink-0 pt-0.5">{t('goalForm.if')}</span>
+                                                                <p className="type-body-text italic text-muted-foreground flex-1">
                                                                     "{item.obstacle}"
                                                                 </p>
                                                             </div>
                                                             <div className="flex items-start gap-2">
-                                                                <span className="text-sm font-medium text-green-600 shrink-0 pt-2">{t('goalForm.thenIWill')}</span>
+                                                                <span className="type-body-title text-green-600 shrink-0 pt-2">{t('goalForm.thenIWill')}</span>
                                                                 <Input
                                                                     value={item.action}
                                                                     onChange={(e) => {
@@ -747,7 +670,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>{t('goalForm.notes')}</FormLabel>
-                                    <p className="text-xs text-muted-foreground mb-2">{t('goalForm.notesHelp')}</p>
+                                    <p className="type-caption text-muted-foreground mb-2">{t('goalForm.notesHelp')}</p>
                                     <FormControl>
                                         <Textarea
                                             placeholder={t('common.notesPlaceholder')}
@@ -779,14 +702,14 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                     }
                                 };
                                 return (
-                                    <FormItem className="space-y-4 p-5 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-2xl border-2 border-primary/25 shadow-sm">
+                                    <FormItem className="grid-cols-[minmax(0,1fr)] space-y-4 p-4 sm:p-5 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-2xl border-2 border-primary/25 shadow-sm">
                                         <div className="flex items-center gap-2">
-                                            <span className="text-2xl">⏱️</span>
-                                            <FormLabel className="text-xl font-bold text-primary m-0">{t('goalForm.plannedEffort')}</FormLabel>
+                                            <span className="type-display">⏱️</span>
+                                            <FormLabel className="type-main-title text-primary m-0">{t('goalForm.plannedEffort')}</FormLabel>
                                         </div>
                                         <div className="bg-background/60 rounded-lg p-3 border border-primary/10">
-                                            <p className="text-sm text-muted-foreground leading-relaxed">
-                                                <span className="font-medium text-foreground">{t('goalForm.effortHelp')}</span>{' '}
+                                            <p className="type-body-text text-muted-foreground">
+                                                <span className="type-body-title text-foreground">{t('goalForm.effortHelp')}</span>{' '}
                                                 {t('goalForm.effortQuestion')}
                                             </p>
                                         </div>
@@ -796,17 +719,19 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                     type="button"
                                                     variant="outline"
                                                     size="icon"
-                                                    className="h-14 w-14 rounded-xl text-2xl font-bold border-2 border-primary/30 hover:bg-primary/10 hover:border-primary cursor-pointer"
+                                                    className="type-display size-12 shrink-0 sm:size-14 rounded-xl border-2 border-primary/30 hover:bg-primary/10 hover:border-primary cursor-pointer"
                                                     onClick={handleDecrement}
                                                     disabled={parseInt(String(field.value)) <= 1}
+                                                    aria-label={t('goalForm.fewerSessions')}
                                                 >
-                                                    -
+                                                    −
                                                 </Button>
                                                 <FormControl>
                                                     <Input
                                                         type='number'
                                                         min={1}
-                                                        className="!text-5xl font-extrabold h-24 w-36 text-center leading-none pt-1 border-2 border-primary/30 focus:border-primary bg-background rounded-xl shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                        aria-label={t('goalForm.plannedEffort')}
+                                                        className="type-page-title h-20 w-28 sm:h-24 sm:w-36 text-center pt-1 border-2 border-primary/30 focus:border-primary bg-background rounded-xl shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                                         {...field}
                                                     />
                                                 </FormControl>
@@ -814,13 +739,14 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                     type="button"
                                                     variant="outline"
                                                     size="icon"
-                                                    className="h-14 w-14 rounded-xl text-2xl font-bold border-2 border-primary/30 hover:bg-primary/10 hover:border-primary cursor-pointer"
+                                                    className="type-display size-12 shrink-0 sm:size-14 rounded-xl border-2 border-primary/30 hover:bg-primary/10 hover:border-primary cursor-pointer"
                                                     onClick={handleIncrement}
+                                                    aria-label={t('goalForm.moreSessions')}
                                                 >
                                                     +
                                                 </Button>
                                             </div>
-                                            <span className="text-xl text-muted-foreground font-semibold">{t('goalForm.sessions')}</span>
+                                            <span className="type-main-title text-muted-foreground">{t('goalForm.sessions')}</span>
                                         </div>
                                         <FormMessage />
                                     </FormItem>
@@ -838,7 +764,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                             render={({ field }) => (
                                 <FormItem>
                                     <FormLabel>{t('goalForm.notes')}</FormLabel>
-                                    <p className="text-xs text-muted-foreground mb-2">{t('goalForm.notesHelp')}</p>
+                                    <p className="type-caption text-muted-foreground mb-2">{t('goalForm.notesHelp')}</p>
                                     <FormControl>
                                         <Textarea
                                             placeholder={t('common.notesPlaceholder')}
@@ -852,12 +778,12 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         />
                     )}
 
-                    <div className="flex gap-3 pt-6 border-t">
-                        <Button type='submit' className="flex-1 h-11 font-semibold">
-                            {isEditMode ? t('goalForm.saveChanges') : t('goalForm.createGoal')}
-                        </Button>
+                    <div className="flex justify-end gap-3 pt-6 border-t">
                         <Button type="button" variant="outline" className="h-11 px-6" onClick={() => navigate("..")}>
                             {t('common.cancel')}
+                        </Button>
+                        <Button type='submit' className="flex-1 h-11">
+                            {isEditMode ? t('goalForm.saveChanges') : t('goalForm.createGoal')}
                         </Button>
                     </div>
                 </form>

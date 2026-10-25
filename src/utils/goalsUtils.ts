@@ -2,7 +2,6 @@ import type {
   Category,
   EnrichedGoalType,
   Goal,
-  Identity,
   QuarterGoal,
   YearGoal,
 } from "@/types/GoalTypes";
@@ -13,18 +12,11 @@ const emptyCategory: Category = {
   name: "No Category",
 };
 
-const emptyIdentity: Identity = {
-  id: "no identity",
-  color: "black",
-  name: "No Identity",
-};
-
 export function enrichGoal(
   goal: Goal,
   quarterlyGoals: QuarterGoal[],
   yearlyGoals: YearGoal[],
-  categories: Category[],
-  identities: Identity[]
+  categories: Category[]
 ) {
   let quarterlyGoal: QuarterGoal | undefined, yearlyGoal: YearGoal | undefined;
 
@@ -95,9 +87,6 @@ export function enrichGoal(
     categories?.find((cat) => cat.id === yearlyGoal?.categoryId) ||
     emptyCategory;
 
-  enrichedGoal.identity =
-    identities?.find((cat) => cat.id === yearlyGoal?.identityId) ||
-    emptyIdentity;
 
   return enrichedGoal;
 }
