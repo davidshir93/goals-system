@@ -1,6 +1,7 @@
 import { NavBar } from "@/components/NavBar"
 import { WeekSkeleton } from "@/components/WeekSkeleton"
 import { Button } from "@/components/ui/button"
+import { Modal } from "@/components/Modal"
 import { useAuth } from "@/context/AuthContext"
 import { useGoals } from "@/context/GoalsContext";
 import { useCategories, useQuarterlyGoals, useQuarters, useWeeklyGoals, useWeeks, useYearlyGoals, useYears } from "@/data/queries";
@@ -53,10 +54,12 @@ export function RootLayout() {
     const appLoading = authLoading || yearsLoading || quartersLoading || weeksLoading || weeklyGoalsLoading || quarterlyGoalsLoading || yearlyGoalsLoading || catLoading;
 
     const [stuck, setStuck] = useState(false);
+    const [keepWaiting, setKeepWaiting] = useState(false);
 
     useEffect(() => {
         if (!appLoading) {
             setStuck(false);
+            setKeepWaiting(false); // a later slow load asks again
             return;
         }
         const timer = setTimeout(() => setStuck(true), STUCK_LOADING_MS);
@@ -69,16 +72,25 @@ export function RootLayout() {
             <main>
                 <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 max-w-7xl">
                     <WeekSkeleton />
-                    {stuck && (
-                        <div className="mt-6 flex flex-col items-center gap-2 text-center">
-                            <p className="type-body-text text-[var(--text-secondary)]">{t('common.stillLoading')}</p>
-                            <Button variant="outline" onClick={() => window.location.reload()}>
-                                {t('common.reloadPage')}
-                            </Button>
-                        </div>
-                    )}
                 </div>
             </main>
+            {/* Stuck: a centred dialog over everything, so it can't be missed on a
+                phone. "Keep waiting" closes it; the skeleton stays and the app
+                still opens on its own if the data arrives. */}
+            <Modal isOpen={stuck && !keepWaiting} onClose={() => setKeepWaiting(true)} labelledBy="stuck-title">
+                <div className="flex flex-col items-center gap-4 text-center">
+                    <h2 id="stuck-title" className="type-body-title text-[var(--text-primary)]">{t('common.stillLoading')}</h2>
+                    <p className="type-body-text text-[var(--text-secondary)]">{t('common.stuckHint')}</p>
+                    <div className="flex w-full flex-col gap-2">
+                        <Button autoFocus className="w-full" onClick={() => window.location.reload()}>
+                            {t('common.reloadPage')}
+                        </Button>
+                        <Button variant="ghost" className="w-full" onClick={() => setKeepWaiting(true)}>
+                            {t('common.keepWaiting')}
+                        </Button>
+                    </div>
+                </div>
+            </Modal>
         </div>
     )
 

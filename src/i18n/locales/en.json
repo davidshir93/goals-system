@@ -7,6 +7,8 @@
     "tryRefreshing": "Please try refreshing the page.",
     "stillLoading": "This is taking longer than usual.",
     "reloadPage": "Reload page",
+    "stuckHint": "Check your connection, then reload. Your goals are safe.",
+    "keepWaiting": "Keep waiting",
     "save": "Save",
     "cancel": "Cancel",
     "add": "Add",

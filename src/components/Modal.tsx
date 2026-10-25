@@ -6,12 +6,14 @@ type ModalProps = {
     isOpen: boolean;
     onClose: () => void;
     children: ReactNode;
+    /** id of the heading inside, for the dialog's accessible name */
+    labelledBy?: string;
 };
 
 /* Small form dialogs: New year / quarter / week, Edit categories.
  * Motion matches the card's ••• menu: the box grows in with the backdrop (menuOpen)
  * and fades out (menuClose). It stays mounted until the exit animation ends. */
-export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
+export const Modal = ({ isOpen, onClose, children, labelledBy }: ModalProps) => {
     const [mounted, setMounted] = useState(isOpen);
     if (isOpen && !mounted) setMounted(true);
     const box = useRef<HTMLDivElement>(null);
@@ -67,7 +69,7 @@ export const Modal = ({ isOpen, onClose, children }: ModalProps) => {
                 ></div>
 
                 {/* modal box */}
-                <div ref={box} className="relative z-10 bg-card text-card-foreground rounded-2xl shadow-lg p-6 w-full max-w-[400px] mx-4 border max-h-[85vh] overflow-y-auto">
+                <div ref={box} role="dialog" aria-modal="true" aria-labelledby={labelledBy} className="relative z-10 bg-card text-card-foreground rounded-2xl shadow-lg p-6 w-full max-w-[400px] mx-4 border max-h-[85vh] overflow-y-auto">
                     {children}
                 </div>
             </div>
