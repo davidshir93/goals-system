@@ -76,6 +76,12 @@
   html, body {
     overscroll-behavior-y: contain;
   }
+  /* Every weight we use is loaded, so a faux bold only ever means a
+   * missing face. Suez One (Hebrew display) has one weight: without this
+   * the browser would smear it to fake 700/800. */
+  html {
+    font-synthesis-weight: none;
+  }
   body {
     @apply bg-background text-foreground antialiased;
     font: var(--type-body-text);

@@ -20,7 +20,9 @@ export const CATEGORY_IDS = {
 
 /* Figma font name → CSS variable key and fallback stack. */
 export const FONTS = {
-  "Bitter": { key: "display", stack: '"Bitter", Georgia, "Times New Roman", serif' },
+  /* Suez One covers Hebrew: Bitter has no Hebrew glyphs, so Hebrew falls
+   * through to it while Latin letters and digits stay in Bitter. */
+  "Bitter": { key: "display", stack: '"Bitter", "Suez One", Georgia, "Times New Roman", serif' },
   "Google Sans Flex": { key: "text", stack: '"Google Sans Flex", system-ui, -apple-system, "Segoe UI", sans-serif' }
 };
 

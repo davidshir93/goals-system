@@ -93,7 +93,7 @@
    utilities the app already uses. */
 :root {
   /* families */
-  --font-display: "Bitter", Georgia, "Times New Roman", serif;
+  --font-display: "Bitter", "Suez One", Georgia, "Times New Roman", serif;
   --font-text: "Google Sans Flex", system-ui, -apple-system, "Segoe UI", sans-serif;
 
   /* body-text — 16px */
