@@ -267,24 +267,20 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
         return findYearlyGoalCategory(quarterlyGoal?.parentYearGoalId ?? '')
     }
 
-    // Categories show as on the goal cards: a small colour dot with the name,
-    // never a tinted background.
-    const categoryDot = (color: Category['color']) => (
-        <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: categoryColorVar(color) }} />
+    // Categories show as on the goal cards: a tinted pill with the name.
+    const categoryPill = (category: Category) => (
+        <span
+            className="type-caption-strong inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-[var(--text-primary)]"
+            style={{ background: categoryColorVar(category.color, 'bg') }}
+        >
+            {category.name}
+        </span>
     )
 
     // A parent goal option: its category first, then the goal.
     const parentGoalOption = (wish: string, category: Category | undefined) => (
         <span className="flex min-w-0 items-baseline gap-2">
-            {category && (
-                // The same tinted pill as on the goal cards
-                <span
-                    className="type-caption-strong inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-[var(--text-primary)]"
-                    style={{ background: categoryColorVar(category.color, 'bg') }}
-                >
-                    {category.name}
-                </span>
-            )}
+            {category && categoryPill(category)}
             <span data-goal-wish className="type-body-title min-w-0">{wish}</span>
         </span>
     )
@@ -348,10 +344,7 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                         <SelectGroup>
                                                             {categories.map(category => (
                                                                 <SelectItem key={category.id} value={category.id}>
-                                                                    <span className="inline-flex items-center gap-2">
-                                                                        {categoryDot(category.color)}
-                                                                        {category.name}
-                                                                    </span>
+                                                                    {categoryPill(category)}
                                                                 </SelectItem>
                                                             ))}
                                                             <SelectItem key='edit' value='edit'>{t('goalForm.editCategories')}</SelectItem>

@@ -165,7 +165,15 @@
     "editCategories": "🏷️ ערוך קטגוריות",
     "categoryPlaceholder": "שם קטגוריה...",
     "addCategory": "הוסף קטגוריה",
-    "color": "צבע"
+    "color": "צבע",
+    "name": "שם",
+    "newCategory": "קטגוריה חדשה",
+    "goalCount_one": "מטרה אחת",
+    "goalCount_two": "2 מטרות",
+    "goalCount_other": "{{count}} מטרות",
+    "noGoals": "אין מטרות",
+    "deleteCategory": "מחיקת הקטגוריה",
+    "deleteHint": "המטרות שלה יישארו, בלי קטגוריה."
   },
   "periodForm": {
     "newPeriod": "{{type}} חדש/חדשה"

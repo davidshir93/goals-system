@@ -165,7 +165,14 @@
     "editCategories": "🏷️ Edit Categories",
     "categoryPlaceholder": "Category name...",
     "addCategory": "Add Category",
-    "color": "Colour"
+    "color": "Colour",
+    "name": "Name",
+    "newCategory": "New category",
+    "goalCount_one": "{{count}} goal",
+    "goalCount_other": "{{count}} goals",
+    "noGoals": "No goals",
+    "deleteCategory": "Delete category",
+    "deleteHint": "Its goals stay, without a category."
   },
   "periodForm": {
     "newPeriod": "New {{type}}"
