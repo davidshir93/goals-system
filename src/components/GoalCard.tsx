@@ -180,9 +180,13 @@ export default function GoalCard({
     </Tabs>
   ) : null;
 
+  // A tinted pill: the category's bg tone with primary text, a pair the token
+  // build contrast-checks in both themes.
   const categoryChip = goal.category ? (
-    <span className="type-caption-strong inline-flex items-center gap-1.5 text-[var(--text-secondary)]">
-      <span aria-hidden="true" className="size-2 rounded-full" style={{ background: categoryColorVar(goal.category.color) }} />
+    <span
+      className="type-caption-strong inline-flex items-center rounded-full px-2.5 py-0.5 text-[var(--text-primary)]"
+      style={{ background: categoryColorVar(goal.category.color, "bg") }}
+    >
       {goal.category.name}
     </span>
   ) : null;

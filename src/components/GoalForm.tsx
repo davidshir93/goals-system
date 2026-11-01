@@ -277,8 +277,11 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
     const parentGoalOption = (wish: string, category: Category | undefined) => (
         <span className="flex min-w-0 items-baseline gap-2">
             {category && (
-                <span className="type-caption-strong inline-flex shrink-0 items-center gap-1.5 text-[var(--text-secondary)]">
-                    {categoryDot(category.color)}
+                // The same tinted pill as on the goal cards
+                <span
+                    className="type-caption-strong inline-flex shrink-0 items-center rounded-full px-2.5 py-0.5 text-[var(--text-primary)]"
+                    style={{ background: categoryColorVar(category.color, 'bg') }}
+                >
                     {category.name}
                 </span>
             )}
