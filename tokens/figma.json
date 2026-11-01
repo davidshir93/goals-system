@@ -142,217 +142,217 @@
       "azure": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#1f536d"
+          "$value": "#234e82"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#d9f3ff"
+          "$value": "#d4e6fe"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#27b8f8"
+          "$value": "#57a0fb"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#177eab"
+          "$value": "#0961bb"
         }
       },
       "cobalt": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#304d78"
+          "$value": "#3f487e"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#c6e0ff"
+          "$value": "#eaeefe"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#3e89f7"
+          "$value": "#a3b2fc"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#0c58ba"
+          "$value": "#595ffa"
         }
       },
       "crimson": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#6f394e"
+          "$value": "#753646"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#ffcede"
+          "$value": "#fee8ec"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#dc538e"
+          "$value": "#fd92ac"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#a5195f"
+          "$value": "#e1166b"
         }
       },
       "fern": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#395728"
+          "$value": "#3c561c"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#cde8c0"
+          "$value": "#e4f6d3"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#58a21b"
+          "$value": "#8bcf1e"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#396d0d"
+          "$value": "#55810d"
         }
       },
       "fuchsia": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#643e5d"
+          "$value": "#743355"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#fee6f9"
+          "$value": "#fed9e9"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#eb7bdb"
+          "$value": "#fc54b1"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#ae42a1"
+          "$value": "#ae0e73"
         }
       },
       "iris": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#4b4771"
+          "$value": "#563e7b"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#edebff"
+          "$value": "#e9dffe"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#a79cfa"
+          "$value": "#b180fb"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#735cd6"
+          "$value": "#7f13db"
         }
       },
       "jade": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#205943"
+          "$value": "#065a4f"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#daf6e9"
+          "$value": "#baf2e6"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#29c793"
+          "$value": "#1db7a1"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#178461"
+          "$value": "#0c7365"
         }
       },
       "lagoon": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#005a5d"
+          "$value": "#065669"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#b0ebec"
+          "$value": "#d7f4fe"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#1f9fa3"
+          "$value": "#22cbf3"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#106b6d"
+          "$value": "#107e98"
         }
       },
       "ochre": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#6a4316"
+          "$value": "#723e14"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#fad7b5"
+          "$value": "#feeadd"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#c2791a"
+          "$value": "#fd9d56"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#84500c"
+          "$value": "#b35d0d"
         }
       },
       "olive": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#554e1c"
+          "$value": "#195c2e"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#f3f0d5"
+          "$value": "#c9f1d0"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#bead23"
+          "$value": "#1cbd5b"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#827613"
+          "$value": "#0c7737"
         }
       },
       "orchid": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#5c3f6d"
+          "$value": "#653a68"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#ecd3fc"
+          "$value": "#fee5fe"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#b066da"
+          "$value": "#f584fc"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#7f33a5"
+          "$value": "#c717d3"
         }
       },
       "poppy": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#6e3d3a"
+          "$value": "#7a3334"
         },
         "bg-light": {
           "$type": "color",
-          "$value": "#ffe6e3"
+          "$value": "#fedbd9"
         },
         "fill-dark": {
           "$type": "color",
-          "$value": "#fb817c"
+          "$value": "#fc6669"
         },
         "fill-light": {
           "$type": "color",
-          "$value": "#c8393c"
+          "$value": "#b80f2b"
         }
       }
     },
@@ -984,6 +984,162 @@
           "value": 0
         },
         "lineHeight": 1.15
+      }
+    },
+    "Hebrew": {
+      "Body Text": {
+        "$description": "Hebrew partner of &quot;Body Text&quot;. Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches &quot;Body Text&quot;.",
+        "$extensions": {
+          "com.figma": {
+            "fontStyle": "Regular"
+          }
+        },
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "IBM Plex Sans Hebrew",
+          "fontSize": {
+            "unit": "px",
+            "value": 16
+          },
+          "fontWeight": 400,
+          "letterSpacing": {
+            "unit": "em",
+            "value": 0
+          },
+          "lineHeight": 1.5
+        }
+      },
+      "Body Title": {
+        "$description": "Hebrew partner of &quot;Body Title&quot;. Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches &quot;Body Title&quot;.",
+        "$extensions": {
+          "com.figma": {
+            "fontStyle": "SemiBold"
+          }
+        },
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "IBM Plex Sans Hebrew",
+          "fontSize": {
+            "unit": "px",
+            "value": 16
+          },
+          "fontWeight": 600,
+          "letterSpacing": {
+            "unit": "em",
+            "value": 0
+          },
+          "lineHeight": 1.4
+        }
+      },
+      "Caption": {
+        "$description": "Hebrew partner of &quot;Caption&quot;. Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches &quot;Caption&quot;.",
+        "$extensions": {
+          "com.figma": {
+            "fontStyle": "Regular"
+          }
+        },
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "IBM Plex Sans Hebrew",
+          "fontSize": {
+            "unit": "px",
+            "value": 12
+          },
+          "fontWeight": 400,
+          "letterSpacing": {
+            "unit": "em",
+            "value": 0
+          },
+          "lineHeight": 1.45
+        }
+      },
+      "Caption Strong": {
+        "$description": "Hebrew partner of &quot;Caption Strong&quot;. Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches &quot;Caption Strong&quot;.",
+        "$extensions": {
+          "com.figma": {
+            "fontStyle": "SemiBold"
+          }
+        },
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "IBM Plex Sans Hebrew",
+          "fontSize": {
+            "unit": "px",
+            "value": 12
+          },
+          "fontWeight": 600,
+          "letterSpacing": {
+            "unit": "em",
+            "value": 0
+          },
+          "lineHeight": 1.45
+        }
+      },
+      "Display": {
+        "$description": "Hebrew partner of &quot;Display&quot;. Set in Suez One (one weight only) at 113% of the Latin size, with the same line height in px. In code there is no separate token: Suez One sits after Bitter in --font-display with size-adjust 113%, and the build checks this style matches &quot;Display&quot;.",
+        "$extensions": {
+          "com.figma": {
+            "fontStyle": "Regular"
+          }
+        },
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "Suez One",
+          "fontSize": {
+            "unit": "px",
+            "value": 31.600000381469727
+          },
+          "fontWeight": 400,
+          "letterSpacing": {
+            "unit": "em",
+            "value": 0
+          },
+          "lineHeight": 1.019
+        }
+      },
+      "Main Title": {
+        "$description": "Hebrew partner of &quot;Main Title&quot;. Set in Suez One (one weight only) at 113% of the Latin size, with the same line height in px. In code there is no separate token: Suez One sits after Bitter in --font-display with size-adjust 113%, and the build checks this style matches &quot;Main Title&quot;.",
+        "$extensions": {
+          "com.figma": {
+            "fontStyle": "Regular"
+          }
+        },
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "Suez One",
+          "fontSize": {
+            "unit": "px",
+            "value": 23.700000762939453
+          },
+          "fontWeight": 400,
+          "letterSpacing": {
+            "unit": "em",
+            "value": 0
+          },
+          "lineHeight": 1.108
+        }
+      },
+      "Page Title": {
+        "$description": "Hebrew partner of &quot;Page Title&quot;. Set in Suez One (one weight only) at 113% of the Latin size, with the same line height in px. In code there is no separate token: Suez One sits after Bitter in --font-display with size-adjust 113%, and the build checks this style matches &quot;Page Title&quot;.",
+        "$extensions": {
+          "com.figma": {
+            "fontStyle": "Regular"
+          }
+        },
+        "$type": "typography",
+        "$value": {
+          "fontFamily": "Suez One",
+          "fontSize": {
+            "unit": "px",
+            "value": 45.20000076293945
+          },
+          "fontWeight": 400,
+          "letterSpacing": {
+            "unit": "em",
+            "value": 0
+          },
+          "lineHeight": 1.018
+        }
       }
     },
     "Main Title": {

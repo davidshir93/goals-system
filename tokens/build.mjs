@@ -520,6 +520,8 @@ for (const [theme, map] of [["light", LIGHT], ["dark", DARK]]) {
   for (const c of CATEGORIES) {
     add(`${c.name} bar on track`, `category/${c.name}/fill`, "surface/track", 3);
     add(`text on ${c.name} background`, "text/primary", `category/${c.name}/bg`, 4.5);
+    /* The progress count sits on the fill once a bar is half full. */
+    add(`count on ${c.name} bar`, "text/on-fill", `category/${c.name}/fill`, 4.5);
     /* A chip has to read as a chip on a card. Dark only for now: in light
      * mode the chips' colour carries them on the white card. */
     if (theme === "dark") add(`${c.name} chip on card`, `category/${c.name}/bg`, "surface/raised", 1.5);

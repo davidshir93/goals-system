@@ -52,31 +52,43 @@ var NEUTRAL = {
 };
 
 var TIERS = {
-  // Dark backgrounds sit at L42 for both tiers: well above the dark card
-  // (neutral-800, L28) so a chip reads as a chip, and still far below the
-  // fills so it never competes with the progress bar.
-  bright: { fillL: 56, fillD: 74, bgL: [95, 0.035], bgD: [42, 0.07] },
-  deep:   { fillL: 48, fillD: 64, bgL: [90, 0.060], bgD: [42, 0.08] }
+  // "Jewel" palette. Deep fills (ruby, emerald, sapphire…) alternate with
+  // brighter ones around the wheel. Chroma runs to the gamut edge.
+  //
+  // Two limits set the light-mode lightness, and both are checked by the build:
+  //   - the bar must clear 3:1 on the cream track, and
+  //   - the progress count is drawn in white ON the fill once a bar is half
+  //     full (text/on-fill), so white must clear 4.5:1 on every light fill.
+  // The second is the tighter one. It is why the bright tier can't go above
+  // L 57-60 in light mode; each bright category carries its own fillL below,
+  // the lightest value that still passes.
+  deep:   { fillL: 50, fillD: 70, bgL: [92, 0.06], bgD: [42, 0.10] },
+  bright: { fillL: 57, fillD: 78, bgL: [95, 0.05], bgD: [42, 0.09] }
 };
 
-var CHROMA_CAP = 0.18;      // ceiling on fill saturation
+var CHROMA_CAP = 0.30;      // ceiling on category fill saturation (gamut edge in practice)
+
+// Signals keep their own, calmer recipe: they become words, not bars.
+var SIGNAL_TIER = { fillL: 56, fillD: 74, bgL: [95, 0.035], bgD: [42, 0.07] };
+var SIGNAL_CHROMA_CAP = 0.18;
 var SIGNAL_TEXT = { L_light: 47, L_dark: 75, C: 0.16 };
 
-// Hue positions chosen by maximising the smallest visible gap between
-// any two categories, in both modes. Tiers alternate around the wheel.
+// [name, hue, tier, light-mode fillL override]. Names are the stored category
+// ids and never change, even where the hue has moved (olive is now emerald,
+// fern is peridot, poppy is ruby).
 var CATEGORIES = [
-  ["poppy",     24, "bright"],
-  ["ochre",     66, "deep"],
-  ["olive",    102, "bright"],
-  ["fern",     135, "deep"],
-  ["jade",     165, "bright"],
-  ["lagoon",   198, "deep"],
-  ["azure",    234, "bright"],
-  ["cobalt",   258, "deep"],
-  ["iris",     288, "bright"],
-  ["orchid",   312, "deep"],
-  ["fuchsia",  333, "bright"],
-  ["crimson",  357, "deep"]
+  ["poppy",     22, "deep"],
+  ["ochre",     55, "bright", 57],
+  ["olive",    150, "deep"],
+  ["fern",     130, "bright", 55],
+  ["jade",     180, "deep"],
+  ["lagoon",   220, "bright", 55],
+  ["azure",    255, "deep"],
+  ["cobalt",   275, "bright", 57.5],
+  ["iris",     300, "deep"],
+  ["orchid",   325, "bright", 59.5],
+  ["fuchsia",  350, "deep"],
+  ["crimson",    5, "bright", 59]
 ];
 
 var SIGNALS = [["lime", 124], ["ember", 43]];
@@ -191,12 +203,20 @@ function neutralAt(i) {
   var L = NEUTRAL.L[i], H = neutralHue(L);
   return rgba(L, Math.min(neutralChroma(L), 0.94 * maxChroma(L, H)), H);
 }
-function fillAt(H, tier, dark) {
-  var L = dark ? TIERS[tier].fillD : TIERS[tier].fillL;
-  return rgba(L, Math.min(CHROMA_CAP, 0.94 * maxChroma(L, H)), H);
+function fillAt(H, tier, dark, lightL) {
+  var L = dark ? TIERS[tier].fillD : (lightL || TIERS[tier].fillL);
+  return rgba(L, Math.min(CHROMA_CAP, 0.96 * maxChroma(L, H)), H);
 }
 function bgAt(H, tier, dark) {
   var s = dark ? TIERS[tier].bgD : TIERS[tier].bgL;
+  return rgba(s[0], Math.min(s[1], 0.96 * maxChroma(s[0], H)), H);
+}
+function signalFillAt(H, dark) {
+  var L = dark ? SIGNAL_TIER.fillD : SIGNAL_TIER.fillL;
+  return rgba(L, Math.min(SIGNAL_CHROMA_CAP, 0.94 * maxChroma(L, H)), H);
+}
+function signalBgAt(H, dark) {
+  var s = dark ? SIGNAL_TIER.bgD : SIGNAL_TIER.bgL;
   return rgba(s[0], s[1], H);
 }
 
@@ -207,16 +227,16 @@ function primitiveTable() {
   var p = {};
   NEUTRAL.steps.forEach(function (s, i) { p["neutral/" + s] = neutralAt(i); });
   CATEGORIES.forEach(function (c) {
-    p["category/" + c[0] + "/fill-light"] = fillAt(c[1], c[2], false);
+    p["category/" + c[0] + "/fill-light"] = fillAt(c[1], c[2], false, c[3]);
     p["category/" + c[0] + "/fill-dark"]  = fillAt(c[1], c[2], true);
     p["category/" + c[0] + "/bg-light"]   = bgAt(c[1], c[2], false);
     p["category/" + c[0] + "/bg-dark"]    = bgAt(c[1], c[2], true);
   });
   SIGNALS.forEach(function (s) {
-    p["signal/" + s[0] + "/fill-light"] = fillAt(s[1], "bright", false);
-    p["signal/" + s[0] + "/fill-dark"]  = fillAt(s[1], "bright", true);
-    p["signal/" + s[0] + "/bg-light"]   = bgAt(s[1], "bright", false);
-    p["signal/" + s[0] + "/bg-dark"]    = bgAt(s[1], "bright", true);
+    p["signal/" + s[0] + "/fill-light"] = signalFillAt(s[1], false);
+    p["signal/" + s[0] + "/fill-dark"]  = signalFillAt(s[1], true);
+    p["signal/" + s[0] + "/bg-light"]   = signalBgAt(s[1], false);
+    p["signal/" + s[0] + "/bg-dark"]    = signalBgAt(s[1], true);
     p["signal/" + s[0] + "/text-light"] = rgba(SIGNAL_TEXT.L_light, SIGNAL_TEXT.C, s[1]);
     p["signal/" + s[0] + "/text-dark"]  = rgba(SIGNAL_TEXT.L_dark,  SIGNAL_TEXT.C, s[1]);
   });

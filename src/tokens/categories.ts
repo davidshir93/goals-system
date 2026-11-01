@@ -85,18 +85,18 @@ export function categoryVar(
 
 /** Light fills, used only to match legacy hex colours to the nearest category. */
 const SWATCHES: Record<CategoryColorName, string> = {
-  "poppy": "#c8393c",
-  "ochre": "#84500c",
-  "olive": "#827613",
-  "fern": "#396d0d",
-  "jade": "#178461",
-  "lagoon": "#106b6d",
-  "azure": "#177eab",
-  "cobalt": "#0c58ba",
-  "iris": "#735cd6",
-  "orchid": "#7f33a5",
-  "fuchsia": "#ae42a1",
-  "crimson": "#a5195f"
+  "poppy": "#b80f2b",
+  "ochre": "#b35d0d",
+  "olive": "#0c7737",
+  "fern": "#55810d",
+  "jade": "#0c7365",
+  "lagoon": "#107e98",
+  "azure": "#0961bb",
+  "cobalt": "#595ffa",
+  "iris": "#7f13db",
+  "orchid": "#c717d3",
+  "fuchsia": "#ae0e73",
+  "crimson": "#e1166b"
 };
 
 /** Hue angle of a hex colour in OKLCH (degrees) — perceptual hue, so a light
