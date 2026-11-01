@@ -1,5 +1,6 @@
 import { createContext, useContext, useEffect, type ReactNode } from 'react';
 import { useTranslation } from 'react-i18next';
+import { DirectionProvider } from '@radix-ui/react-direction';
 import type { TFunction } from 'i18next';
 import { isRTL } from '@/i18n';
 
@@ -30,7 +31,8 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   return (
     <LanguageContext.Provider value={{ language, setLanguage, isRtl, t }}>
-      {children}
+      {/* Radix components (Select) read direction from here, not from <html dir>. */}
+      <DirectionProvider dir={isRtl ? 'rtl' : 'ltr'}>{children}</DirectionProvider>
     </LanguageContext.Provider>
   );
 }

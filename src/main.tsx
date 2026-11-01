@@ -16,6 +16,11 @@ const client = new QueryClient({
       retry: 2,
       retryDelay: (attempt) => Math.min(1000 * 2 ** attempt, 5000),
     },
+    // Hand writes to Firestore even when the browser reports offline. Firestore
+    // queues them durably; React Query would otherwise pause them in memory.
+    mutations: {
+      networkMode: 'always',
+    },
   },
 })
 

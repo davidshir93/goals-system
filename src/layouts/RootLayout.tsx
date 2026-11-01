@@ -9,49 +9,64 @@ import { useEffect, useState } from "react";
 import { Outlet, ScrollRestoration } from "react-router"
 import { useTranslation } from "react-i18next"
 
-const STUCK_LOADING_MS = 5_000
+// Long enough for a slow phone connection to finish a normal launch.
+const STUCK_LOADING_MS = 12_000
+
+const latestId = (periods?: { id: string }[]) => periods?.length ? periods[periods.length - 1].id : ""
 
 export function RootLayout() {
     const { t } = useTranslation()
     const { loading: authLoading, user } = useAuth()
     const { selectedYear, setSelectedYear, selectedQuarter, setSelectedQuarter, selectedWeek, setSelectedWeek } = useGoals();
 
-    const { data: years, isLoading: yearsLoading, error: yearsErr } = useYears(user?.uid || '');
-    const { data: quarters, isLoading: quartersLoading, error: quartersErr } = useQuarters(user?.uid || '', selectedYear);
-    const { data: weeks, isLoading: weeksLoading, error: weeksErr } = useWeeks(user?.uid || '', selectedYear, selectedQuarter);
-    const { isLoading: catLoading } = useCategories(user?.uid || "");
-    const { isLoading: yearlyGoalsLoading } = useYearlyGoals(user?.uid || "", selectedYear);
-    const { isLoading: quarterlyGoalsLoading } = useQuarterlyGoals(user?.uid || "", selectedYear, selectedQuarter);
-    const { isLoading: weeklyGoalsLoading } = useWeeklyGoals(user?.uid || "", selectedYear, selectedQuarter, selectedWeek);
+    const { data: years, error: yearsErr } = useYears(user?.uid || '');
+    const { data: quarters, error: quartersErr } = useQuarters(user?.uid || '', selectedYear);
+    const { data: weeks, error: weeksErr } = useWeeks(user?.uid || '', selectedYear, selectedQuarter);
+    const { data: categories } = useCategories(user?.uid || "");
+    const { data: yearlyGoals } = useYearlyGoals(user?.uid || "", selectedYear);
+    const { data: quarterlyGoals } = useQuarterlyGoals(user?.uid || "", selectedYear, selectedQuarter);
+    const { data: weeklyGoals } = useWeeklyGoals(user?.uid || "", selectedYear, selectedQuarter, selectedWeek);
 
     useEffect(() => {
-        if (years?.length && years[years?.length - 1]) {
-            // TODO: support saving the last selected period in localStorage too
-            setSelectedYear(years[years?.length - 1].id)
-        } else {
-            setSelectedYear("")
-        }
+        // Still loading: keep the remembered period so the queries below it can start.
+        if (!years) return
+        setSelectedYear(latestId(years))
     }, [years, setSelectedYear])
 
     useEffect(() => {
-        if (quarters?.length && quarters[quarters?.length - 1]) {
-            // TODO: support saving the last selected period in localStorage too
-            setSelectedQuarter(quarters[quarters?.length - 1].id)
-        } else {
-            setSelectedQuarter("")
-        }
+        // Still loading: keep the remembered period so the queries below it can start.
+        if (!quarters) return
+        setSelectedQuarter(latestId(quarters))
     }, [quarters, setSelectedQuarter])
 
     useEffect(() => {
-        if (weeks?.length && weeks[weeks?.length - 1]) {
-            // TODO: support saving the last selected period in localStorage too
-            setSelectedWeek(weeks[weeks?.length - 1].id)
-        } else {
-            setSelectedWeek("")
-        }
+        // Still loading: keep the remembered period so the queries below it can start.
+        if (!weeks) return
+        setSelectedWeek(latestId(weeks))
     }, [weeks, setSelectedWeek])
 
-    const appLoading = authLoading || yearsLoading || quartersLoading || weeksLoading || weeklyGoalsLoading || quarterlyGoalsLoading || yearlyGoalsLoading || catLoading;
+    /* Loading is decided from the data, not from isLoading. Each level's query
+     * only starts once the level above has picked its period, so between levels
+     * nothing is "loading" for a render — gating on isLoading showed the app,
+     * then the skeleton again, once per level. */
+    const selectedDataLoaded =
+        years !== undefined && categories !== undefined &&
+        (years.length === 0 || (selectedYear !== "" && quarters !== undefined && yearlyGoals !== undefined &&
+            (quarters.length === 0 || (selectedQuarter !== "" && weeks !== undefined && quarterlyGoals !== undefined &&
+                (weeks.length === 0 || (selectedWeek !== "" && weeklyGoals !== undefined))))));
+
+    // On launch, also wait until the latest period is the one selected, so the
+    // app opens once, on the right week.
+    const onLatestPeriod =
+        selectedYear === latestId(years) && selectedQuarter === latestId(quarters) && selectedWeek === latestId(weeks);
+
+    const [launched, setLaunched] = useState(false);
+    const ready = !authLoading && (!user || (selectedDataLoaded && (launched || onLatestPeriod)));
+    useEffect(() => {
+        if (ready) setLaunched(true);
+    }, [ready]);
+
+    const appLoading = !ready;
 
     const [stuck, setStuck] = useState(false);
     const [keepWaiting, setKeepWaiting] = useState(false);
@@ -65,6 +80,10 @@ export function RootLayout() {
         const timer = setTimeout(() => setStuck(true), STUCK_LOADING_MS);
         return () => clearTimeout(timer);
     }, [appLoading]);
+
+    const appError = yearsErr || quartersErr || weeksErr;
+
+    if (appError) throw new Error('Error in fetching data' + JSON.stringify(yearsErr) + JSON.stringify(quartersErr) + JSON.stringify(weeksErr))
 
     if (appLoading) return (
         <div className="min-h-dvh bg-background">
@@ -93,10 +112,6 @@ export function RootLayout() {
             </Modal>
         </div>
     )
-
-    const appError = yearsErr || quartersErr || weeksErr;
-
-    if (appError) throw new Error('Error in fetching data' + JSON.stringify(yearsErr) + JSON.stringify(quartersErr) + JSON.stringify(weeksErr))
 
     return (
         <div className="min-h-dvh bg-background">

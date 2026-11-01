@@ -18,7 +18,7 @@ import { useAddQuarterlyGoal, useAddWeeklyGoal, useAddYearlyGoal, useEditYearlyG
 import { useAuth } from '@/context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { useGoals } from '@/context/GoalsContext'
-import type { ID, Goal } from '@/types/GoalTypes'
+import type { Category, ID, Goal } from '@/types/GoalTypes'
 import { Modal } from './Modal'
 import ItemsListForm from './ItemsListForm'
 import { useState } from 'react'
@@ -145,6 +145,13 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
 
     const navigate = useNavigate()
 
+    // The parent goal's title, offered as a one-tap starting point for this goal's title.
+    const parentGoalId = form.watch(type === 'week' ? 'parentQuarterGoalId' : 'parentYearGoalId')
+    const parentWish =
+        type === 'week' ? quarterlyGoals?.find(g => g.id === parentGoalId)?.wish
+        : type === 'quarter' ? yearlyGoals?.find(g => g.id === parentGoalId)?.wish
+        : undefined
+
     const addYearlyGoal = useAddYearlyGoal();
     const addQuarterlyGoal = useAddQuarterlyGoal()
     const addWeeklyGoal = useAddWeeklyGoal()
@@ -250,25 +257,34 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
         return <div className="p-3 text-red-600">{t('common.failedToLoad')}</div>;
     }
 
-    // Category colours: the palette's tinted background with primary text —
-    // a pair the token build contrast-checks in both themes.
-    const categoryPaint = (color: string | number | undefined) =>
-        color === undefined || color === ''
-            ? undefined
-            : { backgroundColor: categoryColorVar(color, 'bg'), color: 'var(--text-primary)' }
-
-    function findYearlyGoalCategoryColor(yearlyGoalId: ID) {
+    function findYearlyGoalCategory(yearlyGoalId: ID) {
         const yearlyGoal = yearlyGoals?.find(goal => goal.id === yearlyGoalId)
-        const category = categories?.find(cat => cat.id === yearlyGoal?.categoryId)
-        return category?.color
+        return categories?.find(cat => cat.id === yearlyGoal?.categoryId)
     }
 
-    function findQuarterGoalCategoryColor(quarterlyGoalId: ID) {
+    function findQuarterGoalCategory(quarterlyGoalId: ID) {
         const quarterlyGoal = quarterlyGoals?.find(goal => goal.id === quarterlyGoalId)
-        const yearlyGoal = yearlyGoals?.find(goal => goal.id === quarterlyGoal?.parentYearGoalId)
-        const category = categories?.find(cat => cat.id === yearlyGoal?.categoryId)
-        return category?.color
+        return findYearlyGoalCategory(quarterlyGoal?.parentYearGoalId ?? '')
     }
+
+    // Categories show as on the goal cards: a small colour dot with the name,
+    // never a tinted background.
+    const categoryDot = (color: Category['color']) => (
+        <span aria-hidden="true" className="size-2 shrink-0 rounded-full" style={{ background: categoryColorVar(color) }} />
+    )
+
+    // A parent goal option: its category first, then the goal.
+    const parentGoalOption = (wish: string, category: Category | undefined) => (
+        <span className="flex min-w-0 items-baseline gap-2">
+            {category && (
+                <span className="type-caption-strong inline-flex shrink-0 items-center gap-1.5 text-[var(--text-secondary)]">
+                    {categoryDot(category.color)}
+                    {category.name}
+                </span>
+            )}
+            <span data-goal-wish className="type-body-title min-w-0">{wish}</span>
+        </span>
+    )
 
     const getFormTitle = () => {
         if (isEditMode) return t('goalForm.editGoal')
@@ -308,8 +324,6 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                 name="categoryId"
                                 control={form.control}
                                 render={({ field }) => {
-                                    const selectedCategory = categories.find(cat => cat.id === field.value);
-                                    const selectedColor = selectedCategory?.color;
                                     return (
                                         <FormItem>
                                             <FormLabel>{t('goalForm.category')}</FormLabel>
@@ -324,22 +338,17 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                                         }
                                                     }}
                                                 >
-                                                    <SelectTrigger
-                                                        className="w-full"
-                                                        style={categoryPaint(selectedColor)}
-                                                    >
+                                                    <SelectTrigger className="w-full">
                                                         <SelectValue placeholder={t('goalForm.selectCategory')} />
                                                     </SelectTrigger>
                                                     <SelectContent>
                                                         <SelectGroup>
                                                             {categories.map(category => (
-                                                                <SelectItem
-                                                                    key={category.id}
-                                                                    value={category.id}
-                                                                    style={categoryPaint(category.color)}
-                                                                    className='my-2'
-                                                                >
-                                                                    {category.name}
+                                                                <SelectItem key={category.id} value={category.id}>
+                                                                    <span className="inline-flex items-center gap-2">
+                                                                        {categoryDot(category.color)}
+                                                                        {category.name}
+                                                                    </span>
                                                                 </SelectItem>
                                                             ))}
                                                             <SelectItem key='edit' value='edit'>{t('goalForm.editCategories')}</SelectItem>
@@ -362,7 +371,6 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         name="parentQuarterGoalId"
                         control={form.control}
                         render={({ field }) => {
-                            const selectedColor = findQuarterGoalCategoryColor(field.value);
                             return (
                                 <FormItem>
                                     <FormLabel>{t('goalForm.parentQuarterGoal')}</FormLabel>
@@ -371,27 +379,16 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                             value={field.value}
                                             onValueChange={field.onChange}
                                         >
-                                            <SelectTrigger
-                                                className="w-full"
-                                                style={categoryPaint(selectedColor)}
-                                            >
+                                            <SelectTrigger className="w-full *:data-[slot=select-value]:min-w-0 [&_[data-goal-wish]]:truncate">
                                                 <SelectValue placeholder={t('goalForm.selectParentQuarter')} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
-                                                    {quarterlyGoals.map(quarterlyGoal => {
-                                                        const itemColor = findQuarterGoalCategoryColor(quarterlyGoal.id);
-                                                        return (
-                                                            <SelectItem
-                                                                key={quarterlyGoal.id}
-                                                                value={quarterlyGoal.id}
-                                                                className='my-2'
-                                                                style={categoryPaint(itemColor)}
-                                                            >
-                                                                {quarterlyGoal.wish}
-                                                            </SelectItem>
-                                                        );
-                                                    })}
+                                                    {quarterlyGoals.map(quarterlyGoal => (
+                                                        <SelectItem key={quarterlyGoal.id} value={quarterlyGoal.id}>
+                                                            {parentGoalOption(quarterlyGoal.wish, findQuarterGoalCategory(quarterlyGoal.id))}
+                                                        </SelectItem>
+                                                    ))}
                                                 </SelectGroup>
                                             </SelectContent>
                                         </Select>
@@ -407,7 +404,6 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         name="parentYearGoalId"
                         control={form.control}
                         render={({ field }) => {
-                            const selectedColor = findYearlyGoalCategoryColor(field.value);
                             return (
                                 <FormItem>
                                     <FormLabel>{t('goalForm.parentYearGoal')}</FormLabel>
@@ -416,27 +412,16 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                             value={field.value}
                                             onValueChange={field.onChange}
                                         >
-                                            <SelectTrigger
-                                                className="w-full"
-                                                style={categoryPaint(selectedColor)}
-                                            >
+                                            <SelectTrigger className="w-full *:data-[slot=select-value]:min-w-0 [&_[data-goal-wish]]:truncate">
                                                 <SelectValue placeholder={t('goalForm.selectParentYear')} />
                                             </SelectTrigger>
                                             <SelectContent>
                                                 <SelectGroup>
-                                                    {yearlyGoals.map(yearlyGoal => {
-                                                        const itemColor = findYearlyGoalCategoryColor(yearlyGoal.id);
-                                                        return (
-                                                            <SelectItem
-                                                                key={yearlyGoal.id}
-                                                                value={yearlyGoal.id}
-                                                                className='my-2'
-                                                                style={categoryPaint(itemColor)}
-                                                            >
-                                                                {yearlyGoal.wish}
-                                                            </SelectItem>
-                                                        );
-                                                    })}
+                                                    {yearlyGoals.map(yearlyGoal => (
+                                                        <SelectItem key={yearlyGoal.id} value={yearlyGoal.id}>
+                                                            {parentGoalOption(yearlyGoal.wish, findYearlyGoalCategory(yearlyGoal.id))}
+                                                        </SelectItem>
+                                                    ))}
                                                 </SelectGroup>
                                             </SelectContent>
                                         </Select>
@@ -453,8 +438,26 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                         key="wish"
                         control={form.control}
                         render={({ field }) => (
-                            <FormItem className="space-y-3">
-                                <FormLabel className="type-main-title">{t('goalForm.goalTitle')}</FormLabel>
+                            <FormItem>
+                                <div className="flex items-center justify-between gap-2">
+                                    <FormLabel>{t('goalForm.goalTitle')}</FormLabel>
+                                    {parentWish && (
+                                        <button
+                                            type="button"
+                                            onClick={() => {
+                                                form.setValue('wish', parentWish, { shouldDirty: true, shouldValidate: true })
+                                                form.setFocus('wish')
+                                            }}
+                                            className="type-caption-strong -my-3 inline-flex min-h-11 shrink-0 cursor-pointer items-center gap-1.5 px-1 text-[var(--category-azure-fill)] hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
+                                        >
+                                            <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                                <rect x="9" y="9" width="12" height="12" rx="2" />
+                                                <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+                                            </svg>
+                                            {t('goalForm.copyParentGoal')}
+                                        </button>
+                                    )}
+                                </div>
                                 <FormControl>
                                     <Input
                                         placeholder={t('goalForm.goalPlaceholder', { period: getPeriodName() })}
@@ -702,51 +705,50 @@ export default function GoalForm({ type, goalId, existingGoal }: GoalFormProps) 
                                     }
                                 };
                                 return (
-                                    <FormItem className="grid-cols-[minmax(0,1fr)] space-y-4 p-4 sm:p-5 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-2xl border-2 border-primary/25 shadow-sm">
-                                        <div className="flex items-center gap-2">
-                                            <span className="type-display">⏱️</span>
-                                            <FormLabel className="type-main-title text-primary m-0">{t('goalForm.plannedEffort')}</FormLabel>
-                                        </div>
-                                        <div className="bg-background/60 rounded-lg p-3 border border-primary/10">
-                                            <p className="type-body-text text-muted-foreground">
-                                                <span className="type-body-title text-foreground">{t('goalForm.effortHelp')}</span>{' '}
-                                                {t('goalForm.effortQuestion')}
-                                            </p>
-                                        </div>
-                                        <div className="flex flex-col items-center gap-2">
-                                            <div className="flex items-center gap-2" dir="ltr">
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="icon"
-                                                    className="type-display size-12 shrink-0 sm:size-14 rounded-xl border-2 border-primary/30 hover:bg-primary/10 hover:border-primary cursor-pointer"
-                                                    onClick={handleDecrement}
-                                                    disabled={parseInt(String(field.value)) <= 1}
-                                                    aria-label={t('goalForm.fewerSessions')}
-                                                >
-                                                    −
-                                                </Button>
-                                                <FormControl>
-                                                    <Input
-                                                        type='number'
-                                                        min={1}
-                                                        aria-label={t('goalForm.plannedEffort')}
-                                                        className="type-page-title h-20 w-28 sm:h-24 sm:w-36 text-center pt-1 border-2 border-primary/30 focus:border-primary bg-background rounded-xl shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                                        {...field}
-                                                    />
-                                                </FormControl>
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="icon"
-                                                    className="type-display size-12 shrink-0 sm:size-14 rounded-xl border-2 border-primary/30 hover:bg-primary/10 hover:border-primary cursor-pointer"
-                                                    onClick={handleIncrement}
-                                                    aria-label={t('goalForm.moreSessions')}
-                                                >
-                                                    +
-                                                </Button>
+                                    <FormItem>
+                                        <FormLabel><span aria-hidden="true">⏱️</span>{t('goalForm.plannedEffort')}</FormLabel>
+                                        <div className="space-y-4 p-4 sm:p-5 bg-gradient-to-br from-primary/5 via-primary/10 to-primary/5 rounded-2xl border-2 border-primary/25 shadow-sm">
+                                            <div className="bg-background/60 rounded-lg p-3 border border-primary/10">
+                                                <p className="type-body-text text-muted-foreground">
+                                                    <span className="type-body-title text-foreground">{t('goalForm.effortHelp')}</span>{' '}
+                                                    {t('goalForm.effortQuestion')}
+                                                </p>
                                             </div>
-                                            <span className="type-main-title text-muted-foreground">{t('goalForm.sessions')}</span>
+                                            <div className="flex flex-col items-center gap-2">
+                                                <div className="flex items-center gap-2" dir="ltr">
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="type-display size-12 shrink-0 sm:size-14 rounded-xl border-2 border-primary/30 hover:bg-primary/10 hover:border-primary cursor-pointer"
+                                                        onClick={handleDecrement}
+                                                        disabled={parseInt(String(field.value)) <= 1}
+                                                        aria-label={t('goalForm.fewerSessions')}
+                                                    >
+                                                        −
+                                                    </Button>
+                                                    <FormControl>
+                                                        <Input
+                                                            type='number'
+                                                            min={1}
+                                                            aria-label={t('goalForm.plannedEffort')}
+                                                            className="type-page-title h-20 w-28 sm:h-24 sm:w-36 text-center pt-1 border-2 border-primary/30 focus:border-primary bg-card rounded-xl shadow-inner [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                                            {...field}
+                                                        />
+                                                    </FormControl>
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="icon"
+                                                        className="type-display size-12 shrink-0 sm:size-14 rounded-xl border-2 border-primary/30 hover:bg-primary/10 hover:border-primary cursor-pointer"
+                                                        onClick={handleIncrement}
+                                                        aria-label={t('goalForm.moreSessions')}
+                                                    >
+                                                        +
+                                                    </Button>
+                                                </div>
+                                                <span className="type-main-title text-muted-foreground">{t('goalForm.sessions')}</span>
+                                            </div>
                                         </div>
                                         <FormMessage />
                                     </FormItem>

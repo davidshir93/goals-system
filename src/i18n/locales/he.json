@@ -79,6 +79,8 @@
     "weekCounts": "{{complete}} מתוך {{goals}} מטרות הושלמו · {{steps}} מתוך {{planned}} צעדים"
   },
   "goalCard": {
+    "notSaved": "לא נשמר",
+    "tryAgain": "לנסות שוב",
     "outcomes": "תוצאות",
     "obstacles": "מכשולים",
     "plan": "תוכנית",
@@ -109,6 +111,7 @@
     "parentYearGoal": "🔗 מטרת אב שנתית",
     "selectParentYear": "בחר מטרה שנתית.",
     "goalTitle": "✏️ כותרת המטרה",
+    "copyParentGoal": "העתקת מטרת האב",
     "goalPlaceholder": "מהי המטרה שלך ל{{period}}?",
     "description": "📋 תיאור",
     "descriptionHelp": "תיאור קצר אופציונלי להבהרת המטרה.",

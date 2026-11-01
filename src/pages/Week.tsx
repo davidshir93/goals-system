@@ -77,15 +77,19 @@ export default function Week() {
   const { data: weeks } = useWeeks(user?.uid || "", selectedYear, selectedQuarter);
   const currentWeek = weeks?.find(w => w.id === selectedWeek);
 
+  // Progress the server rejected, by goal. The card keeps showing it, marked
+  // "Not saved" with a retry, until a save of that goal succeeds.
+  const [unsavedDone, setUnsavedDone] = useState<Map<ID, number>>(() => new Map());
+
   // Sort goals by sortOrder
   const sortedWeeklyGoals = useMemo(() => {
     if (!weeklyGoals) return [];
-    return [...weeklyGoals].sort((a, b) => {
+    return weeklyGoals.map((g) => (unsavedDone.has(g.id) ? { ...g, done: unsavedDone.get(g.id)! } : g)).sort((a, b) => {
       const orderA = a.sortOrder ?? Number.MAX_SAFE_INTEGER;
       const orderB = b.sortOrder ?? Number.MAX_SAFE_INTEGER;
       return orderA - orderB;
     });
-  }, [weeklyGoals]);
+  }, [weeklyGoals, unsavedDone]);
 
   const displayedGoals = sortedWeeklyGoals;
 
@@ -145,15 +149,31 @@ export default function Week() {
         pendingFlip.current = { rects: cardRects(), at: Date.now() };
       }
     }
-    useEditWeeklyGoal.mutate({
-      uid: user!.uid,
-      yearId: selectedYear,
-      quarterId: selectedQuarter,
-      weekId: selectedWeek,
-      goalId,
-      updatedFields: { done },
-    });
-    return;
+    // mutateAsync, not mutate: mutate's per-call callbacks only fire for the latest call.
+    useEditWeeklyGoal
+      .mutateAsync({
+        uid: user!.uid,
+        yearId: selectedYear,
+        quarterId: selectedQuarter,
+        weekId: selectedWeek,
+        goalId,
+        updatedFields: { done },
+      })
+      .then(
+        () =>
+          setUnsavedDone((prev) => {
+            if (!prev.has(goalId)) return prev;
+            const next = new Map(prev);
+            next.delete(goalId);
+            return next;
+          }),
+        () => setUnsavedDone((prev) => new Map(prev).set(goalId, done))
+      );
+  };
+
+  const retrySave = (goalId: ID) => {
+    const done = unsavedDone.get(goalId);
+    if (done !== undefined) onEditWeeklyProgress(goalId, done);
   };
 
   /* ── Completion moment ───────────────────────────────────────────
@@ -482,6 +502,8 @@ export default function Week() {
         <GoalCard
           goal={enrichedGoal}
           onEditWeeklyProgress={onEditWeeklyProgress}
+          saveFailed={unsavedDone.has(goal.id)}
+          onRetrySave={retrySave}
           showParentGoals={showParentsGoals}
           onDelete={handleDeleteWeeklyGoal}
           canDelete={true}

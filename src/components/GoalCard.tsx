@@ -17,6 +17,9 @@ type GoalCardProps = {
   goal: EnrichedGoalType;
   showParentGoals?: boolean;
   onEditWeeklyProgress?: (goalId: ID, done: number) => void;
+  /** The last progress change on this goal didn't reach the server. */
+  saveFailed?: boolean;
+  onRetrySave?: (goalId: ID) => void;
   onDelete?: (goalId: ID) => void;
   canDelete?: boolean;
   deleteWarning?: string;
@@ -29,6 +32,8 @@ type GoalCardProps = {
 export default function GoalCard({
   goal,
   onEditWeeklyProgress,
+  saveFailed = false,
+  onRetrySave,
   showParentGoals = true,
   onDelete,
   canDelete = true,
@@ -229,6 +234,26 @@ export default function GoalCard({
           />
         )}
 
+        {/* Save failed: keep the value on screen and offer a retry */}
+        {goal.type === "week" && saveFailed && (
+          <div role="status" className="-mb-2 flex items-center justify-between gap-2 border-t pt-1">
+            <span className="type-caption-strong inline-flex items-center gap-1.5 text-[var(--signal-danger-text)]">
+              <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M17.5 19H7a5 5 0 1 1 1.1-9.9A6 6 0 0 1 19.5 11 4 4 0 0 1 17.5 19z" />
+                <path d="m10 12 4 4m0-4-4 4" />
+              </svg>
+              {t("goalCard.notSaved")}
+            </span>
+            <button
+              type="button"
+              onClick={() => onRetrySave?.(goal.id)}
+              className="type-caption-strong min-h-11 cursor-pointer px-2 text-[var(--text-primary)] underline underline-offset-2 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--text-primary)]"
+            >
+              {t("goalCard.tryAgain")}
+            </button>
+          </div>
+        )}
+
         {/* Quarter/Year Progress (Read-only) */}
         {(goal.type === "quarter" || goal.type === "year") &&
           !goal.emptyProgress &&
@@ -262,7 +287,7 @@ export default function GoalCard({
   );
 
   return (
-    <Card ref={cardRef} data-expanded={isDesktop && showWoop ? "" : undefined} className="h-full gap-4 py-6 transition-shadow duration-200 hover:shadow-md">
+    <Card ref={cardRef} data-expanded={isDesktop && showWoop ? "" : undefined} className={`h-full gap-4 py-6 transition-shadow duration-200 hover:shadow-md ${saveFailed ? "ring-[1.5px] ring-[var(--signal-danger-fill)]" : ""}`}>
       <CardHeader className="grid-cols-[minmax(0,1fr)] gap-2 px-6">
         {/* Badges and Actions Row */}
         <div className="flex justify-between items-center gap-2">

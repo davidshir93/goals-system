@@ -79,6 +79,8 @@
     "weekCounts": "{{complete}} of {{goals}} goals complete · {{steps}} of {{planned}} steps"
   },
   "goalCard": {
+    "notSaved": "Not saved",
+    "tryAgain": "Try again",
     "outcomes": "Outcomes",
     "obstacles": "Obstacles",
     "plan": "Plan",
@@ -109,6 +111,7 @@
     "parentYearGoal": "🔗 Parent Yearly Goal",
     "selectParentYear": "Select a parent yearly goal.",
     "goalTitle": "✏️ Goal Title",
+    "copyParentGoal": "Copy parent goal",
     "goalPlaceholder": "What do you want to achieve this {{period}}?",
     "description": "📋 Description",
     "descriptionHelp": "Optional short description to clarify your goal.",

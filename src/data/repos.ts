@@ -83,41 +83,37 @@ export const CategoriesRepo = {
   },
 
   async addCategories(uid: ID, items: Category[]): Promise<ID> {
-    try {
-      const batch = writeBatch(db);
+    const batch = writeBatch(db);
 
-      const colRef = collection(db, paths.categories(uid));
+    const colRef = collection(db, paths.categories(uid));
 
-      // 1. Fetch existing docs
-      const snapshot = await getDocs(colRef);
-      const existingIds = snapshot.docs.map((doc) => doc.id);
+    // 1. Fetch existing docs
+    const snapshot = await getDocs(colRef);
+    const existingIds = snapshot.docs.map((doc) => doc.id);
 
-      // 2. Build new set of IDs from form
-      const newIds = items.map((item) => item.id);
+    // 2. Build new set of IDs from form
+    const newIds = items.map((item) => item.id);
 
-      // 3. Queue deletes for docs that are no longer in the form
-      existingIds.forEach((id) => {
-        if (!newIds.includes(id)) {
-          batch.delete(doc(colRef, id));
-        }
+    // 3. Queue deletes for docs that are no longer in the form
+    existingIds.forEach((id) => {
+      if (!newIds.includes(id)) {
+        batch.delete(doc(colRef, id));
+      }
+    });
+
+    // 4. Queue set for current items
+    items.forEach((item) => {
+      const ref = doc(colRef, item.id);
+
+      batch.set(ref, {
+        id: item.id,
+        name: item.name.trim(),
+        color: item.color,
       });
+    });
 
-      // 4. Queue set for current items
-      items.forEach((item) => {
-        const ref = doc(colRef, item.id);
-
-        batch.set(ref, {
-          id: item.id,
-          name: item.name.trim(),
-          color: item.color,
-        });
-      });
-
-      // 5. Commit all changes atomically
-      await batch.commit();
-    } catch (error) {
-      console.error("Error saving items:", error);
-    }
+    // 5. Commit all changes atomically
+    await batch.commit();
     return uid;
   },
 };
@@ -379,6 +375,8 @@ export const WeeksRepo = {
   },
 };
 
+let weeklyEditQueue: Promise<unknown> = Promise.resolve();
+
 export const WeeklyGoals = {
   async listAll(
     uid: ID,
@@ -425,80 +423,87 @@ export const WeeklyGoals = {
     goalId: ID,
     updatedFields: Partial<WeekGoal>
   ): Promise<EditWeeklyGoalPayload> {
-    const batch = writeBatch(db);
+    // Each edit reads before it writes, so two quick taps could commit out of
+    // order and the older value would land last. Queue the read phase so
+    // commits are issued in tap order, without waiting on the server ack.
+    const prepared = weeklyEditQueue.then(async () => {
+      const batch = writeBatch(db);
 
-    const weeklyGoalRef = doc(
-      db,
-      paths.weeklyGoals(uid, yearId, quarterId, weekId),
-      goalId
-    );
+      const weeklyGoalRef = doc(
+        db,
+        paths.weeklyGoals(uid, yearId, quarterId, weekId),
+        goalId
+      );
 
-    batch.update(weeklyGoalRef, updatedFields);
+      batch.update(weeklyGoalRef, updatedFields);
 
-    const weekDocSnap = await getDoc(weeklyGoalRef);
+      const weekDocSnap = await getDoc(weeklyGoalRef);
 
-    const {
-      parentQuarterGoalId,
-      planned: currPlanned,
-      done: currDone,
-    } = mapDoc<WeekGoal>(weekDocSnap);
+      const {
+        parentQuarterGoalId,
+        planned: currPlanned,
+        done: currDone,
+      } = mapDoc<WeekGoal>(weekDocSnap);
 
-    const quarterlyGoalRef = doc(
-      db,
-      paths.quarterlyGoals(uid, yearId, quarterId),
-      parentQuarterGoalId
-    );
+      const quarterlyGoalRef = doc(
+        db,
+        paths.quarterlyGoals(uid, yearId, quarterId),
+        parentQuarterGoalId
+      );
 
-    // Save/update this weeklyGoal's progress under a map
-    const newPlanned = updatedFields.planned ?? currPlanned;
-    const newDone = updatedFields.done ?? currDone;
+      // Save/update this weeklyGoal's progress under a map
+      const newPlanned = updatedFields.planned ?? currPlanned;
+      const newDone = updatedFields.done ?? currDone;
 
-    batch.update(quarterlyGoalRef, {
-      [`weeklyProgress.${goalId}`]: {
-        planned: newPlanned,
-        done: newDone,
-      },
-    });
+      batch.update(quarterlyGoalRef, {
+        [`weeklyProgress.${goalId}`]: {
+          planned: newPlanned,
+          done: newDone,
+        },
+      });
 
-    // Get the quarterly goal to find parent yearly goal and current weekly progress
-    const quarterDocSnap = await getDoc(quarterlyGoalRef);
-    const quarterGoal = mapDoc<QuarterGoal>(quarterDocSnap);
+      // Get the quarterly goal to find parent yearly goal and current weekly progress
+      const quarterDocSnap = await getDoc(quarterlyGoalRef);
+      const quarterGoal = mapDoc<QuarterGoal>(quarterDocSnap);
 
-    // Calculate aggregated totals for this quarterly goal
-    const weeklyProgress = quarterGoal.weeklyProgress || {};
-    const progressValues = Object.entries(weeklyProgress).map(([id, prog]) => {
-      // Use new values for the goal being edited
-      if (id === goalId) {
-        return { planned: newPlanned, done: newDone };
+      // Calculate aggregated totals for this quarterly goal
+      const weeklyProgress = quarterGoal.weeklyProgress || {};
+      const progressValues = Object.entries(weeklyProgress).map(([id, prog]) => {
+        // Use new values for the goal being edited
+        if (id === goalId) {
+          return { planned: newPlanned, done: newDone };
+        }
+        return prog;
+      });
+
+      // Add new entry if this goal wasn't in weeklyProgress yet
+      const goalExists = Object.keys(weeklyProgress).includes(goalId);
+      if (!goalExists) {
+        progressValues.push({ planned: newPlanned, done: newDone });
       }
-      return prog;
+
+      const totalPlanned = progressValues.reduce((acc, p) => acc + p.planned, 0);
+      const totalDone = progressValues.reduce((acc, p) => acc + p.done, 0);
+
+      // Update parent yearly goal's quarterProgress
+      const yearlyGoalRef = doc(
+        db,
+        paths.yearlyGoals(uid, yearId),
+        quarterGoal.parentYearGoalId
+      );
+
+      batch.update(yearlyGoalRef, {
+        [`quarterProgress.${parentQuarterGoalId}`]: {
+          planned: totalPlanned,
+          done: totalDone,
+        },
+      });
+
+      // Commit all changes atomically. Wrapped so the queue doesn't wait on it.
+      return { committed: batch.commit() };
     });
-
-    // Add new entry if this goal wasn't in weeklyProgress yet
-    const goalExists = Object.keys(weeklyProgress).includes(goalId);
-    if (!goalExists) {
-      progressValues.push({ planned: newPlanned, done: newDone });
-    }
-
-    const totalPlanned = progressValues.reduce((acc, p) => acc + p.planned, 0);
-    const totalDone = progressValues.reduce((acc, p) => acc + p.done, 0);
-
-    // Update parent yearly goal's quarterProgress
-    const yearlyGoalRef = doc(
-      db,
-      paths.yearlyGoals(uid, yearId),
-      quarterGoal.parentYearGoalId
-    );
-
-    batch.update(yearlyGoalRef, {
-      [`quarterProgress.${parentQuarterGoalId}`]: {
-        planned: totalPlanned,
-        done: totalDone,
-      },
-    });
-
-    // Commit all changes atomically
-    await batch.commit();
+    weeklyEditQueue = prepared.catch(() => {});
+    await (await prepared).committed;
 
     return {
       uid,
