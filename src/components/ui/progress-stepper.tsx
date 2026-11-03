@@ -1,4 +1,4 @@
-import { useId, useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useId, useLayoutEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { getMotion, prefersReducedMotion } from "@/tokens/motion";
 
@@ -43,7 +43,22 @@ export function ProgressStepper({ label, value, max, onChange, color }: Progress
   // Empty until the user acts, so cards don't announce themselves on page load.
   const [announcement, setAnnouncement] = useState("");
 
+  // The count is drawn twice (see the bar below); both copies animate together.
   const countRef = useRef<HTMLSpanElement>(null);
+  const countOnFillRef = useRef<HTMLSpanElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+
+  // The light copy lives inside the fill but must line up with the dark copy,
+  // so it gets the track's width, kept current here.
+  useEffect(() => {
+    const track = trackRef.current;
+    if (!track) return;
+    const ro = new ResizeObserver(([e]) =>
+      track.style.setProperty("--track-w", `${e.contentRect.width}px`)
+    );
+    ro.observe(track);
+    return () => ro.disconnect();
+  }, []);
   const trophyRef = useRef<SVGSVGElement>(null);
   const prevValue = useRef(value);
 
@@ -58,10 +73,11 @@ export function ProgressStepper({ label, value, max, onChange, color }: Progress
     // Out + in in the lab = 2 × the count token; here only the "in" plays, over both halves.
     if (!reduced) {
       const dy = value > prev ? 8 : -8;
-      countRef.current?.animate(
-        [{ transform: `translateY(${dy}px)`, opacity: 0 }, { transform: "none", opacity: 1 }],
-        { duration: m.count.duration * 2, easing: m.count.easing }
-      );
+      for (const el of [countRef.current, countOnFillRef.current])
+        el?.animate(
+          [{ transform: `translateY(${dy}px)`, opacity: 0 }, { transform: "none", opacity: 1 }],
+          { duration: m.count.duration * 2, easing: m.count.easing }
+        );
     }
 
     // Trophy: pops in after the fill has landed.
@@ -111,6 +127,7 @@ export function ProgressStepper({ label, value, max, onChange, color }: Progress
         </button>
 
         <div
+          ref={trackRef}
           role="progressbar"
           aria-label={t("goalCard.progressLabel", { goal: label })}
           aria-valuemin={0}
@@ -119,8 +136,19 @@ export function ProgressStepper({ label, value, max, onChange, color }: Progress
           aria-valuetext={t("goalCard.progressValue", { done: value, planned: max })}
           className="relative h-9 min-w-0 flex-1 overflow-hidden rounded-full bg-[var(--surface-track)]"
         >
+          {/* Two-tone count. It stays centred on the track and is drawn twice:
+              dark on the empty track, light on the fill. The fill clips the light
+              copy, so the colour changes exactly at the fill's edge, even mid-digit,
+              and the fill's own motion moves that edge.
+              Visual only: the progressbar already says "3 of 5"; reading this too
+              would say it twice, as "3 slash 5". */}
+          <span aria-hidden="true" className="type-body-title absolute inset-0 grid place-items-center tabular-nums text-[var(--text-primary)]">
+            <span ref={countRef} className="inline-block">
+              {value} / {max}
+            </span>
+          </span>
           <div
-            className="absolute inset-y-0 left-0 rounded-full"
+            className="absolute inset-y-0 left-0 overflow-hidden rounded-full"
             style={{
               width: `${pct}%`,
               background: color,
@@ -128,16 +156,16 @@ export function ProgressStepper({ label, value, max, onChange, color }: Progress
               transitionDuration: "var(--motion-progress-duration)",
               transitionTimingFunction: "var(--motion-progress-easing)",
             }}
-          />
-          {/* Visual only: the progressbar already says "3 of 5"; reading this too would say it twice, as "3 slash 5". */}
-          <span
-            aria-hidden="true"
-            className={`type-body-title absolute inset-0 grid place-items-center overflow-hidden tabular-nums ${pct >= 50 ? "text-[var(--text-on-fill)]" : "text-[var(--text-primary)]"}`}
           >
-            <span ref={countRef} className="inline-block">
-              {value} / {max}
+            <span
+              aria-hidden="true"
+              className="type-body-title absolute inset-y-0 left-0 grid w-[var(--track-w,100%)] place-items-center tabular-nums text-[var(--text-on-fill)]"
+            >
+              <span ref={countOnFillRef} className="inline-block">
+                {value} / {max}
+              </span>
             </span>
-          </span>
+          </div>
         </div>
 
         <button
