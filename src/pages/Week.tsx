@@ -194,8 +194,9 @@ export default function Week() {
         return next;
       })
     );
-  const focusIncrease = (id: ID) =>
-    cardEl(id)?.querySelector<HTMLElement>("[data-stepper-inc]")?.focus({ preventScroll: true });
+  // The card wrapper is the keyboard stop (+ − ↑ ↓ log progress on it), so focus goes back there.
+  const focusTarget = (id: ID) => cardEl(id)?.closest<HTMLElement>("[data-sortable-item]") ?? cardEl(id);
+  const focusIncrease = (id: ID) => focusTarget(id)?.focus({ preventScroll: true });
   const slideOthers = (before: Map<string, DOMRect>, skip: ID | null, duration: number, easing: string) => {
     for (const node of document.querySelectorAll<HTMLElement>("[data-goal-id]")) {
       const id = node.dataset.goalId!;
@@ -253,7 +254,7 @@ export default function Week() {
       await wait(100);
       if (!alive()) return abort();
     }
-    const hadFocus = el.contains(document.activeElement);
+    const hadFocus = !!focusTarget(id)?.contains(document.activeElement);
 
     // Reduced motion: nothing moves — fade out of Up next, fade into Done.
     if (reduced) {
@@ -558,6 +559,7 @@ export default function Week() {
               <section aria-labelledby="week-up-next" className="space-y-4">
                 <SortableGoalGrid
                   items={upNextGoals}
+                  progressKeys
                   onReorder={(ids) => handleReorder([...ids, ...doneGoals.map((g) => g.id)])}
                 >
                   {renderGoalCard}
@@ -572,6 +574,7 @@ export default function Week() {
                 </h2>
                 <SortableGoalGrid
                   items={doneGoals}
+                  progressKeys
                   onReorder={(ids) => handleReorder([...upNextGoals.map((g) => g.id), ...ids])}
                 >
                   {renderGoalCard}

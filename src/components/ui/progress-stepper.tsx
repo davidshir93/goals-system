@@ -100,6 +100,8 @@ export function ProgressStepper({ label, value, max, onChange, color }: Progress
       <div dir="ltr" className="flex items-center gap-2">
         <button
           type="button"
+          data-stepper-dec
+          tabIndex={-1} // keyboard: the card is the Tab stop, + − ↑ ↓ on it log progress
           aria-label={t("goalCard.removeOne", { goal: label })}
           aria-disabled={atZero || undefined} // stays focusable, read as "dimmed"
           onClick={() => step(-1)}
@@ -141,6 +143,7 @@ export function ProgressStepper({ label, value, max, onChange, color }: Progress
         <button
           type="button"
           data-stepper-inc
+          tabIndex={-1}
           aria-label={done ? t("goalCard.goalReached", { goal: label }) : t("goalCard.addOne", { goal: label })}
           aria-disabled={done || undefined}
           onClick={() => step(+1)}
