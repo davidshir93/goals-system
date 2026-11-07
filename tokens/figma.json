@@ -410,7 +410,7 @@
       "ember": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#4e2f23"
+          "$value": "#613522"
         },
         "bg-light": {
           "$type": "color",
@@ -426,7 +426,7 @@
         },
         "text-dark": {
           "$type": "color",
-          "$value": "#ff8854"
+          "$value": "#ff8e5b"
         },
         "text-light": {
           "$type": "color",
@@ -436,7 +436,7 @@
       "lime": {
         "bg-dark": {
           "$type": "color",
-          "$value": "#323c1e"
+          "$value": "#3b481b"
         },
         "bg-light": {
           "$type": "color",
@@ -452,7 +452,7 @@
         },
         "text-dark": {
           "$type": "color",
-          "$value": "#99be3c"
+          "$value": "#9fc544"
         },
         "text-light": {
           "$type": "color",
@@ -988,7 +988,7 @@
     },
     "Hebrew": {
       "Body Text": {
-        "$description": "Hebrew partner of &quot;Body Text&quot;. Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches &quot;Body Text&quot;.",
+        "$description": "Hebrew partner of \"Body Text\". Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches \"Body Text\".",
         "$extensions": {
           "com.figma": {
             "fontStyle": "Regular"
@@ -1010,7 +1010,7 @@
         }
       },
       "Body Title": {
-        "$description": "Hebrew partner of &quot;Body Title&quot;. Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches &quot;Body Title&quot;.",
+        "$description": "Hebrew partner of \"Body Title\". Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches \"Body Title\".",
         "$extensions": {
           "com.figma": {
             "fontStyle": "SemiBold"
@@ -1032,7 +1032,7 @@
         }
       },
       "Caption": {
-        "$description": "Hebrew partner of &quot;Caption&quot;. Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches &quot;Caption&quot;.",
+        "$description": "Hebrew partner of \"Caption\". Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches \"Caption\".",
         "$extensions": {
           "com.figma": {
             "fontStyle": "Regular"
@@ -1054,7 +1054,7 @@
         }
       },
       "Caption Strong": {
-        "$description": "Hebrew partner of &quot;Caption Strong&quot;. Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches &quot;Caption Strong&quot;.",
+        "$description": "Hebrew partner of \"Caption Strong\". Same size, weight and line height, set in IBM Plex Sans Hebrew. In code there is no separate token: IBM Plex Sans Hebrew sits after Google Sans Flex in --font-text (size-adjust 100%) and the build checks this style matches \"Caption Strong\".",
         "$extensions": {
           "com.figma": {
             "fontStyle": "SemiBold"
@@ -1076,7 +1076,7 @@
         }
       },
       "Display": {
-        "$description": "Hebrew partner of &quot;Display&quot;. Set in Suez One (one weight only) at 113% of the Latin size, with the same line height in px. In code there is no separate token: Suez One sits after Bitter in --font-display with size-adjust 113%, and the build checks this style matches &quot;Display&quot;.",
+        "$description": "Hebrew partner of \"Display\". Set in Suez One (one weight only) at 113% of the Latin size, with the same line height in px. In code there is no separate token: Suez One sits after Bitter in --font-display with size-adjust 113%, and the build checks this style matches \"Display\".",
         "$extensions": {
           "com.figma": {
             "fontStyle": "Regular"
@@ -1098,7 +1098,7 @@
         }
       },
       "Main Title": {
-        "$description": "Hebrew partner of &quot;Main Title&quot;. Set in Suez One (one weight only) at 113% of the Latin size, with the same line height in px. In code there is no separate token: Suez One sits after Bitter in --font-display with size-adjust 113%, and the build checks this style matches &quot;Main Title&quot;.",
+        "$description": "Hebrew partner of \"Main Title\". Set in Suez One (one weight only) at 113% of the Latin size, with the same line height in px. In code there is no separate token: Suez One sits after Bitter in --font-display with size-adjust 113%, and the build checks this style matches \"Main Title\".",
         "$extensions": {
           "com.figma": {
             "fontStyle": "Regular"
@@ -1120,7 +1120,7 @@
         }
       },
       "Page Title": {
-        "$description": "Hebrew partner of &quot;Page Title&quot;. Set in Suez One (one weight only) at 113% of the Latin size, with the same line height in px. In code there is no separate token: Suez One sits after Bitter in --font-display with size-adjust 113%, and the build checks this style matches &quot;Page Title&quot;.",
+        "$description": "Hebrew partner of \"Page Title\". Set in Suez One (one weight only) at 113% of the Latin size, with the same line height in px. In code there is no separate token: Suez One sits after Bitter in --font-display with size-adjust 113%, and the build checks this style matches \"Page Title\".",
         "$extensions": {
           "com.figma": {
             "fontStyle": "Regular"

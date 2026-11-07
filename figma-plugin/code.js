@@ -69,9 +69,9 @@ var TIERS = {
 var CHROMA_CAP = 0.30;      // ceiling on category fill saturation (gamut edge in practice)
 
 // Signals keep their own, calmer recipe: they become words, not bars.
-var SIGNAL_TIER = { fillL: 56, fillD: 74, bgL: [95, 0.035], bgD: [42, 0.07] };
+var SIGNAL_TIER = { fillL: 56, fillD: 74, bgL: [95, 0.035], bgD: [38, 0.07] };   // bgD 42 → 38: dark signal text failed 4.5 on its tint
 var SIGNAL_CHROMA_CAP = 0.18;
-var SIGNAL_TEXT = { L_light: 47, L_dark: 75, C: 0.16 };
+var SIGNAL_TEXT = { L_light: 47, L_dark: 77, C: 0.16 };   // L_dark 75 → 77, same reason
 
 // [name, hue, tier, light-mode fillL override]. Names are the stored category
 // ids and never change, even where the hue has moved (olive is now emerald,

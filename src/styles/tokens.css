@@ -73,15 +73,15 @@
   --signal-ember-fill-light: #bc4d13;
   --signal-ember-fill-dark: #fb8654;
   --signal-ember-bg-light: #ffe8dc;
-  --signal-ember-bg-dark: #4e2f23;
+  --signal-ember-bg-dark: #613522;
   --signal-ember-text-light: #9f2f00;
-  --signal-ember-text-dark: #ff8854;
+  --signal-ember-text-dark: #ff8e5b;
   --signal-lime-fill-light: #658114;
   --signal-lime-fill-dark: #94bc23;
   --signal-lime-bg-light: #e9f3da;
-  --signal-lime-bg-dark: #323c1e;
+  --signal-lime-bg-dark: #3b481b;
   --signal-lime-text-light: #496700;
-  --signal-lime-text-dark: #99be3c;
+  --signal-lime-text-dark: #9fc544;
 }
 
 /* Hebrew faces. Self-hosted so they can carry size-adjust, taken from the
