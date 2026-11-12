@@ -6,6 +6,8 @@ import {
   type DocumentData,
   addDoc,
   getDoc,
+  getDocFromCache,
+  type DocumentReference,
   doc,
   setDoc,
   writeBatch,
@@ -377,6 +379,19 @@ export const WeeksRepo = {
 
 let weeklyEditQueue: Promise<unknown> = Promise.resolve();
 
+// Read from the local cache first. It already holds every goal on screen (plus
+// any pending writes) and answers in milliseconds. A server read can take
+// seconds on a mobile connection, and until batch.commit() runs the tap exists
+// only in memory: closing or backgrounding the app in that window lost it
+// silently. Falls back to the server only if the doc isn't cached.
+async function getDocLocalFirst(ref: DocumentReference) {
+  try {
+    return await getDocFromCache(ref);
+  } catch {
+    return getDoc(ref);
+  }
+}
+
 export const WeeklyGoals = {
   async listAll(
     uid: ID,
@@ -437,7 +452,7 @@ export const WeeklyGoals = {
 
       batch.update(weeklyGoalRef, updatedFields);
 
-      const weekDocSnap = await getDoc(weeklyGoalRef);
+      const weekDocSnap = await getDocLocalFirst(weeklyGoalRef);
 
       const {
         parentQuarterGoalId,
@@ -463,7 +478,7 @@ export const WeeklyGoals = {
       });
 
       // Get the quarterly goal to find parent yearly goal and current weekly progress
-      const quarterDocSnap = await getDoc(quarterlyGoalRef);
+      const quarterDocSnap = await getDocLocalFirst(quarterlyGoalRef);
       const quarterGoal = mapDoc<QuarterGoal>(quarterDocSnap);
 
       // Calculate aggregated totals for this quarterly goal
